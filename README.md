@@ -27,5 +27,6 @@ SimOverlayNG is a software creating livestream overlay for you, flight simmers.
 - Landing rate widget
 
 # Legal notice
-SimOverlayNG is currently under exclusive copyright. But feel free to contact me if you'd like to modify, redistribute, or contribute to this project.
-This software depends on [FSUIPC-Java](https://github.com/Mouseviator/FSUIPC-Java) which is licensed under [LGPL v3.0](https://github.com/Mouseviator/FSUIPC-Java/blob/master/LICENSE.txt).
+SimOverlayNG copyright by LazoYoung. Feel free to contact me if you'd like to modify, redistribute, or contribute to this project.
+
+This software depends on [FSUIPC-Java by Mouseviator](https://github.com/Mouseviator/FSUIPC-Java) which is licensed under [LGPL v3.0](https://github.com/Mouseviator/FSUIPC-Java/blob/master/LICENSE.txt).
