@@ -1,6 +1,8 @@
 # SimOverlayNG
 SimOverlayNG is a software creating livestream overlay for you, flight simmers.
 
+> Beware this project is under development!
+
 # Prerequisite
 - FSUIPC7 running in the background
 - Any flight simulator compatible with FSUIPC
