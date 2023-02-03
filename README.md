@@ -1,30 +1,37 @@
 # SimOverlayNG
-SimOverlayNG is a software creating livestream overlay for you, flight simmers.
+> This project is under development.
 
-> Beware this project is under development!
+SimOverlayNG is a software creating livestream overlays for flight simmers.
 
 # Prerequisite
-- FSUIPC7 running in the background
-- Any flight simulator compatible with FSUIPC
+SimOverlayNG is written in Java 17. It uses FSUIPC to communicate with your simulator.
+
+- [Java 17+](https://www.oracle.com/java/technologies/downloads/)
+- [FSUIPC](http://www.fsuipc.com/)
 
 # Planned features
 ## Short term
-- Stock overlay template provided
-- Animated, changing texts
 - Reads simulator data through FSUIPC
-  - Callsign
   - Track distance (NM, km)
   - ETA
-  - Departure/Arrival airport (ICAO, IATA, Name, City) 
+  - Departure/Arrival airport (ICAO, IATA, Name, City)
   -	Aircraft type (ICAO)
+  - Aircraft name
   -	Altitude (ft, m)
   -	Heading (MAG, TRU)
   -	Ground/Air speed (knot, km/h, mph)
   -	Vertical speed (fpm, m/s)
   -	Sim/Real time (UTC)
-  -	Latitude/Longtitude
+  -	Latitude/Longitude
+  - ... and more
+- Stock overlay templates
+  - HUD
+  - Platform display
+  - Boarding pass
+- Animated, changing text
+- Customizable text including data placeholders
+
 ## Long term
-- Customizable templates
 - Overlay template editor
 - Landing rate widget
 
