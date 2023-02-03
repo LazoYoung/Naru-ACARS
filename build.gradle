@@ -21,6 +21,9 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
+	// OpenCSV
+	implementation 'com.opencsv:opencsv:5.7.1'
+
 	// FSUIPC
 	implementation files(fsuipc)
 }

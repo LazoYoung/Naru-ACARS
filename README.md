@@ -12,17 +12,11 @@ SimOverlayNG is written in Java 17. It uses FSUIPC to communicate with your simu
 # Planned features
 ## Short term
 - Reads simulator data through FSUIPC
-  - Track distance (NM, km)
-  - ETA
-  - Departure/Arrival airport (ICAO, IATA, Name, City)
-  -	Aircraft type (ICAO)
-  - Aircraft name
-  -	Altitude (ft, m)
-  -	Heading (MAG, TRU)
-  -	Ground/Air speed (knot, km/h, mph)
-  -	Vertical speed (fpm, m/s)
-  -	Sim/Real time (UTC)
-  -	Latitude/Longitude
+  -	Local/Zulu time
+  - ETA/ETE
+  - Route distance
+  - Airport data (ICAO, IATA, Name, City)
+  -	Aircraft data (ICAO, Name, Altitude, Heading, Ground/Airspeed, VS, Lat/Longitude)
   - ... and more
 - Stock overlay templates
   - HUD

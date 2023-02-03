@@ -4,9 +4,8 @@ import com.mouseviator.fsuipc.FSUIPC;
 import com.mouseviator.fsuipc.FSUIPCWrapper;
 import com.mouseviator.fsuipc.IFSUIPCListener;
 import com.mouseviator.fsuipc.datarequest.IDataRequest;
-import com.mouseviator.fsuipc.datarequest.primitives.DoubleRequest;
-import com.mouseviator.fsuipc.datarequest.primitives.FloatRequest;
-import com.mouseviator.fsuipc.helpers.aircraft.AircraftHelper;
+import com.naver.idealproduction.song.unit.Length;
+import com.naver.idealproduction.song.unit.Speed;
 
 import java.util.AbstractQueue;
 import java.util.logging.Logger;
@@ -14,21 +13,16 @@ import java.util.logging.Logger;
 public class SimMonitor implements IFSUIPCListener {
 
     private static final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
-    private final FSUIPC fsuipc;
-    private final IDataRequest<String> aircraftType;
-    private final DoubleRequest altitude;
-    private final FloatRequest airspeed;
+    private final FSUIPC fsuipc = FSUIPC.getInstance();
+    private final SimData data;
+    private final int period;
 
-    @SuppressWarnings("unchecked")
-    public SimMonitor() {
-        var aircraftHelper = new AircraftHelper();
-        fsuipc = FSUIPC.getInstance();
-        aircraftType = fsuipc.addContinualRequest(aircraftHelper.getATCAircraftType());
-        altitude = (DoubleRequest) fsuipc.addContinualRequest(aircraftHelper.getAltitude(true));
-        airspeed = (FloatRequest) fsuipc.addContinualRequest(aircraftHelper.getIAS());
+    public SimMonitor(int ms) {
+        data = new SimData(fsuipc);
+        period = ms;
     }
 
-    public void start(int ms) {
+    public void start() {
         Thread waiterThread = new Thread(() -> {
             boolean success = fsuipc.waitForConnection(FSUIPCWrapper.FSUIPCSimVersion.SIM_ANY, 5);
 
@@ -42,13 +36,13 @@ public class SimMonitor implements IFSUIPCListener {
 
         fsuipc.addListener(this);
         waiterThread.start();
-        fsuipc.processRequests(ms, true);
     }
 
     @Override
     public void onConnected() {
         logger.info("Connected to FSUIPC!");
         logger.info("Detected simulator: " + fsuipc.getFSVersion());
+        fsuipc.processRequests(period, true);
     }
 
     @Override
@@ -58,10 +52,20 @@ public class SimMonitor implements IFSUIPCListener {
 
     @Override
     public void onProcess(AbstractQueue<IDataRequest> arRequests) {
-        logger.info("-- Aircraft data report --");
-        logger.info(String.format("Aircraft type: %s", aircraftType.getValue()));
-        logger.info(String.format("Aircraft altitude: %.0f ft", altitude.getValue()));
-        logger.info(String.format("Aircraft airspeed: %.0f knots", airspeed.getValue()));
+        try {
+            log("-- SimMonitor report --");
+            log("Aircraft type: %s", data.getAircraftType());
+            log("Aircraft name: %s", data.getAircraftName());
+            log("Aircraft altitude: %d ft", data.getAltitude(Length.FEET));
+            log("Aircraft true heading: %d", data.getHeading(false));
+            log("Aircraft mag. heading: %d", data.getHeading(true));
+            log("Aircraft airspeed: %d knots", data.getAirspeed(Speed.KNOT));
+            log("Aircraft ground speed: %d knots", data.getGroundSpeed(Speed.KNOT));
+            log("Aircraft latitude: %.9f", data.getLatitude());
+            log("Aircraft longitude: %.9f", data.getLongitude());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -72,5 +76,9 @@ public class SimMonitor implements IFSUIPCListener {
 
     public void terminate() {
         fsuipc.disconnect();
+    }
+
+    private void log(String format, Object... args) {
+        logger.info(String.format(format, args));
     }
 }

@@ -16,7 +16,6 @@ public class SimOverlayNG {
 
 		if (FSUIPC.load() != FSUIPC.LIB_LOAD_RESULT_OK) {
 			logger.severe("Failed to load library: FSUIPC_Java");
-			logger.severe("Confirm fsuipc_java64.dll is installed?");
 			return;
 		}
 
