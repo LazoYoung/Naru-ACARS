@@ -8,18 +8,25 @@ import com.naver.idealproduction.song.unit.Length;
 import com.naver.idealproduction.song.unit.Speed;
 
 import java.util.AbstractQueue;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class SimMonitor implements IFSUIPCListener {
 
     private static final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
     private final FSUIPC fsuipc = FSUIPC.getInstance();
+    private final List<SimUpdateListener> listeners = new ArrayList<>();
     private final SimData data;
-    private final int period;
+    private final int refreshRate;
 
-    public SimMonitor(int ms) {
-        data = new SimData(fsuipc);
-        period = ms;
+    public SimMonitor(int refreshRate) {
+        data = new SimData();
+        this.refreshRate = refreshRate;
+    }
+
+    public int getRefreshRate() {
+        return refreshRate;
     }
 
     public void start() {
@@ -38,21 +45,35 @@ public class SimMonitor implements IFSUIPCListener {
         waiterThread.start();
     }
 
+    public void terminate() {
+        fsuipc.disconnect();
+        logger.info("Disconnected from FSUIPC.");
+    }
+
+    public void addUpdateListener(SimUpdateListener listener) {
+        listeners.add(listener);
+    }
+
     @Override
     public void onConnected() {
         logger.info("Connected to FSUIPC!");
         logger.info("Detected simulator: " + fsuipc.getFSVersion());
-        fsuipc.processRequests(period, true);
+        fsuipc.processRequests(refreshRate, true);
+        notifyListeners();
     }
 
     @Override
     public void onDisconnected() {
-        logger.info("Disconnected from FSUIPC.");
+        notifyListeners();
+        terminate();
+        start();
     }
 
     @Override
     public void onProcess(AbstractQueue<IDataRequest> arRequests) {
         try {
+            notifyListeners();
+
             log("-- SimMonitor report --");
             log("Aircraft type: %s", data.getAircraftType());
             log("Aircraft name: %s", data.getAircraftName());
@@ -68,14 +89,14 @@ public class SimMonitor implements IFSUIPCListener {
         }
     }
 
+    private void notifyListeners() {
+        listeners.forEach(e -> e.onUpdate(data));
+    }
+
     @Override
     public void onFail(int lastResult) {
         String msg = FSUIPC.FSUIPC_ERROR_MESSAGES.get(FSUIPCWrapper.FSUIPCResult.get(lastResult));
         logger.warning("FSUIPC error: " + msg);
-    }
-
-    public void terminate() {
-        fsuipc.disconnect();
     }
 
     private void log(String format, Object... args) {

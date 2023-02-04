@@ -18,6 +18,8 @@ import java.time.LocalTime;
 public class SimData {
 
     private final AirportRepository airportRepo = new AirportRepository();
+    private final FSUIPC fsuipc = FSUIPC.getInstance();
+    private final IDataRequest<Float> fps;
     private final StringRequest aircraftType;
     private final StringRequest aircraftName;
     private final DoubleRequest altitude;
@@ -36,10 +38,11 @@ public class SimData {
 //    private final IDataRequest<Integer> eta;
 
     @SuppressWarnings("unchecked")
-    protected SimData(FSUIPC fsuipc) {
+    public SimData() {
         var aircraft = new AircraftHelper();
         var gps = new GPSHelper();
         var sim = new SimHelper();
+        fps = fsuipc.addContinualRequest(sim.getFrameRate());
         aircraftLatitude = (DoubleRequest) fsuipc.addContinualRequest(aircraft.getLatitude());
         aircraftLongitude = (DoubleRequest) fsuipc.addContinualRequest(aircraft.getLongitude());
         aircraftType = (StringRequest) fsuipc.addContinualRequest(new StringRequest(0x0618, 16));
@@ -56,6 +59,10 @@ public class SimData {
         groundSpeed = (IDataRequest<Double>) fsuipc.addContinualRequest(gps.getGroundSpeed(true));
         verticalSpeed = (FloatRequest) fsuipc.addContinualRequest(aircraft.getVerticalSpeed(true));
         localTime = (IntRequest) fsuipc.addContinualRequest(sim.getLocalTime());
+    }
+
+    public boolean isConnected() {
+        return fsuipc.isConnected();
     }
 
     public String getAircraftType() {
@@ -105,6 +112,14 @@ public class SimData {
 
     public double getLongitude() {
         return aircraftLongitude.getValue();
+    }
+
+    public String getSimulator() {
+        return fsuipc.getFSVersion();
+    }
+
+    public int getFramerate() {
+        return Math.round(fps.getValue());
     }
 
 //    public int getRouteDistance(Length unit) {
