@@ -4,6 +4,8 @@ import com.naver.idealproduction.song.SimMonitor;
 
 import javax.swing.*;
 
+import java.awt.*;
+
 import static javax.swing.JOptionPane.*;
 
 public class Window extends JFrame {
@@ -14,7 +16,7 @@ public class Window extends JFrame {
         this.simMonitor = simMonitor;
 
         setResizable(false);
-        setSize(800, 500);
+        setPreferredSize(new Dimension(800, 500));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setTitle("SimOverlayNG");
@@ -25,6 +27,7 @@ public class Window extends JFrame {
         contentPane.addTab("Dashboard", dashboard);
         contentPane.addTab("Console", console);
         setContentPane(contentPane);
+        pack();
     }
 
     public void showDialog(int type, String message) {

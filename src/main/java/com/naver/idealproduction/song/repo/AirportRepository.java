@@ -57,7 +57,8 @@ public class AirportRepository {
 
             while ((line = csv.readNext()) != null) {
                 int idx = columnLocator.get(DataType.ICAO);
-                rowLocator.put(line[idx], row++);
+                String icao = line[idx].toLowerCase();
+                rowLocator.put(icao, row++);
             }
         } catch (IOException | CsvValidationException e) {
             throw new RuntimeException(e);
@@ -65,8 +66,12 @@ public class AirportRepository {
     }
 
     public Airport get(String icao) {
-        int row = rowLocator.get(icao);
+        Integer row = rowLocator.get(icao.toLowerCase());
         File file;
+
+        if (icao.isBlank() || row == null) {
+            return null;
+        }
 
         try {
             file = getCSVFile();

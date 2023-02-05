@@ -17,6 +17,7 @@ public class SimMonitor implements IFSUIPCListener {
     private static final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
     private final FSUIPC fsuipc = FSUIPC.getInstance();
     private final List<SimUpdateListener> listeners = new ArrayList<>();
+
     private final SimData data;
     private final int refreshRate;
 
@@ -27,6 +28,10 @@ public class SimMonitor implements IFSUIPCListener {
 
     public int getRefreshRate() {
         return refreshRate;
+    }
+
+    public SimData getData() {
+        return data;
     }
 
     public void start() {

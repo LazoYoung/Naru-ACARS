@@ -9,11 +9,13 @@ import com.mouseviator.fsuipc.datarequest.primitives.StringRequest;
 import com.mouseviator.fsuipc.helpers.SimHelper;
 import com.mouseviator.fsuipc.helpers.aircraft.AircraftHelper;
 import com.mouseviator.fsuipc.helpers.avionics.GPSHelper;
+import com.naver.idealproduction.song.entity.Airport;
 import com.naver.idealproduction.song.repo.AirportRepository;
 import com.naver.idealproduction.song.unit.Length;
 import com.naver.idealproduction.song.unit.Speed;
 
 import java.time.LocalTime;
+import java.util.Optional;
 
 public class SimData {
 
@@ -63,6 +65,10 @@ public class SimData {
 
     public boolean isConnected() {
         return fsuipc.isConnected();
+    }
+
+    public Optional<Airport> getAirport(String icao) {
+        return Optional.ofNullable(airportRepo.get(icao));
     }
 
     public String getAircraftType() {
