@@ -21,7 +21,11 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
+	// Mockito
+	testImplementation "org.mockito:mockito-core:3.+"
+
 	// OpenCSV
+	//noinspection VulnerableLibrariesLocal
 	implementation 'com.opencsv:opencsv:5.7.1'
 
 	// FSUIPC

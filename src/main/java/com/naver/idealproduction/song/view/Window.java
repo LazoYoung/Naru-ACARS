@@ -25,8 +25,6 @@ public class Window extends JFrame {
         contentPane.addTab("Dashboard", dashboard);
         contentPane.addTab("Console", console);
         setContentPane(contentPane);
-
-        simMonitor.addUpdateListener(dashboard);
     }
 
     public void showDialog(int type, String message) {

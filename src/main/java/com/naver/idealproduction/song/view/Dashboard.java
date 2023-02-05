@@ -37,6 +37,7 @@ public class Dashboard extends JSplitPane implements SimUpdateListener {
         setRightComponent(dispatchPane);
         setDividerSize(0);
         setResizeWeight(0.0);
+        simMonitor.addUpdateListener(this);
     }
 
     @Override
