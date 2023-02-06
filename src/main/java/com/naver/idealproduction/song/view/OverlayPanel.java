@@ -2,9 +2,9 @@ package com.naver.idealproduction.song.view;
 
 import javax.swing.*;
 
-public class Console extends JPanel {
+public class OverlayPanel extends JPanel {
 
-    public Console() {
+    public OverlayPanel() {
         // todo method stub
     }
 

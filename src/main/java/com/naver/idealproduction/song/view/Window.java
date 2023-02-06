@@ -23,9 +23,9 @@ public class Window extends JFrame {
 
         var contentPane = new JTabbedPane();
         var dashboard = new Dashboard(simMonitor);
-        var console = new Console();
+        var console = new OverlayPanel();
         contentPane.addTab("Dashboard", dashboard);
-        contentPane.addTab("Console", console);
+        contentPane.addTab("Overlay", console);
         setContentPane(contentPane);
         pack();
     }

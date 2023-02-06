@@ -1,7 +1,9 @@
 package com.naver.idealproduction.song.view;
 
+import com.naver.idealproduction.song.ConsoleHandlerNG;
 import com.naver.idealproduction.song.SimData;
 import com.naver.idealproduction.song.SimMonitor;
+import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.Airport;
 
 import javax.swing.*;
@@ -12,13 +14,18 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.util.Optional;
+import java.util.logging.Logger;
 
-import static javax.swing.GroupLayout.*;
+import static javax.swing.GroupLayout.Alignment.BASELINE;
 import static javax.swing.GroupLayout.Alignment.LEADING;
+import static javax.swing.GroupLayout.DEFAULT_SIZE;
+import static javax.swing.GroupLayout.PREFERRED_SIZE;
+import static javax.swing.LayoutStyle.ComponentPlacement.RELATED;
 import static javax.swing.LayoutStyle.ComponentPlacement.UNRELATED;
 
 public class Dashboard extends JSplitPane {
 
+    private final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
     private final SimMonitor simMonitor;
     private final JPanel leftPane = new JPanel();
     private final JPanel rightPane = new JPanel();
@@ -43,7 +50,7 @@ public class Dashboard extends JSplitPane {
     private TextFieldNG arrInput;
     private JLabel depHint;
     private JLabel arrHint;
-    private JButton saveBtn;
+    private JButton submitBtn;
 
     public Dashboard(SimMonitor simMonitor) {
         super(HORIZONTAL_SPLIT);
@@ -74,15 +81,19 @@ public class Dashboard extends JSplitPane {
     private void validateInput() {
         var dep = Optional.ofNullable(depInput.getText()).orElse("");
         var arr = Optional.ofNullable(arrInput.getText()).orElse("");
+        var depHintSize = depHint.getSize();
+        var arrHintSize = arrHint.getSize();
         SimData data = simMonitor.getData();
         Optional<Airport> departure = data.getAirport(dep);
         Optional<Airport> arrival = data.getAirport(arr);
 
-        depHint.setText(departure.isEmpty() ? notFound : departure.get().getName());
-        arrHint.setText(arrival.isEmpty() ? notFound : arrival.get().getName());
-        depHint.setForeground(departure.isEmpty() ? Color.red : Color.white);
-        arrHint.setForeground(arrival.isEmpty() ? Color.red : Color.white);
-        saveBtn.setEnabled(departure.isPresent() && arrival.isPresent());
+        depHint.setText(departure.map(Airport::getName).orElse(notFound));
+        arrHint.setText(arrival.map(Airport::getName).orElse(notFound));
+        depHint.setPreferredSize(depHintSize);
+        arrHint.setPreferredSize(arrHintSize);
+        depHint.setForeground(departure.isEmpty() ? Color.yellow : Color.green);
+        arrHint.setForeground(arrival.isEmpty() ? Color.yellow : Color.green);
+        submitBtn.setEnabled(departure.isPresent() && arrival.isPresent());
     }
 
     private void onUpdate(SimData data) {
@@ -129,82 +140,97 @@ public class Dashboard extends JSplitPane {
     }
 
     private void bakeRightPane() {
+        var dispatcherPane = new JPanel();
         var formPane = new JPanel();
         var formLayout = new GroupLayout(formPane);
-        var labelFont = new Font("Monospaced", Font.BOLD, 16);
+        var labelFont = new Font("Monospaced", Font.BOLD, 14);
         var hintFont = new Font("Monospaced", Font.BOLD, 14);
         var csLabel = bakeLabel("Callsign", labelFont, Color.black);
         var acfLabel = bakeLabel("Aircraft", labelFont, Color.black);
         var depLabel = bakeLabel("Departure", labelFont, Color.black);
         var arrLabel = bakeLabel("Arrival", labelFont, Color.black);
-        csInput = new TextFieldNG(8, true);
-        acfInput = new TextFieldNG(8, true);
-        depInput = new TextFieldNG("ICAO", 8, true);
-        arrInput = new TextFieldNG("ICAO", 8, true);
-        depHint = bakeLabel(notFound, hintFont, Color.red);
-        arrHint = bakeLabel(notFound, hintFont, Color.red);
+        csInput = new TextFieldNG(6, true);
+        acfInput = new TextFieldNG(6, true);
+        depInput = new TextFieldNG("ICAO", 6, true);
+        arrInput = new TextFieldNG("ICAO", 6, true);
+        depHint = bakeLabel(notFound, hintFont, Color.yellow);
+        arrHint = bakeLabel(notFound, hintFont, Color.yellow);
         var hGroup = formLayout.createSequentialGroup()
-                .addContainerGap(50, 50)
+                .addContainerGap(20, 20)
                 .addGroup(formLayout.createParallelGroup(LEADING, false)
                         .addComponent(csLabel, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
                         .addComponent(csInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
+                        .addComponent(acfLabel, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
+                        .addComponent(acfInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE))
+                .addPreferredGap(UNRELATED)
+                .addGroup(formLayout.createParallelGroup(LEADING, false)
                         .addComponent(depLabel, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
                         .addComponent(depInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
                         .addComponent(arrLabel, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
                         .addComponent(arrInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE))
-                .addGap(40)
-                .addGroup(formLayout.createParallelGroup(LEADING, false)
-                        .addComponent(acfLabel, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
-                        .addComponent(acfInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
-                        .addComponent(depHint, DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(arrHint, DEFAULT_SIZE, DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(UNRELATED, PREFERRED_SIZE, Short.MAX_VALUE);
+                .addPreferredGap(RELATED)
+                .addGroup(formLayout.createParallelGroup(LEADING, true)
+                        .addComponent(depHint, PREFERRED_SIZE, PREFERRED_SIZE, Short.MAX_VALUE)
+                        .addComponent(arrHint, PREFERRED_SIZE, PREFERRED_SIZE, Short.MAX_VALUE))
+                .addContainerGap(20, 20);
         var vGroup = formLayout.createSequentialGroup()
-                .addContainerGap(40, 40)
-                .addGroup(formLayout.createParallelGroup(LEADING)
+                .addContainerGap(20, 20)
+                .addGroup(formLayout.createParallelGroup(BASELINE)
                         .addComponent(csLabel)
-                        .addComponent(acfLabel))
-                .addGroup(formLayout.createParallelGroup(LEADING, false)
+                        .addComponent(depLabel))
+                .addGroup(formLayout.createParallelGroup(BASELINE, false)
                         .addComponent(csInput)
-                        .addComponent(acfInput))
-                .addGap(10)
-                .addComponent(depLabel)
-                .addGroup(formLayout.createParallelGroup(LEADING, false)
                         .addComponent(depInput)
                         .addComponent(depHint))
                 .addGap(10)
-                .addComponent(arrLabel)
-                .addGroup(formLayout.createParallelGroup(LEADING, false)
+                .addGroup(formLayout.createParallelGroup(BASELINE, false)
+                        .addComponent(acfLabel)
+                        .addComponent(arrLabel))
+                .addGroup(formLayout.createParallelGroup(BASELINE, false)
+                        .addComponent(acfInput)
                         .addComponent(arrInput)
-                        .addComponent(arrHint));
-
+                        .addComponent(arrHint))
+                .addContainerGap(20, 20);
         var actionPane = new JPanel();
-        var simbriefBtn = new JButton("SIMBRIEF");
-        saveBtn = new JButton("SAVE");
+        var simbriefBtn = new JButton("Simbrief");
+        submitBtn = new JButton("SUBMIT");
+        var consolePane = new JPanel(new GridLayout(1, 1));
+        var consoleArea = new JTextArea();
 
+        // Flight Dispatcher
         depInput.getDocument().addDocumentListener(docListener);
         arrInput.getDocument().addDocumentListener(docListener);
         depHint.setOpaque(true);
         arrHint.setOpaque(true);
         depHint.setBorder(getMargin(depHint, 0, 10, 0, 10));
         arrHint.setBorder(getMargin(arrHint, 0, 10, 0, 10));
-        depHint.setBackground(Color.lightGray);
-        arrHint.setBackground(Color.lightGray);
-        saveBtn.setEnabled(false);
+        depHint.setBackground(Color.gray);
+        arrHint.setBackground(Color.gray);
+        submitBtn.setEnabled(false);
         actionPane.setLayout(new BoxLayout(actionPane, BoxLayout.X_AXIS));
         actionPane.add(Box.createHorizontalGlue());
         actionPane.add(simbriefBtn);
         actionPane.add(getRigidGap(10, 0));
-        actionPane.add(saveBtn);
-        actionPane.add(getRigidGap(50, 0));
+        actionPane.add(submitBtn);
+        actionPane.add(getRigidGap(20, 0));
         formLayout.setHorizontalGroup(hGroup);
         formLayout.setVerticalGroup(vGroup);
         formPane.setLayout(formLayout);
+        dispatcherPane.setBorder(BorderFactory.createTitledBorder("Flight Dispatcher"));
+        dispatcherPane.setLayout(new BoxLayout(dispatcherPane, BoxLayout.Y_AXIS));
+        dispatcherPane.add(formPane);
+        dispatcherPane.add(getRigidGap(0, 10));
+        dispatcherPane.add(actionPane);
+        dispatcherPane.add(getRigidGap(0, 20));
+
+        // Console
+        consoleArea.setEditable(false);
+        consolePane.setBorder(BorderFactory.createTitledBorder("Console"));
+        consolePane.add(new JScrollPane(consoleArea));
+        logger.addHandler(new ConsoleHandlerNG(consoleArea));
         rightPane.setLayout(new BoxLayout(rightPane, BoxLayout.Y_AXIS));
-        rightPane.add(formPane);
-        rightPane.add(Box.createVerticalGlue());
-        rightPane.add(actionPane);
-        rightPane.add(getRigidGap(0, 50));
+        rightPane.add(dispatcherPane);
+        rightPane.add(consolePane);
     }
 
     private JLabel bakeLabel(String text, Font font, Color color) {

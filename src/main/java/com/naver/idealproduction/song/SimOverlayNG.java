@@ -46,11 +46,10 @@ public class SimOverlayNG {
 		}
 
 		var simMonitor = new SimMonitor(1000);
-		simMonitor.start();
-		Runtime.getRuntime().addShutdownHook(new Thread(simMonitor::terminate));
-
 		var window = new Window(simMonitor);
 		window.setVisible(true);
+		simMonitor.start();
+		Runtime.getRuntime().addShutdownHook(new Thread(simMonitor::terminate));
 
 		if (port != defaultPort) {
 			window.showDialog(JOptionPane.WARNING_MESSAGE, String.format("Failed to bind port %d.\nUsing new port: %d", defaultPort, port));
