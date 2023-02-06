@@ -1,13 +1,16 @@
 # SimOverlayNG
-> This project is under development.
+> This project is at experimental stage. Use at your own risk!
 
 SimOverlayNG is a software creating livestream overlays for flight simmers.
 
-# Prerequisite
-SimOverlayNG is written in Java 17. It uses FSUIPC to communicate with your simulator.
+# Installation
+### Requirements
 
 - [Java 17+](https://www.oracle.com/java/technologies/downloads/)
 - [FSUIPC](http://www.fsuipc.com/)
+
+### Download
+Not available! Please read the roadmap.
 
 # Roadmap
 ### v1.0 (Feb 2023)
