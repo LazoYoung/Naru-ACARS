@@ -9,8 +9,8 @@ SimOverlayNG is written in Java 17. It uses FSUIPC to communicate with your simu
 - [Java 17+](https://www.oracle.com/java/technologies/downloads/)
 - [FSUIPC](http://www.fsuipc.com/)
 
-# Planned features
-## Short term
+# Roadmap
+### v1.0 (Feb 2023)
 - Reads simulator data through FSUIPC
   -	Local/Zulu time
   - ETA/ETE
@@ -25,7 +25,7 @@ SimOverlayNG is written in Java 17. It uses FSUIPC to communicate with your simu
 - Animated, changing text
 - Customizable text including data placeholders
 
-## Long term
+### v2.0 (Mar 2023)
 - Overlay template editor
 - Landing rate widget
 
