@@ -1,20 +1,19 @@
-package com.naver.idealproduction.song;
+package com.naver.idealproduction.song.view;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
 import javax.swing.text.DefaultCaret;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.logging.Formatter;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
+import java.util.logging.*;
 
 public class ConsoleHandlerNG extends Handler {
 
     private final JTextArea textArea;
 
-    public ConsoleHandlerNG(JTextArea textArea) {
-        this.textArea = textArea;
+    public ConsoleHandlerNG(Logger logger) {
+        this.textArea = new JTextArea();
         DefaultCaret caret = (DefaultCaret) textArea.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         caret.setBlinkRate(200);
@@ -25,10 +24,21 @@ public class ConsoleHandlerNG extends Handler {
                 LocalDateTime now = LocalDateTime.now();
                 String date = now.format(DateTimeFormatter.ISO_DATE);
                 String time = now.format(DateTimeFormatter.ofPattern("kk:mm:ss"));
-                return String.format("[%s] %s %s - %s", level, date, time, record.getMessage());
+                Throwable thrown = record.getThrown();
+                var builder = new StringBuilder(String.format("[%s] %s %s - %s", level, date, time, record.getMessage()));
+
+                if (thrown != null) {
+                    builder.append('\n').append(ExceptionUtils.getStackTrace(thrown));
+                }
+                return builder.toString();
             }
         });
         setLevel(Level.INFO);
+        logger.addHandler(this);
+    }
+
+    public JTextArea getTextArea() {
+        return textArea;
     }
 
     @Override
@@ -40,9 +50,7 @@ public class ConsoleHandlerNG extends Handler {
         try {
             String msg = getFormatter().format(record) + '\n';
             textArea.insert(msg, textArea.getCaretPosition());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception ignored) {}
     }
 
     @Override

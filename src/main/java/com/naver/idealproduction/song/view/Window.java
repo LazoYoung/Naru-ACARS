@@ -4,7 +4,6 @@ import com.naver.idealproduction.song.SimMonitor;
 import com.naver.idealproduction.song.repo.OverlayRepository;
 
 import javax.swing.*;
-
 import java.awt.*;
 
 import static javax.swing.JOptionPane.*;
@@ -13,7 +12,7 @@ public class Window extends JFrame {
 
     private final SimMonitor simMonitor;
 
-    public Window(SimMonitor simMonitor, OverlayRepository overlayRepository) {
+    public Window(ConsoleHandlerNG consoleHandler, SimMonitor simMonitor, OverlayRepository overlayRepository) {
         this.simMonitor = simMonitor;
 
         setResizable(false);
@@ -23,7 +22,7 @@ public class Window extends JFrame {
         setTitle("SimOverlayNG");
 
         var contentPane = new JTabbedPane();
-        var dashboard = new Dashboard(simMonitor);
+        var dashboard = new Dashboard(consoleHandler, simMonitor);
         var overlayPanel = new OverlayPanel(overlayRepository);
         contentPane.addTab("Dashboard", dashboard);
         contentPane.addTab("Overlay", overlayPanel);

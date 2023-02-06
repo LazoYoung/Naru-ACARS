@@ -19,9 +19,9 @@ class OverlayRepositoryTest {
     @Test
     void getAll() {
         var backList = new ArrayList<Overlay>();
-        var test1 = new Overlay("test1");
-        var test2 = new Overlay("test2");
-        var test3 = new Overlay("test3");
+        var test1 = new Overlay("test1", "");
+        var test2 = new Overlay("test2", "");
+        var test3 = new Overlay("test3", "");
         backList.add(test1);
         backList.add(test2);
         backList.add(test3);
@@ -41,8 +41,8 @@ class OverlayRepositoryTest {
 
     @Test
     void addAndGet() {
-        var test1 = new Overlay("test1");
-        var test2 = new Overlay("test2");
+        var test1 = new Overlay("test1", "");
+        var test2 = new Overlay("test2", "");
         var test1Name = test1.getName();
         var test2Name = test2.getName();
         repository.add(test1);
@@ -57,8 +57,8 @@ class OverlayRepositoryTest {
 
     @Test
     void select() {
-        var test1 = new Overlay("test1");
-        var test2 = new Overlay("test2");
+        var test1 = new Overlay("test1", "");
+        var test2 = new Overlay("test2", "");
         repository.add(test1);
         repository.add(test2);
 

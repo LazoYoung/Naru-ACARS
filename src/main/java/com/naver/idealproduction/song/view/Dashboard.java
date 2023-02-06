@@ -1,9 +1,7 @@
 package com.naver.idealproduction.song.view;
 
-import com.naver.idealproduction.song.ConsoleHandlerNG;
 import com.naver.idealproduction.song.SimData;
 import com.naver.idealproduction.song.SimMonitor;
-import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.Airport;
 
 import javax.swing.*;
@@ -14,7 +12,6 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 import static javax.swing.GroupLayout.Alignment.BASELINE;
 import static javax.swing.GroupLayout.Alignment.LEADING;
@@ -25,7 +22,7 @@ import static javax.swing.LayoutStyle.ComponentPlacement.UNRELATED;
 
 public class Dashboard extends JSplitPane {
 
-    private final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
+    private final ConsoleHandlerNG consoleHandler;
     private final SimMonitor simMonitor;
     private final JPanel leftPane = new JPanel();
     private final JPanel rightPane = new JPanel();
@@ -52,23 +49,27 @@ public class Dashboard extends JSplitPane {
     private JLabel arrHint;
     private JButton submitBtn;
 
-    public Dashboard(SimMonitor simMonitor) {
+    public Dashboard(ConsoleHandlerNG consoleHandler, SimMonitor simMonitor) {
         super(HORIZONTAL_SPLIT);
+        this.consoleHandler = consoleHandler;
         this.simMonitor = simMonitor;
         docListener = new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 validateInput();
             }
+
             @Override
             public void removeUpdate(DocumentEvent e) {
                 validateInput();
             }
+
             @Override
             public void changedUpdate(DocumentEvent e) {
                 validateInput();
             }
         };
+
         bakeLeftPane();
         bakeRightPane();
         setLeftComponent(leftPane);
@@ -195,7 +196,8 @@ public class Dashboard extends JSplitPane {
         var simbriefBtn = new JButton("Simbrief");
         submitBtn = new JButton("SUBMIT");
         var consolePane = new JPanel(new GridLayout(1, 1));
-        var consoleArea = new JTextArea();
+        var consoleArea = consoleHandler.getTextArea();
+        // todo implement simbrief, submit buttons
 
         // Flight Dispatcher
         depInput.getDocument().addDocumentListener(docListener);
@@ -227,7 +229,6 @@ public class Dashboard extends JSplitPane {
         consoleArea.setEditable(false);
         consolePane.setBorder(BorderFactory.createTitledBorder("Console"));
         consolePane.add(new JScrollPane(consoleArea));
-        logger.addHandler(new ConsoleHandlerNG(consoleArea));
         rightPane.setLayout(new BoxLayout(rightPane, BoxLayout.Y_AXIS));
         rightPane.add(dispatcherPane);
         rightPane.add(consolePane);

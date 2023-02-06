@@ -6,19 +6,29 @@ import com.naver.idealproduction.song.repo.OverlayRepository;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class OverlayPanel extends JPanel {
 
+    private final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
+    private final OverlayRepository repository;
+    private final JEditorPane overlayView;
+    private final JComboBox<String> selector;
+
     public OverlayPanel(OverlayRepository repository) {
-        var borderLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
+        this.repository = repository;
         String[] items = repository.getAll()
                 .stream()
                 .map(Overlay::getName)
                 .toArray(String[]::new);
 
-        var selector = new JComboBox<>(items);
+        // todo implement useBtn
+        selector = new JComboBox<>(items);
+        overlayView = new JEditorPane();
         var useBtn = new JButton("Use overlay");
         var controlPane = new JPanel();
         var controlLayout = new GroupLayout(controlPane);
@@ -34,7 +44,9 @@ public class OverlayPanel extends JPanel {
                         .addComponent(selector)
                         .addComponent(useBtn))
                 .addGap(10);
-        selector.setMaximumSize(new Dimension(60, 30));
+
+        selector.setMaximumSize(new Dimension(80, 30));
+        selector.addActionListener(this::onComboSelect);
         controlLayout.setHorizontalGroup(hGroup);
         controlLayout.setVerticalGroup(vGroup);
         controlPane.setLayout(controlLayout);
@@ -45,24 +57,65 @@ public class OverlayPanel extends JPanel {
         controlPane.add(Box.createHorizontalStrut(20));
 
         var overlayPane = new JPanel(new GridLayout(1, 1));
-        var overlayView = new JEditorPane();
+        var item = (String) selector.getSelectedItem();
+        Optional<Overlay> overlay = Optional.ofNullable(item).flatMap(repository::get);
         overlayView.setEditable(false);
         overlayView.setContentType("text/html");
+
         try {
-            var host = SimOverlayNG.getHost();
-            var port = SimOverlayNG.getSystemPort();
-            overlayView.setPage(String.format("http://%s:%s", host, port));
+            if (overlay.isEmpty()) {
+                overlayView.setPage(SimOverlayNG.getWebURL("/404"));
+            } else {
+                var path = overlay.get().getPath();
+                overlayView.setPage(SimOverlayNG.getWebURL(path));
+                logger.info("New overlay selected: " + item);
+            }
         } catch (IOException e) {
-            Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
-            logger.warning("Failed to access url: " + overlayView.getPage().toString());
+            logger.log(Level.WARNING, e.getMessage(), e);
         }
+
         overlayPane.setBorder(BorderFactory.createLineBorder(Color.black));
         overlayPane.add(overlayView);
 
+        var borderLayout = new BoxLayout(this, BoxLayout.Y_AXIS);
         setLayout(borderLayout);
         setBorder(BorderFactory.createTitledBorder("Overlay"));
         add(controlPane);
         add(overlayPane);
+
+        repository.addUpdateListener(() -> SwingUtilities.invokeLater(this::updateSelector));
     }
 
+    private void updateSelector() {
+        selector.removeAllItems();
+
+        for (var overlay : repository.getAll()) {
+            selector.addItem(overlay.getName());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void onComboSelect(ActionEvent event) {
+        var comboBox = (JComboBox<String>) event.getSource();
+        var overlayName = (String) comboBox.getSelectedItem();
+
+        if (overlayName == null) {
+            return;
+        }
+
+        var overlay = repository.get(overlayName);
+
+        repository.select(overlayName);
+        try {
+            if (overlay.isEmpty()) {
+                overlayView.setPage(SimOverlayNG.getWebURL("/404"));
+            } else {
+                String path = overlay.get().getPath();
+                overlayView.setPage(SimOverlayNG.getWebURL(path));
+                logger.info("New overlay selected: " + overlayName);
+            }
+        } catch (IOException e) {
+            logger.log(Level.SEVERE, e.getMessage(), e);
+        }
+    }
 }
