@@ -1,6 +1,7 @@
 package com.naver.idealproduction.song;
 
 import com.mouseviator.fsuipc.FSUIPC;
+import com.naver.idealproduction.song.repo.OverlayRepository;
 import com.naver.idealproduction.song.view.Window;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -45,8 +46,9 @@ public class SimOverlayNG {
 			return;
 		}
 
+		var overlayRepository = new OverlayRepository();
 		var simMonitor = new SimMonitor(1000);
-		var window = new Window(simMonitor);
+		var window = new Window(simMonitor, overlayRepository);
 		window.setVisible(true);
 		simMonitor.start();
 		Runtime.getRuntime().addShutdownHook(new Thread(simMonitor::terminate));
@@ -56,7 +58,11 @@ public class SimOverlayNG {
 		}
 	}
 
-	private static int getSystemPort() {
+	public static String getHost() {
+		return host;
+	}
+
+	public static int getSystemPort() {
 		return Optional.ofNullable(System.getProperty(portKey))
 				.map(Integer::parseInt)
 				.orElse(8080);

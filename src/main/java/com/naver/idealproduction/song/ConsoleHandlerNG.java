@@ -37,10 +37,8 @@ public class ConsoleHandlerNG extends Handler {
             return;
         }
 
-        String msg;
-
         try {
-            msg = getFormatter().format(record) + '\n';
+            String msg = getFormatter().format(record) + '\n';
             textArea.insert(msg, textArea.getCaretPosition());
         } catch (Exception e) {
             e.printStackTrace();
@@ -49,7 +47,7 @@ public class ConsoleHandlerNG extends Handler {
 
     @Override
     public void flush() {
-
+        textArea.replaceRange(null, 0, textArea.getCaretPosition());
     }
 
     @Override
