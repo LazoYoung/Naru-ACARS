@@ -5,8 +5,10 @@ import com.naver.idealproduction.song.entity.Overlay;
 import com.naver.idealproduction.song.repo.OverlayRepository;
 import com.naver.idealproduction.song.view.ConsoleHandlerNG;
 import com.naver.idealproduction.song.view.Window;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.swing.*;
@@ -31,54 +33,56 @@ public class SimOverlayNG {
 	private static final int defaultPort = 8080;
 
 	public static void main(String[] args) {
-		final var consoleHandler = new ConsoleHandlerNG(logger);
-		final var builder = new SpringApplicationBuilder(SimOverlayNG.class);
-		final var props = new HashMap<String, Object>();
+		var window = new Window();
+		var consoleHandler = new ConsoleHandlerNG(logger, window);
+		var builder = new SpringApplicationBuilder(SimOverlayNG.class);
+		var props = new HashMap<String, Object>();
 		var port = getSystemPort();
 
 		while (!isPortAvailable(port)) {
-			logger.warning("Failed to bind port: " + port);
 			if (++port > 65535) {
 				logger.severe("Unable to bind any port!");
-				return;
+				System.exit(1);
 			}
 			System.setProperty(portKey, String.valueOf(port));
 		}
 
 		props.put("server.address", hostAddress);
 		props.put("server.port", port);
-		builder.properties(props)
+
+		final var context = builder.properties(props)
 				.headless(false)
 				.run(args);
 
 		try {
 			copyLibraries();
 		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Failed to install required libraries", e);
+			logger.log(Level.SEVERE, "Failed to install libraries!", e);
+			exit(context);
 		}
 
 		if (FSUIPC.load() != FSUIPC.LIB_LOAD_RESULT_OK) {
 			logger.severe("Failed to load library: FSUIPC_Java");
-			return;
+			exit(context);
 		}
 
 		try {
 			var overlayRepository = builder.context().getBean(OverlayRepository.class);
 			var simMonitor = new SimMonitor(1000);
-			var window = new Window(consoleHandler, simMonitor, overlayRepository);
-			window.setVisible(true);
-			simMonitor.start();
-			Runtime.getRuntime().addShutdownHook(new Thread(simMonitor::terminate));
 			var headsUpDisplay = new Overlay("HUD", "/hud");
 			var platformDisplay = new Overlay("Platform display", "/platform");
 			var boardingPass = new Overlay("Boarding pass", "/boarding");
-			overlayRepository.add(headsUpDisplay, platformDisplay, boardingPass);
 
+			window.start(consoleHandler, simMonitor, overlayRepository);
+			simMonitor.start();
+			Runtime.getRuntime().addShutdownHook(new Thread(simMonitor::terminate));
+			overlayRepository.add(headsUpDisplay, platformDisplay, boardingPass);
 			if (port != defaultPort) {
 				window.showDialog(JOptionPane.WARNING_MESSAGE, String.format("Failed to bind port %d.\nUsing new port: %d", defaultPort, port));
 			}
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, e.getMessage(), e);
+			exit(context);
 		}
 	}
 
@@ -102,8 +106,8 @@ public class SimOverlayNG {
 	}
 
 	private static void copyLibraries() throws IOException {
-		String fsuipc32 = "fsuipc_java32.dll";
-		String fsuipc64 = "fsuipc_java64.dll";
+		var fsuipc32 = "fsuipc_java32.dll";
+		var fsuipc64 = "fsuipc_java64.dll";
 		var dir = getWorkingDirectory();
 		var fsuipc32Resource = new ClassPathResource(fsuipc32);
 		var fsuipc64Resource = new ClassPathResource(fsuipc64);
@@ -121,5 +125,10 @@ public class SimOverlayNG {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private static void exit(ConfigurableApplicationContext context) {
+		int exitCode = SpringApplication.exit(context, () -> 1);
+		System.exit(exitCode);
 	}
 }

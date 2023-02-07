@@ -112,7 +112,7 @@ public class OverlayPanel extends JPanel {
             } else {
                 String path = overlay.get().getPath();
                 overlayView.setPage(SimOverlayNG.getWebURL(path));
-                logger.info("New overlay selected: " + overlayName);
+                logger.info("Selected overlay: " + overlayName);
             }
         } catch (IOException e) {
             logger.log(Level.SEVERE, e.getMessage(), e);

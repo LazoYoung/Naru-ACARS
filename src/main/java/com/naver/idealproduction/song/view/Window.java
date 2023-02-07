@@ -10,15 +10,14 @@ import static javax.swing.JOptionPane.*;
 
 public class Window extends JFrame {
 
-    private final SimMonitor simMonitor;
+    private SimMonitor simMonitor;
 
-    public Window(ConsoleHandlerNG consoleHandler, SimMonitor simMonitor, OverlayRepository overlayRepository) {
+    public void start(ConsoleHandlerNG consoleHandler, SimMonitor simMonitor, OverlayRepository overlayRepository) {
         this.simMonitor = simMonitor;
 
         setResizable(false);
         setPreferredSize(new Dimension(800, 500));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
         setTitle("SimOverlayNG");
 
         var contentPane = new JTabbedPane();
@@ -28,8 +27,14 @@ public class Window extends JFrame {
         contentPane.addTab("Overlay", overlayPanel);
         setContentPane(contentPane);
         pack();
+        setVisible(true);
+        setLocationRelativeTo(null);
     }
 
+    /**
+     * @param type Magic value: JOptionPane.XXX
+     * @param message Message to display
+     */
     public void showDialog(int type, String message) {
         String title = "Message";
         switch (type) {
