@@ -22,13 +22,13 @@ public class Window extends JFrame {
 
         var contentPane = new JTabbedPane();
         var dashboard = new Dashboard(consoleHandler, simMonitor);
-        var overlayPanel = new OverlayPanel(overlayRepository);
+        var overlayPanel = new OverlayPanel(this, overlayRepository);
         contentPane.addTab("Dashboard", dashboard);
         contentPane.addTab("Overlay", overlayPanel);
         setContentPane(contentPane);
         pack();
-        setVisible(true);
         setLocationRelativeTo(null);
+        setVisible(true);
     }
 
     /**
