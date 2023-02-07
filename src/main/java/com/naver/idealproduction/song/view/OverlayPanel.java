@@ -183,6 +183,7 @@ public class OverlayPanel extends JPanel {
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
         panel.setLayout(layout);
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         dialog.setContentPane(panel);
         dialog.pack();
         dialog.setLocationRelativeTo(window);

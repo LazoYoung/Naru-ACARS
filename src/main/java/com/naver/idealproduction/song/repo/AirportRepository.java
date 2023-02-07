@@ -4,7 +4,6 @@ import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.Airport;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
-import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
 import java.io.FileReader;
@@ -94,10 +93,10 @@ public class AirportRepository {
     }
 
     private File copyCSV(boolean overwrite) throws RuntimeException {
-        var resource = new ClassPathResource(fileName);
+        var resource = SimOverlayNG.getResource(fileName);
 
         try (var stream = resource.getInputStream()) {
-            var dest = SimOverlayNG.getWorkingDirectory().resolve(fileName);
+            var dest = SimOverlayNG.getDirectory().resolve(fileName);
             var destFile = dest.toFile();
 
             if (overwrite || !destFile.exists()) {

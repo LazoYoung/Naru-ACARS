@@ -9,9 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.logging.*;
 
 import static java.util.logging.Level.SEVERE;
-import static java.util.logging.Level.WARNING;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
-import static javax.swing.JOptionPane.WARNING_MESSAGE;
 
 public class ConsoleHandlerNG extends Handler {
 
@@ -59,9 +57,7 @@ public class ConsoleHandlerNG extends Handler {
             Level level = record.getLevel();
             textArea.insert(msg, textArea.getCaretPosition());
 
-            if (level.equals(WARNING)) {
-                window.showDialog(WARNING_MESSAGE, msg);
-            } else if (level.equals(SEVERE)) {
+            if (level.equals(SEVERE)) {
                 Throwable t = record.getThrown();
                 String rawMsg = record.getMessage();
                 if (t != null) {

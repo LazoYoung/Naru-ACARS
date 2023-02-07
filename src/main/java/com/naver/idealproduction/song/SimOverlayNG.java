@@ -1,6 +1,7 @@
 package com.naver.idealproduction.song;
 
 import com.mouseviator.fsuipc.FSUIPC;
+import com.naver.idealproduction.song.entity.AppProperties;
 import com.naver.idealproduction.song.entity.Overlay;
 import com.naver.idealproduction.song.repo.OverlayRepository;
 import com.naver.idealproduction.song.view.ConsoleHandlerNG;
@@ -30,7 +31,7 @@ public class SimOverlayNG {
 	private static final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
 	private static final String hostAddress = "localhost";
 	private static final String portKey = "server.port";
-	private static final int defaultPort = 8080;
+	private static final String directory = "SimOverlayNG";
 
 	public static void main(String[] args) {
 		var window = new Window();
@@ -67,6 +68,7 @@ public class SimOverlayNG {
 		}
 
 		try {
+			var defaultPort = AppProperties.getInstance().getPort();
 			var overlayRepository = builder.context().getBean(OverlayRepository.class);
 			var simMonitor = new SimMonitor(1000);
 			var headsUpDisplay = new Overlay("HUD", "/hud");
@@ -101,20 +103,30 @@ public class SimOverlayNG {
 				.orElse(8080);
 	}
 
-	public static Path getWorkingDirectory() {
-		return Path.of(System.getProperty("user.dir"));
+	public static Path getDirectory() {
+		var path = Path.of(System.getProperty("user.dir")).resolve(directory);
+		var file = path.toFile();
+
+		if (!file.isDirectory()) {
+			var ignored = file.mkdirs();
+		}
+		return path;
+	}
+
+	public static ClassPathResource getResource(String fileName) {
+		return new ClassPathResource(directory + '/' + fileName);
 	}
 
 	private static void copyLibraries() throws IOException {
 		var fsuipc32 = "fsuipc_java32.dll";
 		var fsuipc64 = "fsuipc_java64.dll";
-		var dir = getWorkingDirectory();
+		var userDir = Path.of(System.getProperty("user.dir"));
 		var fsuipc32Resource = new ClassPathResource(fsuipc32);
 		var fsuipc64Resource = new ClassPathResource(fsuipc64);
 		var fsuipc32Stream = fsuipc32Resource.getInputStream();
 		var fsuipc64Stream = fsuipc64Resource.getInputStream();
-		Files.copy(fsuipc32Stream, dir.resolve(fsuipc32), REPLACE_EXISTING);
-		Files.copy(fsuipc64Stream, dir.resolve(fsuipc64), REPLACE_EXISTING);
+		Files.copy(fsuipc32Stream, userDir.resolve(fsuipc32), REPLACE_EXISTING);
+		Files.copy(fsuipc64Stream, userDir.resolve(fsuipc64), REPLACE_EXISTING);
 	}
 
 	private static boolean isPortAvailable(int port) {

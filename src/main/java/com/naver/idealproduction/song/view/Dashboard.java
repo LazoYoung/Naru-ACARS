@@ -11,6 +11,8 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Optional;
 
 import static javax.swing.GroupLayout.Alignment.BASELINE;
@@ -29,6 +31,7 @@ public class Dashboard extends JSplitPane {
     private final DocumentListener docListener;
     private final String notAvail = "N/A";
     private final String notFound = "Not found";
+    private final String fillOutForm = "Please fill out the form";
     private JLabel stateLabel;
     private JLabel simLabel;
     private JLabel simValue;
@@ -87,6 +90,7 @@ public class Dashboard extends JSplitPane {
         SimData data = simMonitor.getData();
         Optional<Airport> departure = data.getAirport(dep);
         Optional<Airport> arrival = data.getAirport(arr);
+        boolean valid = departure.isPresent() && arrival.isPresent();
 
         depHint.setText(departure.map(Airport::getName).orElse(notFound));
         arrHint.setText(arrival.map(Airport::getName).orElse(notFound));
@@ -94,7 +98,8 @@ public class Dashboard extends JSplitPane {
         arrHint.setPreferredSize(arrHintSize);
         depHint.setForeground(departure.isEmpty() ? Color.yellow : Color.green);
         arrHint.setForeground(arrival.isEmpty() ? Color.yellow : Color.green);
-        submitBtn.setEnabled(departure.isPresent() && arrival.isPresent());
+        submitBtn.setEnabled(valid);
+        submitBtn.setToolTipText(valid ? "Submit your flight plan" : fillOutForm);
     }
 
     private void onUpdate(SimData data) {
@@ -197,7 +202,8 @@ public class Dashboard extends JSplitPane {
         submitBtn = new JButton("SUBMIT");
         var consolePane = new JPanel(new GridLayout(1, 1));
         var consoleArea = consoleHandler.getTextArea();
-        // todo implement simbrief, submit buttons
+        // todo simbrief import
+
 
         // Flight Dispatcher
         depInput.getDocument().addDocumentListener(docListener);
@@ -208,6 +214,15 @@ public class Dashboard extends JSplitPane {
         arrHint.setBorder(getMargin(arrHint, 0, 10, 0, 10));
         depHint.setBackground(Color.gray);
         arrHint.setBackground(Color.gray);
+        simbriefBtn.setToolTipText("INOP");
+        simbriefBtn.setEnabled(false);
+        submitBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                submitFlightPlan();
+            }
+        });
+        submitBtn.setToolTipText(fillOutForm);
         submitBtn.setEnabled(false);
         actionPane.setLayout(new BoxLayout(actionPane, BoxLayout.X_AXIS));
         actionPane.add(Box.createHorizontalGlue());
@@ -234,16 +249,10 @@ public class Dashboard extends JSplitPane {
         rightPane.add(consolePane);
     }
 
-    private JLabel bakeLabel(String text, Font font, Color color) {
-        var label = new JLabel(text, JLabel.CENTER);
-        label.setFont(font);
-        label.setAlignmentX(CENTER_ALIGNMENT);
-        label.setForeground(color);
-        return label;
-    }
-
-    private Component getRigidGap(int width, int height) {
-        return Box.createRigidArea(new Dimension(width, height));
+    private void submitFlightPlan() {
+        // todo method stub
+//        var props = properties.get();
+//        var simbriefName = props.getSimbriefName();
     }
 
     private void updateContentPane(boolean draw) {
@@ -280,5 +289,17 @@ public class Dashboard extends JSplitPane {
             leftPane.revalidate();
             leftPane.repaint();
         }
+    }
+
+    private JLabel bakeLabel(String text, Font font, Color color) {
+        var label = new JLabel(text, JLabel.CENTER);
+        label.setFont(font);
+        label.setAlignmentX(CENTER_ALIGNMENT);
+        label.setForeground(color);
+        return label;
+    }
+
+    private Component getRigidGap(int width, int height) {
+        return Box.createRigidArea(new Dimension(width, height));
     }
 }

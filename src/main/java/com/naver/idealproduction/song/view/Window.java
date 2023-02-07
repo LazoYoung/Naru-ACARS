@@ -12,7 +12,11 @@ public class Window extends JFrame {
 
     private SimMonitor simMonitor;
 
-    public void start(ConsoleHandlerNG consoleHandler, SimMonitor simMonitor, OverlayRepository overlayRepository) {
+    public void start(
+            ConsoleHandlerNG consoleHandler,
+            SimMonitor simMonitor,
+            OverlayRepository overlayRepository
+    ) {
         this.simMonitor = simMonitor;
 
         setResizable(false);
