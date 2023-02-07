@@ -6,6 +6,11 @@ javadoc/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+### Runtime resources ###
+fsuipc_java32.dll
+fsuipc_java64.dll
+airports.csv
+
 ### STS ###
 .apt_generated
 .classpath

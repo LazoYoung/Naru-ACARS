@@ -1,5 +1,6 @@
 package com.naver.idealproduction.song.repo;
 
+import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.Airport;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
@@ -8,11 +9,16 @@ import org.springframework.core.io.ClassPathResource;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static java.util.logging.Level.SEVERE;
 
 public class AirportRepository {
-
     private enum DataType {
         ICAO("gps_code"),
         IATA("iata_code"),
@@ -32,20 +38,22 @@ public class AirportRepository {
         }
     }
 
+    private final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
     private final Map<String, Integer> rowLocator = new HashMap<>();
     private final Map<DataType, Integer> columnLocator = new HashMap<>();
+    private final String fileName = "airports.csv";
+    private File file = null;
 
     public AirportRepository() {
-        File file;
-
         try {
-            file = getCSVFile();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            file = copyCSV(false);
+        } catch (RuntimeException e) {
+            logger.log(SEVERE, "Failed to copy file: " + fileName, e);
+            return;
         }
 
-        try (FileReader reader = new FileReader(file)) {
-            CSVReader csv = new CSVReader(reader);
+        try (var reader = new FileReader(file, UTF_8);
+             CSVReader csv = new CSVReader(reader)) {
             String[] firstLine = csv.readNext();
             String[] line;
 
@@ -61,29 +69,42 @@ public class AirportRepository {
                 rowLocator.put(icao, row++);
             }
         } catch (IOException | CsvValidationException e) {
-            throw new RuntimeException(e);
+            logger.log(SEVERE, "Failed to read file: " + fileName, e);
         }
     }
 
     public Airport get(String icao) {
-        Integer row = rowLocator.get(icao.toLowerCase());
-        File file;
-
-        if (icao.isBlank() || row == null) {
+        if (file == null || icao.isBlank()) {
             return null;
         }
 
-        try {
-            file = getCSVFile();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        Integer row = rowLocator.get(icao.toLowerCase());
+        Airport airport = null;
 
-        try (FileReader reader = new FileReader(file)) {
-            CSVReader csv = new CSVReader(reader);
-            csv.skip(row);
-            return parseLine(csv.readNext());
-        } catch (IOException | CsvValidationException e) {
+        if (row != null) {
+            try (var reader = new FileReader(file, UTF_8);
+                 var csv = new CSVReader(reader)) {
+                csv.skip(row);
+                airport = parseLine(csv.readNext());
+            } catch (IOException | CsvValidationException e) {
+                logger.log(SEVERE, "Failed to read file: " + fileName, e);
+            }
+        }
+        return airport;
+    }
+
+    private File copyCSV(boolean overwrite) throws RuntimeException {
+        var resource = new ClassPathResource(fileName);
+
+        try (var stream = resource.getInputStream()) {
+            var dest = SimOverlayNG.getWorkingDirectory().resolve(fileName);
+            var destFile = dest.toFile();
+
+            if (overwrite || !destFile.exists()) {
+                Files.copy(stream, dest, REPLACE_EXISTING);
+            }
+            return destFile;
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -98,11 +119,6 @@ public class AirportRepository {
         return new Airport(icao, iata, name, city, latitude, longitude);
     }
 
-    private File getCSVFile() throws IOException {
-        var resource = new ClassPathResource("airports.csv");
-        return resource.getFile();
-    }
-
     private void mapColumnLocator(int index, String column) {
         for (var type : DataType.values()) {
             if (type.getColumn().equals(column)) {
@@ -111,5 +127,4 @@ public class AirportRepository {
             }
         }
     }
-
 }
