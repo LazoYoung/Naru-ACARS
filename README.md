@@ -10,7 +10,7 @@ SimOverlayNG is a software creating livestream overlays for flight simmers.
 - [FSUIPC](http://www.fsuipc.com/)
 
 ### Download
-Not available! Please read the roadmap.
+Not available yet! (Read the roadmap)
 
 # Roadmap
 ### v1.0 (Feb 2023)
@@ -26,10 +26,11 @@ Not available! Please read the roadmap.
   - Platform display
   - Boarding pass
 - Animated, changing text
-- Customizable text including data placeholders
 
 ### v2.0 (Mar 2023)
 - Overlay template editor
+  - Customizable text, html
+  - Placeholders
 - Landing rate widget
 
 # Legal notice
