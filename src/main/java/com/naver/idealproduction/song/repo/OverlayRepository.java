@@ -63,7 +63,7 @@ public class OverlayRepository {
         for (int i = 0; i < list.size(); ++i) {
             var matcher = list.get(i).getName();
 
-            if (matcher.equals(name.toLowerCase())) {
+            if (matcher.equals(name)) {
                 activeOverlay = i;
                 return;
             }
