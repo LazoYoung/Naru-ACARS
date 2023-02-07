@@ -9,7 +9,7 @@ javadoc/
 ### Runtime resources ###
 fsuipc_java32.dll
 fsuipc_java64.dll
-airports.csv
+SimOverlayNG/
 
 ### STS ###
 .apt_generated
