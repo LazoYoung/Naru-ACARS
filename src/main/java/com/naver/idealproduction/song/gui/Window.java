@@ -1,7 +1,8 @@
-package com.naver.idealproduction.song.view;
+package com.naver.idealproduction.song.gui;
 
 import com.naver.idealproduction.song.SimMonitor;
-import com.naver.idealproduction.song.repo.OverlayRepository;
+import com.naver.idealproduction.song.repository.OverlayRepository;
+import com.naver.idealproduction.song.gui.component.OverlayPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,7 +14,7 @@ public class Window extends JFrame {
     private SimMonitor simMonitor;
 
     public void start(
-            ConsoleHandlerNG consoleHandler,
+            Console console,
             SimMonitor simMonitor,
             OverlayRepository overlayRepository
     ) {
@@ -25,7 +26,7 @@ public class Window extends JFrame {
         setTitle("SimOverlayNG");
 
         var contentPane = new JTabbedPane();
-        var dashboard = new Dashboard(consoleHandler, simMonitor);
+        var dashboard = new Dashboard(console, simMonitor);
         var overlayPanel = new OverlayPanel(this, overlayRepository);
         contentPane.addTab("Dashboard", dashboard);
         contentPane.addTab("Overlay", overlayPanel);

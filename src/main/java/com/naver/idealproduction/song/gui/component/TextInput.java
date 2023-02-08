@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.view;
+package com.naver.idealproduction.song.gui.component;
 
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
@@ -9,12 +9,12 @@ import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 
-public class TextFieldNG extends JTextField implements FocusListener {
+public class TextInput extends JTextField implements FocusListener {
 
     private boolean isHint = true;
     private final String hint;
 
-    public TextFieldNG(String hint, int column, boolean uppercase) {
+    public TextInput(String hint, int column, boolean uppercase) {
         super(hint);
         this.hint = hint;
         setColumns(column);
@@ -27,7 +27,7 @@ public class TextFieldNG extends JTextField implements FocusListener {
         }
     }
 
-    public TextFieldNG(int column, boolean uppercase) {
+    public TextInput(int column, boolean uppercase) {
         this(null, column, uppercase);
     }
 

@@ -4,19 +4,21 @@ import com.mouseviator.fsuipc.FSUIPC;
 import com.mouseviator.fsuipc.FSUIPCWrapper;
 import com.mouseviator.fsuipc.IFSUIPCListener;
 import com.mouseviator.fsuipc.datarequest.IDataRequest;
-import com.naver.idealproduction.song.unit.Length;
-import com.naver.idealproduction.song.unit.Speed;
+import com.naver.idealproduction.song.entity.SimData;
+import com.naver.idealproduction.song.entity.unit.Length;
+import com.naver.idealproduction.song.entity.unit.Speed;
 
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public class SimMonitor implements IFSUIPCListener {
 
     private static final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
     private final FSUIPC fsuipc = FSUIPC.getInstance();
-    private final List<SimUpdateListener> listeners = new ArrayList<>();
+    private final List<Consumer<SimData>> listeners = new ArrayList<>();
 
     private final SimData data;
     private final int refreshRate;
@@ -55,7 +57,7 @@ public class SimMonitor implements IFSUIPCListener {
         logger.info("Disconnected from FSUIPC.");
     }
 
-    public void addUpdateListener(SimUpdateListener listener) {
+    public void addUpdateListener(Consumer<SimData> listener) {
         listeners.add(listener);
     }
 
@@ -95,7 +97,7 @@ public class SimMonitor implements IFSUIPCListener {
     }
 
     private void notifyListeners() {
-        listeners.forEach(e -> e.onUpdate(data));
+        listeners.forEach(e -> e.accept(data));
     }
 
     @Override

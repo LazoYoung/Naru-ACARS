@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.repo;
+package com.naver.idealproduction.song.repository;
 
 import com.naver.idealproduction.song.entity.Overlay;
 import org.junit.jupiter.api.Test;

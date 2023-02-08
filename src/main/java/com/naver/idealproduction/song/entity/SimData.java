@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song;
+package com.naver.idealproduction.song.entity;
 
 import com.mouseviator.fsuipc.FSUIPC;
 import com.mouseviator.fsuipc.datarequest.IDataRequest;
@@ -9,10 +9,9 @@ import com.mouseviator.fsuipc.datarequest.primitives.StringRequest;
 import com.mouseviator.fsuipc.helpers.SimHelper;
 import com.mouseviator.fsuipc.helpers.aircraft.AircraftHelper;
 import com.mouseviator.fsuipc.helpers.avionics.GPSHelper;
-import com.naver.idealproduction.song.entity.Airport;
-import com.naver.idealproduction.song.repo.AirportRepository;
-import com.naver.idealproduction.song.unit.Length;
-import com.naver.idealproduction.song.unit.Speed;
+import com.naver.idealproduction.song.repository.AirportRepository;
+import com.naver.idealproduction.song.entity.unit.Length;
+import com.naver.idealproduction.song.entity.unit.Speed;
 
 import java.time.LocalTime;
 import java.util.Optional;

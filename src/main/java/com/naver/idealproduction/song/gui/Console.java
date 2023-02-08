@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.view;
+package com.naver.idealproduction.song.gui;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -11,12 +11,12 @@ import java.util.logging.*;
 import static java.util.logging.Level.SEVERE;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 
-public class ConsoleHandlerNG extends Handler {
+public class Console extends Handler {
 
     private final Window window;
     private final JTextArea textArea;
 
-    public ConsoleHandlerNG(Logger logger, Window window) {
+    public Console(Logger logger, Window window) {
         this.window = window;
         this.textArea = new JTextArea();
         DefaultCaret caret = (DefaultCaret) textArea.getCaret();

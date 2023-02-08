@@ -1,13 +1,14 @@
-package com.naver.idealproduction.song.view;
+package com.naver.idealproduction.song.gui;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.naver.idealproduction.song.SimData;
+import com.naver.idealproduction.song.entity.SimData;
 import com.naver.idealproduction.song.SimMonitor;
 import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.Airport;
 import com.naver.idealproduction.song.AppProperties;
 import com.naver.idealproduction.song.entity.OFP;
+import com.naver.idealproduction.song.gui.component.TextInput;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
@@ -39,7 +40,7 @@ import static javax.swing.LayoutStyle.ComponentPlacement.UNRELATED;
 
 public class Dashboard extends JSplitPane {
     private final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
-    private final ConsoleHandlerNG consoleHandler;
+    private final Console console;
     private final SimMonitor simMonitor;
     private final JPanel leftPane = new JPanel();
     private final JPanel rightPane = new JPanel();
@@ -63,15 +64,15 @@ public class Dashboard extends JSplitPane {
     private String refreshText;
     private JTextField csInput;
     private JTextField acfInput;
-    private TextFieldNG depInput;
-    private TextFieldNG arrInput;
+    private TextInput depInput;
+    private TextInput arrInput;
     private JLabel depHint;
     private JLabel arrHint;
     private JButton submitBtn;
 
-    public Dashboard(ConsoleHandlerNG consoleHandler, SimMonitor simMonitor) {
+    public Dashboard(Console console, SimMonitor simMonitor) {
         super(HORIZONTAL_SPLIT);
-        this.consoleHandler = consoleHandler;
+        this.console = console;
         this.simMonitor = simMonitor;
         docListener = new DocumentListener() {
             @Override
@@ -170,10 +171,10 @@ public class Dashboard extends JSplitPane {
         var acfLabel = bakeLabel("Aircraft", labelFont, Color.black);
         var depLabel = bakeLabel("Departure", labelFont, Color.black);
         var arrLabel = bakeLabel("Arrival", labelFont, Color.black);
-        csInput = new TextFieldNG(6, true);
-        acfInput = new TextFieldNG(6, true);
-        depInput = new TextFieldNG("ICAO", 6, true);
-        arrInput = new TextFieldNG("ICAO", 6, true);
+        csInput = new TextInput(6, true);
+        acfInput = new TextInput(6, true);
+        depInput = new TextInput("ICAO", 6, true);
+        arrInput = new TextInput("ICAO", 6, true);
         depHint = bakeLabel(notFound, hintFont, Color.yellow);
         arrHint = bakeLabel(notFound, hintFont, Color.yellow);
         var hGroup = formLayout.createSequentialGroup()
@@ -215,7 +216,7 @@ public class Dashboard extends JSplitPane {
         var actionPane = new JPanel();
         submitBtn = new JButton("SUBMIT");
         var consolePane = new JPanel(new GridLayout(1, 1));
-        var consoleArea = consoleHandler.getTextArea();
+        var consoleArea = console.getTextArea();
 
         // Flight Dispatcher
         depInput.getDocument().addDocumentListener(docListener);

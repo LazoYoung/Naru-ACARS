@@ -1,8 +1,9 @@
-package com.naver.idealproduction.song.view;
+package com.naver.idealproduction.song.gui.component;
 
 import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.Overlay;
-import com.naver.idealproduction.song.repo.OverlayRepository;
+import com.naver.idealproduction.song.repository.OverlayRepository;
+import com.naver.idealproduction.song.gui.Window;
 
 import javax.swing.*;
 import java.awt.*;
@@ -26,7 +27,7 @@ public class OverlayPanel extends JPanel {
     private final JEditorPane overlayView;
     private final JComboBox<String> selector;
 
-    public OverlayPanel(Window window, OverlayRepository repository) {
+    public OverlayPanel(com.naver.idealproduction.song.gui.Window window, OverlayRepository repository) {
         this.repository = repository;
         String[] items = repository.getAll()
                 .stream()

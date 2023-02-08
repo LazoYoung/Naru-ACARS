@@ -2,9 +2,9 @@ package com.naver.idealproduction.song;
 
 import com.mouseviator.fsuipc.FSUIPC;
 import com.naver.idealproduction.song.entity.Overlay;
-import com.naver.idealproduction.song.repo.OverlayRepository;
-import com.naver.idealproduction.song.view.ConsoleHandlerNG;
-import com.naver.idealproduction.song.view.Window;
+import com.naver.idealproduction.song.repository.OverlayRepository;
+import com.naver.idealproduction.song.gui.Console;
+import com.naver.idealproduction.song.gui.Window;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -34,7 +34,7 @@ public class SimOverlayNG {
 
 	public static void main(String[] args) {
 		var window = new Window();
-		var consoleHandler = new ConsoleHandlerNG(logger, window);
+		var console = new Console(logger, window);
 		var builder = new SpringApplicationBuilder(SimOverlayNG.class);
 		var props = new HashMap<String, Object>();
 		var port = getSystemPort();
@@ -74,7 +74,7 @@ public class SimOverlayNG {
 			var platformDisplay = new Overlay("Platform display", "/platform");
 			var boardingPass = new Overlay("Boarding pass", "/boarding");
 
-			window.start(consoleHandler, simMonitor, overlayRepository);
+			window.start(console, simMonitor, overlayRepository);
 			simMonitor.start();
 			Runtime.getRuntime().addShutdownHook(new Thread(simMonitor::terminate));
 			overlayRepository.add(headsUpDisplay, platformDisplay, boardingPass);
