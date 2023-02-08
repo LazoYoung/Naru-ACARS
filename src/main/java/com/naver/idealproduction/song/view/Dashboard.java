@@ -8,6 +8,7 @@ import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.Airport;
 import com.naver.idealproduction.song.AppProperties;
 import com.naver.idealproduction.song.entity.OFP;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -18,10 +19,12 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -290,9 +293,21 @@ public class Dashboard extends JSplitPane {
                 .build();
 
         client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .handle((response, t) -> {
-                    if (t != null) {
-                        logger.log(Level.SEVERE, "HTTP request failed: " + response.statusCode(), t);
+                .exceptionally(t -> {
+                    if (ExceptionUtils.indexOfType(t, HttpTimeoutException.class) > -1) {
+                        simbriefLabel.setText("Connection timeout");
+                    } else if (ExceptionUtils.indexOfType(t, ConnectException.class) > -1) {
+                        simbriefLabel.setText("Connection refused");
+                    } else {
+                        simbriefLabel.setText("Failed to fetch");
+                        logger.log(Level.SEVERE, "Failed to fetch simbrief OFP.", t);
+                    }
+                    simbriefLabel.setForeground(Color.red);
+                    simbriefBtn.setEnabled(true);
+                    return null;
+                })
+                .thenApply(response -> {
+                    if (response == null) {
                         return null;
                     }
 
@@ -300,22 +315,22 @@ public class Dashboard extends JSplitPane {
                         return new ObjectMapper().readValue(response.body(), OFP.class);
                     } catch (JsonProcessingException e) {
                         logger.log(Level.SEVERE, "Failed to parse json.", e);
+                        simbriefLabel.setText(null);
+                        simbriefBtn.setEnabled(true);
                         return null;
                     }
                 })
                 .thenAccept(ofp -> SwingUtilities.invokeLater(() -> {
-                    boolean success = (ofp != null);
-
-                    if (success) {
-                        var aircraft = ofp.getAircraft();
-                        var acfCode = (aircraft != null) ? aircraft.getIcaoCode() : "";
-                        csInput.setText(ofp.getCallsign());
-                        acfInput.setText(acfCode);
-                        depInput.setText(ofp.getDeparture());
-                        arrInput.setText(ofp.getArrival());
+                    if (ofp == null) {
+                        return;
                     }
-                    simbriefLabel.setForeground(success ? Color.blue : Color.red);
-                    simbriefLabel.setText(success ? "Fetch complete" : "Failed to fetch");
+
+                    csInput.setText(ofp.getCallsign());
+                    acfInput.setText(ofp.getAircraft().getIcaoCode());
+                    depInput.setText(ofp.getDeparture());
+                    arrInput.setText(ofp.getArrival());
+                    simbriefLabel.setForeground(Color.blue);
+                    simbriefLabel.setText("Fetch complete");
                     simbriefBtn.setEnabled(true);
                 }));
     }

@@ -187,6 +187,7 @@ public class OverlayPanel extends JPanel {
         dialog.setContentPane(panel);
         dialog.pack();
         dialog.setLocationRelativeTo(window);
+        dialog.setResizable(false);
         dialog.setVisible(true);
     }
 }
