@@ -1,27 +1,18 @@
 package com.naver.idealproduction.song.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
 import java.util.Map;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OFP {
-    private String icaoAirline;
-    private int flightNumber;
+    private String callsign;
     private Aircraft aircraft;
     private String departureCode;
     private String arrivalCode;
     private String route;
-
-    @JsonSetter("icao_airline")
-    public void setIcaoAirline(String icaoAirline) {
-        this.icaoAirline = icaoAirline;
-    }
-
-    @JsonSetter("flight_number")
-    public void setFlightNumber(int flightNumber) {
-        this.flightNumber = flightNumber;
-    }
 
     @JsonSetter("aircraft")
     public void setAircraft(Aircraft aircraft) {
@@ -29,8 +20,8 @@ public class OFP {
     }
 
     @JsonProperty("origin")
-    public void setDepartureCode(Map<String, String> origin) {
-        this.departureCode = origin.get("icao_code");
+    public void setDepartureCode(Map<String, Object> origin) {
+        this.departureCode = (String) origin.get("icao_code");
     }
 
     @JsonProperty("destination")
@@ -41,25 +32,26 @@ public class OFP {
     @JsonProperty("general")
     public void setRoute(Map<String, Object> general) {
         this.route = (String) general.get("route");
+        this.callsign = (String) general.get("icao_airline") + general.get("flight_number");
     }
 
     public String getCallsign() {
-        return icaoAirline + flightNumber;
+        return (callsign != null) ? callsign : "";
     }
 
     public Aircraft getAircraft() {
-        return aircraft;
+        return (aircraft != null) ? aircraft : new Aircraft();
     }
 
     public String getDeparture() {
-        return departureCode;
+        return (departureCode != null) ? departureCode : "";
     }
 
     public String getArrival() {
-        return arrivalCode;
+        return (arrivalCode != null) ? arrivalCode : "";
     }
 
     public String getRoute() {
-        return route;
+        return (route != null) ? route : "";
     }
 }

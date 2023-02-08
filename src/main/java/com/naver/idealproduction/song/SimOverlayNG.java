@@ -1,7 +1,6 @@
 package com.naver.idealproduction.song;
 
 import com.mouseviator.fsuipc.FSUIPC;
-import com.naver.idealproduction.song.entity.AppProperties;
 import com.naver.idealproduction.song.entity.Overlay;
 import com.naver.idealproduction.song.repo.OverlayRepository;
 import com.naver.idealproduction.song.view.ConsoleHandlerNG;
@@ -68,7 +67,7 @@ public class SimOverlayNG {
 		}
 
 		try {
-			var defaultPort = AppProperties.getInstance().getPort();
+			var defaultPort = AppProperties.read().getPort();
 			var overlayRepository = builder.context().getBean(OverlayRepository.class);
 			var simMonitor = new SimMonitor(1000);
 			var headsUpDisplay = new Overlay("HUD", "/hud");

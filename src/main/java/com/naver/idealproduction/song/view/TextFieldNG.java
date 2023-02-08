@@ -52,6 +52,13 @@ public class TextFieldNG extends JTextField implements FocusListener {
     }
 
     @Override
+    public void setText(String t) {
+        isHint = false;
+        setForeground(Color.black);
+        super.setText(t);
+    }
+
+    @Override
     public void focusGained(FocusEvent e) {
         if (isHint) {
             isHint = false;

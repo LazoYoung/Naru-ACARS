@@ -1,12 +1,17 @@
 package com.naver.idealproduction.song.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import jakarta.annotation.Nonnull;
 
+import java.util.Optional;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Aircraft {
-    private String icaoCode;
-    private String name;
-    private String registration;
-    private int capacity;
+    private String icaoCode = "";
+    private String name = "";
+    private String registration = "";
+    private int capacity = 0;
 
     @JsonSetter("icao_code")
     public void setIcaoCode(String icaoCode) {
@@ -28,16 +33,19 @@ public class Aircraft {
         this.capacity = capacity;
     }
 
+    @Nonnull
     public String getIcaoCode() {
-        return icaoCode;
+        return Optional.ofNullable(icaoCode).orElse("");
     }
 
+    @Nonnull
     public String getName() {
-        return name;
+        return Optional.ofNullable(name).orElse("");
     }
 
+    @Nonnull
     public String getRegistration() {
-        return registration;
+        return Optional.ofNullable(registration).orElse("");
     }
 
     public int getCapacity() {

@@ -1,8 +1,13 @@
 package com.naver.idealproduction.song.view;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.naver.idealproduction.song.SimData;
 import com.naver.idealproduction.song.SimMonitor;
+import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.Airport;
+import com.naver.idealproduction.song.AppProperties;
+import com.naver.idealproduction.song.entity.OFP;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -13,7 +18,14 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static javax.swing.GroupLayout.Alignment.BASELINE;
 import static javax.swing.GroupLayout.Alignment.LEADING;
@@ -23,16 +35,18 @@ import static javax.swing.LayoutStyle.ComponentPlacement.RELATED;
 import static javax.swing.LayoutStyle.ComponentPlacement.UNRELATED;
 
 public class Dashboard extends JSplitPane {
-
+    private final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
     private final ConsoleHandlerNG consoleHandler;
     private final SimMonitor simMonitor;
     private final JPanel leftPane = new JPanel();
     private final JPanel rightPane = new JPanel();
+    private final JLabel simbriefLabel = new JLabel();
+    private final JButton simbriefBtn = new JButton("Simbrief");
     private final DocumentListener docListener;
     private final String notAvail = "N/A";
     private final String notFound = "Not found";
     private final String fillOutForm = "Please fill out the form";
-    private JLabel stateLabel;
+    private JLabel fsuipcLabel;
     private JLabel simLabel;
     private JLabel simValue;
     private JLabel fpsLabel;
@@ -61,12 +75,10 @@ public class Dashboard extends JSplitPane {
             public void insertUpdate(DocumentEvent e) {
                 validateInput();
             }
-
             @Override
             public void removeUpdate(DocumentEvent e) {
                 validateInput();
             }
-
             @Override
             public void changedUpdate(DocumentEvent e) {
                 validateInput();
@@ -122,10 +134,10 @@ public class Dashboard extends JSplitPane {
         var labelFont = new Font("Monospaced", Font.BOLD, 18);
         var valueFont = new Font("Serif", Font.PLAIN, 16);
         var stateFont = new Font("Monospaced", Font.BOLD, 30);
-        stateLabel = bakeLabel("FSUIPC", stateFont, Color.white);
-        stateLabel.setBackground(Color.red);
-        stateLabel.setOpaque(true);
-        stateLabel.setBorder(getMargin(stateLabel, 10, 10, 10, 10));
+        fsuipcLabel = bakeLabel("FSUIPC", stateFont, Color.white);
+        fsuipcLabel.setBackground(Color.red);
+        fsuipcLabel.setOpaque(true);
+        fsuipcLabel.setBorder(getMargin(fsuipcLabel, 10, 10, 10, 10));
         simLabel = bakeLabel("Simulator", labelFont, Color.gray);
         simValue = bakeLabel(notAvail, valueFont, Color.black);
         fpsLabel = bakeLabel("FPS", labelFont, Color.gray);
@@ -198,12 +210,9 @@ public class Dashboard extends JSplitPane {
                         .addComponent(arrHint))
                 .addContainerGap(20, 20);
         var actionPane = new JPanel();
-        var simbriefBtn = new JButton("Simbrief");
         submitBtn = new JButton("SUBMIT");
         var consolePane = new JPanel(new GridLayout(1, 1));
         var consoleArea = consoleHandler.getTextArea();
-        // todo simbrief import
-
 
         // Flight Dispatcher
         depInput.getDocument().addDocumentListener(docListener);
@@ -214,8 +223,13 @@ public class Dashboard extends JSplitPane {
         arrHint.setBorder(getMargin(arrHint, 0, 10, 0, 10));
         depHint.setBackground(Color.gray);
         arrHint.setBackground(Color.gray);
-        simbriefBtn.setToolTipText("INOP");
-        simbriefBtn.setEnabled(false);
+        simbriefBtn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                importSimbrief();
+            }
+        });
+        simbriefBtn.setToolTipText("Import your Simbrief flight plan.");
         submitBtn.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -226,19 +240,21 @@ public class Dashboard extends JSplitPane {
         submitBtn.setEnabled(false);
         actionPane.setLayout(new BoxLayout(actionPane, BoxLayout.X_AXIS));
         actionPane.add(Box.createHorizontalGlue());
+        actionPane.add(simbriefLabel);
+        actionPane.add(Box.createHorizontalStrut(20));
         actionPane.add(simbriefBtn);
-        actionPane.add(getRigidGap(10, 0));
+        actionPane.add(Box.createHorizontalStrut(10));
         actionPane.add(submitBtn);
-        actionPane.add(getRigidGap(20, 0));
+        actionPane.add(Box.createHorizontalStrut(20));
         formLayout.setHorizontalGroup(hGroup);
         formLayout.setVerticalGroup(vGroup);
         formPane.setLayout(formLayout);
         dispatcherPane.setBorder(BorderFactory.createTitledBorder("Flight Dispatcher"));
         dispatcherPane.setLayout(new BoxLayout(dispatcherPane, BoxLayout.Y_AXIS));
         dispatcherPane.add(formPane);
-        dispatcherPane.add(getRigidGap(0, 10));
+        dispatcherPane.add(Box.createVerticalStrut(10));
         dispatcherPane.add(actionPane);
-        dispatcherPane.add(getRigidGap(0, 20));
+        dispatcherPane.add(Box.createVerticalStrut(20));
 
         // Console
         consoleArea.setEditable(false);
@@ -249,10 +265,63 @@ public class Dashboard extends JSplitPane {
         rightPane.add(consolePane);
     }
 
+    private void importSimbrief() {
+        final var props = AppProperties.read();
+        var name = props.getSimbriefName();
+
+        if (name == null || name.isBlank()) {
+            SwingUtilities.invokeLater(() -> {
+                String input = JOptionPane.showInputDialog("Please specify your Simbrief name.");
+                props.setSimbriefName(input);
+                props.save();
+            });
+            return;
+        }
+
+        simbriefBtn.setEnabled(false);
+        simbriefLabel.setForeground(Color.black);
+        simbriefLabel.setText("Loading...");
+
+        var endpoint = "https://www.simbrief.com/api/xml.fetcher.php?username=%s&json=1";
+        var client = HttpClient.newHttpClient();
+        var request = HttpRequest.newBuilder()
+                .uri(URI.create(String.format(endpoint, name)))
+                .timeout(Duration.ofSeconds(7))
+                .build();
+
+        client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .handle((response, t) -> {
+                    if (t != null) {
+                        logger.log(Level.SEVERE, "HTTP request failed: " + response.statusCode(), t);
+                        return null;
+                    }
+
+                    try {
+                        return new ObjectMapper().readValue(response.body(), OFP.class);
+                    } catch (JsonProcessingException e) {
+                        logger.log(Level.SEVERE, "Failed to parse json.", e);
+                        return null;
+                    }
+                })
+                .thenAccept(ofp -> SwingUtilities.invokeLater(() -> {
+                    boolean success = (ofp != null);
+
+                    if (success) {
+                        var aircraft = ofp.getAircraft();
+                        var acfCode = (aircraft != null) ? aircraft.getIcaoCode() : "";
+                        csInput.setText(ofp.getCallsign());
+                        acfInput.setText(acfCode);
+                        depInput.setText(ofp.getDeparture());
+                        arrInput.setText(ofp.getArrival());
+                    }
+                    simbriefLabel.setForeground(success ? Color.blue : Color.red);
+                    simbriefLabel.setText(success ? "Fetch complete" : "Failed to fetch");
+                    simbriefBtn.setEnabled(true);
+                }));
+    }
+
     private void submitFlightPlan() {
         // todo method stub
-//        var props = properties.get();
-//        var simbriefName = props.getSimbriefName();
     }
 
     private void updateContentPane(boolean draw) {
@@ -260,15 +329,15 @@ public class Dashboard extends JSplitPane {
             simValue.setText(simText);
             fpsValue.setText(fpsText);
             refreshValue.setText(refreshText);
-            stateLabel.setBackground(Color.green);
+            fsuipcLabel.setBackground(Color.green);
         } else {
-            stateLabel.setBackground(Color.red);
+            fsuipcLabel.setBackground(Color.red);
         }
 
         if (draw) {
             leftPane.removeAll();
             leftPane.add(Box.createRigidArea(new Dimension(0, 20)));
-            leftPane.add(stateLabel);
+            leftPane.add(fsuipcLabel);
 
             if (online) {
                 leftPane.add(Box.createVerticalGlue());
@@ -282,7 +351,7 @@ public class Dashboard extends JSplitPane {
                 leftPane.add(refreshValue);
                 leftPane.add(Box.createVerticalGlue());
             } else {
-                leftPane.add(getRigidGap(0, 120));
+                leftPane.add(Box.createVerticalStrut(120));
                 leftPane.add(offlineLabel);
             }
 
@@ -299,7 +368,4 @@ public class Dashboard extends JSplitPane {
         return label;
     }
 
-    private Component getRigidGap(int width, int height) {
-        return Box.createRigidArea(new Dimension(width, height));
-    }
 }
