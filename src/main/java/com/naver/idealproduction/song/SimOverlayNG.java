@@ -1,10 +1,10 @@
 package com.naver.idealproduction.song;
 
 import com.mouseviator.fsuipc.FSUIPC;
-import com.naver.idealproduction.song.entity.AppProperties;
+import com.naver.idealproduction.song.entity.Properties;
 import com.naver.idealproduction.song.entity.Overlay;
 import com.naver.idealproduction.song.entity.repository.OverlayRepository;
-import com.naver.idealproduction.song.gui.Console;
+import com.naver.idealproduction.song.gui.panel.Console;
 import com.naver.idealproduction.song.gui.Window;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -68,16 +68,16 @@ public class SimOverlayNG {
 		}
 
 		try {
-			var defaultPort = AppProperties.read().getPort();
+			var defaultPort = Properties.read().getPort();
 			var overlayRepository = builder.context().getBean(OverlayRepository.class);
-			var simMonitor = new SimMonitor(1000);
+			var simTracker = new SimTracker(1000);
 			var headsUpDisplay = new Overlay("HUD", "/hud");
 			var platformDisplay = new Overlay("Platform display", "/platform");
 			var boardingPass = new Overlay("Boarding pass", "/boarding");
 
-			window.start(console, simMonitor, overlayRepository);
-			simMonitor.start();
-			Runtime.getRuntime().addShutdownHook(new Thread(simMonitor::terminate));
+			window.start(console, simTracker, overlayRepository);
+			simTracker.start();
+			Runtime.getRuntime().addShutdownHook(new Thread(simTracker::terminate));
 			overlayRepository.add(headsUpDisplay, platformDisplay, boardingPass);
 			if (port != defaultPort) {
 				window.showDialog(JOptionPane.WARNING_MESSAGE, String.format("Failed to bind port %d.\nUsing new port: %d", defaultPort, port));

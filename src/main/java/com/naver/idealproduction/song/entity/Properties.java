@@ -10,10 +10,10 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class AppProperties {
+public class Properties {
     private static final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
     private static final String fileName = "properties.json";
-    private static final AppProperties defaultProps = new AppProperties();
+    private static final Properties defaultProps = new Properties();
     private static File file = null;
     private int port = 8080;
     private String simbriefName = "";
@@ -32,10 +32,10 @@ public class AppProperties {
         }
     }
 
-    public static AppProperties read() {
+    public static Properties read() {
         try {
             var mapper = new ObjectMapper();
-            return mapper.readValue(file, AppProperties.class);
+            return mapper.readValue(file, Properties.class);
         } catch (Exception e) {
             logger.log(Level.WARNING, "Failed to read " + fileName, e);
             return defaultProps;

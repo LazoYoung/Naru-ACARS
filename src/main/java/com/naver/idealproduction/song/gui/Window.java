@@ -1,8 +1,8 @@
 package com.naver.idealproduction.song.gui;
 
-import com.naver.idealproduction.song.SimMonitor;
+import com.naver.idealproduction.song.SimTracker;
 import com.naver.idealproduction.song.entity.repository.OverlayRepository;
-import com.naver.idealproduction.song.gui.component.OverlayPanel;
+import com.naver.idealproduction.song.gui.panel.Console;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,14 +11,14 @@ import static javax.swing.JOptionPane.*;
 
 public class Window extends JFrame {
 
-    private SimMonitor simMonitor;
+    private SimTracker simTracker;
 
     public void start(
             Console console,
-            SimMonitor simMonitor,
+            SimTracker simTracker,
             OverlayRepository overlayRepository
     ) {
-        this.simMonitor = simMonitor;
+        this.simTracker = simTracker;
 
         setResizable(false);
         setPreferredSize(new Dimension(800, 500));
@@ -26,10 +26,10 @@ public class Window extends JFrame {
         setTitle("SimOverlayNG");
 
         var contentPane = new JTabbedPane();
-        var dashboard = new Dashboard(console, simMonitor);
-        var overlayPanel = new OverlayPanel(this, overlayRepository);
+        var dashboard = new Dashboard(console, simTracker);
+        var overlayPanel = new Overlays(this, overlayRepository);
         contentPane.addTab("Dashboard", dashboard);
-        contentPane.addTab("Overlay", overlayPanel);
+        contentPane.addTab("Overlays", overlayPanel);
         setContentPane(contentPane);
         pack();
         setLocationRelativeTo(null);
@@ -55,6 +55,6 @@ public class Window extends JFrame {
     @Override
     public void dispose() {
         super.dispose();
-        simMonitor.terminate();
+        simTracker.terminate();
     }
 }

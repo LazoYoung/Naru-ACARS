@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-public class SimMonitor implements IFSUIPCListener {
+public class SimTracker implements IFSUIPCListener {
 
     private static final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
     private final FSUIPC fsuipc = FSUIPC.getInstance();
@@ -23,7 +23,7 @@ public class SimMonitor implements IFSUIPCListener {
     private final SimData data;
     private final int refreshRate;
 
-    public SimMonitor(int refreshRate) {
+    public SimTracker(int refreshRate) {
         data = new SimData();
         this.refreshRate = refreshRate;
     }
@@ -81,7 +81,7 @@ public class SimMonitor implements IFSUIPCListener {
         try {
             notifyListeners();
 
-            log("-- SimMonitor report --");
+            log("-- Simulator data --");
             log("Aircraft type: %s", data.getAircraftType());
             log("Aircraft name: %s", data.getAircraftName());
             log("Aircraft altitude: %d ft", data.getAltitude(Length.FEET));

@@ -1,9 +1,8 @@
-package com.naver.idealproduction.song.gui.component;
+package com.naver.idealproduction.song.gui;
 
 import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.Overlay;
 import com.naver.idealproduction.song.entity.repository.OverlayRepository;
-import com.naver.idealproduction.song.gui.Window;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,14 +19,14 @@ import static java.awt.Dialog.ModalityType.APPLICATION_MODAL;
 import static java.lang.Short.MAX_VALUE;
 import static javax.swing.BoxLayout.Y_AXIS;
 
-public class OverlayPanel extends JPanel {
+public class Overlays extends JPanel {
 
     private final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
     private final OverlayRepository repository;
     private final JEditorPane overlayView;
     private final JComboBox<String> selector;
 
-    public OverlayPanel(com.naver.idealproduction.song.gui.Window window, OverlayRepository repository) {
+    public Overlays(com.naver.idealproduction.song.gui.Window window, OverlayRepository repository) {
         this.repository = repository;
         String[] items = repository.getAll()
                 .stream()
@@ -87,7 +86,6 @@ public class OverlayPanel extends JPanel {
             } else {
                 var path = overlay.get().getPath();
                 overlayView.setPage(SimOverlayNG.getWebURL(path));
-                logger.info("Selected overlay: " + item);
             }
         } catch (IOException e) {
             logger.log(Level.WARNING, e.getMessage(), e);
@@ -131,7 +129,6 @@ public class OverlayPanel extends JPanel {
             } else {
                 String path = overlay.get().getPath();
                 overlayView.setPage(SimOverlayNG.getWebURL(path));
-                logger.info("Selected overlay: " + overlayName);
             }
         } catch (IOException e) {
             logger.log(Level.SEVERE, e.getMessage(), e);
