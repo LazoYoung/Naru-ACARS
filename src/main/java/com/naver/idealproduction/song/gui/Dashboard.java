@@ -6,7 +6,7 @@ import com.naver.idealproduction.song.entity.SimData;
 import com.naver.idealproduction.song.SimMonitor;
 import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.Airport;
-import com.naver.idealproduction.song.AppProperties;
+import com.naver.idealproduction.song.entity.AppProperties;
 import com.naver.idealproduction.song.entity.OFP;
 import com.naver.idealproduction.song.gui.component.TextInput;
 import org.apache.commons.lang3.exception.ExceptionUtils;

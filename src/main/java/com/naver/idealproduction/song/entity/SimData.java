@@ -9,7 +9,7 @@ import com.mouseviator.fsuipc.datarequest.primitives.StringRequest;
 import com.mouseviator.fsuipc.helpers.SimHelper;
 import com.mouseviator.fsuipc.helpers.aircraft.AircraftHelper;
 import com.mouseviator.fsuipc.helpers.avionics.GPSHelper;
-import com.naver.idealproduction.song.repository.AirportRepository;
+import com.naver.idealproduction.song.entity.repository.AirportRepository;
 import com.naver.idealproduction.song.entity.unit.Length;
 import com.naver.idealproduction.song.entity.unit.Speed;
 

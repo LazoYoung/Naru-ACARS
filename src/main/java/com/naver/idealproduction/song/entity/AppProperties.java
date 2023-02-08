@@ -1,8 +1,9 @@
-package com.naver.idealproduction.song;
+package com.naver.idealproduction.song.entity;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.naver.idealproduction.song.SimOverlayNG;
 
 import java.io.File;
 import java.io.IOException;

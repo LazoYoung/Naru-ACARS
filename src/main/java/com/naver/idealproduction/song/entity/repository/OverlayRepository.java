@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.repository;
+package com.naver.idealproduction.song.entity.repository;
 
 import com.naver.idealproduction.song.entity.Overlay;
 import jakarta.annotation.Nullable;

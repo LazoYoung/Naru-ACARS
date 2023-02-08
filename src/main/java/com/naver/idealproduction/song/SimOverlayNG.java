@@ -1,8 +1,9 @@
 package com.naver.idealproduction.song;
 
 import com.mouseviator.fsuipc.FSUIPC;
+import com.naver.idealproduction.song.entity.AppProperties;
 import com.naver.idealproduction.song.entity.Overlay;
-import com.naver.idealproduction.song.repository.OverlayRepository;
+import com.naver.idealproduction.song.entity.repository.OverlayRepository;
 import com.naver.idealproduction.song.gui.Console;
 import com.naver.idealproduction.song.gui.Window;
 import org.springframework.boot.SpringApplication;

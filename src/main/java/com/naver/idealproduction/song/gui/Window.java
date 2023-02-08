@@ -1,7 +1,7 @@
 package com.naver.idealproduction.song.gui;
 
 import com.naver.idealproduction.song.SimMonitor;
-import com.naver.idealproduction.song.repository.OverlayRepository;
+import com.naver.idealproduction.song.entity.repository.OverlayRepository;
 import com.naver.idealproduction.song.gui.component.OverlayPanel;
 
 import javax.swing.*;
