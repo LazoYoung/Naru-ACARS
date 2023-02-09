@@ -68,20 +68,23 @@ public class SimOverlayNG {
 		}
 
 		try {
-			var defaultPort = Properties.read().getPort();
-			var overlayRepository = builder.context().getBean(OverlayRepository.class);
-			var simTracker = new SimTracker(1000);
+			final var finalPort = port;
+			final var defaultPort = Properties.read().getPort();
+			final var overlayRepository = builder.context().getBean(OverlayRepository.class);
+			final var simTracker = new SimTracker(1000);
 			var headsUpDisplay = new Overlay("HUD", "/hud");
 			var platformDisplay = new Overlay("Platform display", "/platform");
 			var boardingPass = new Overlay("Boarding pass", "/boarding");
 
-			window.start(console, simTracker, overlayRepository);
+			SwingUtilities.invokeLater(() -> {
+				window.start(console, simTracker, overlayRepository);
+				if (finalPort != defaultPort) {
+					window.showDialog(JOptionPane.WARNING_MESSAGE, String.format("Failed to bind port %d.\nUsing new port: %d", defaultPort, finalPort));
+				}
+			});
 			simTracker.start();
 			Runtime.getRuntime().addShutdownHook(new Thread(simTracker::terminate));
 			overlayRepository.add(headsUpDisplay, platformDisplay, boardingPass);
-			if (port != defaultPort) {
-				window.showDialog(JOptionPane.WARNING_MESSAGE, String.format("Failed to bind port %d.\nUsing new port: %d", defaultPort, port));
-			}
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 			exit(context);
