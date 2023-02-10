@@ -7,9 +7,9 @@ javadoc/
 !**/src/test/**/build/
 
 ### Runtime resources ###
-fsuipc_java32.dll
-fsuipc_java64.dll
 SimOverlayNG/
+*.dll
+*.log
 
 ### STS ###
 .apt_generated

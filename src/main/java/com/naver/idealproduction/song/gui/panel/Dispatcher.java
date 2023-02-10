@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.SimTracker;
 import com.naver.idealproduction.song.entity.Airport;
-import com.naver.idealproduction.song.entity.OFP;
+import com.naver.idealproduction.song.entity.FlightPlan;
 import com.naver.idealproduction.song.entity.Properties;
 import com.naver.idealproduction.song.entity.SimData;
 import com.naver.idealproduction.song.gui.Dashboard;
@@ -243,7 +243,7 @@ public class Dispatcher extends SimplePanel {
                     }
 
                     try {
-                        return new ObjectMapper().readValue(response.body(), OFP.class);
+                        return new ObjectMapper().readValue(response.body(), FlightPlan.class);
                     } catch (JsonProcessingException e) {
                         logger.log(Level.SEVERE, "Failed to parse json.", e);
                         simbriefLabel.setText(null);
@@ -251,15 +251,15 @@ public class Dispatcher extends SimplePanel {
                         return null;
                     }
                 })
-                .thenAccept(ofp -> SwingUtilities.invokeLater(() -> {
-                    if (ofp == null) {
+                .thenAccept(flightPlan -> SwingUtilities.invokeLater(() -> {
+                    if (flightPlan == null) {
                         return;
                     }
 
-                    csInput.setText(ofp.getCallsign());
-                    acfInput.setText(ofp.getAircraft().getIcaoCode());
-                    depInput.setText(ofp.getDeparture());
-                    arrInput.setText(ofp.getArrival());
+                    csInput.setText(flightPlan.getCallsign());
+                    acfInput.setText(flightPlan.getAircraft().getIcaoCode());
+                    depInput.setText(flightPlan.getDeparture());
+                    arrInput.setText(flightPlan.getArrival());
                     simbriefLabel.setForeground(Color.blue);
                     simbriefLabel.setText("Fetch complete");
                     simbriefBtn.setEnabled(true);

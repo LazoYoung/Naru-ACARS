@@ -42,9 +42,9 @@ public class SimTracker implements IFSUIPCListener {
 
             if (!success) {
                 fsuipc.connect(FSUIPCWrapper.FSUIPCSimVersion.SIM_ANY);
-                logger.warning("Failed to open FSUIPC connection!");
+                logger.warning("Failed to open fsuipc connection!");
             } else {
-                logger.info("Waiting for FSUIPC connection...");
+                logger.info("Waiting for fsuipc connection...");
             }
         });
 
@@ -54,7 +54,7 @@ public class SimTracker implements IFSUIPCListener {
 
     public void terminate() {
         fsuipc.disconnect();
-        logger.info("Disconnected from FSUIPC.");
+        logger.info("Disconnected from fsuipc.");
     }
 
     public void addUpdateListener(Consumer<SimData> listener) {
@@ -63,7 +63,7 @@ public class SimTracker implements IFSUIPCListener {
 
     @Override
     public void onConnected() {
-        logger.info("Connected to FSUIPC!");
+        logger.info("Connected to fsuipc!");
         logger.info("Detected simulator: " + fsuipc.getFSVersion());
         fsuipc.processRequests(refreshRate, true);
         notifyListeners();
@@ -103,7 +103,7 @@ public class SimTracker implements IFSUIPCListener {
     @Override
     public void onFail(int lastResult) {
         String msg = FSUIPC.FSUIPC_ERROR_MESSAGES.get(FSUIPCWrapper.FSUIPCResult.get(lastResult));
-        logger.warning("FSUIPC error: " + msg);
+        logger.warning("Fsuipc error: " + msg);
     }
 
     private void log(String format, Object... args) {

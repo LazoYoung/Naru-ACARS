@@ -3,38 +3,44 @@ package com.naver.idealproduction.song.gui;
 import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.Overlay;
 import com.naver.idealproduction.song.entity.repository.OverlayRepository;
+import me.friwi.jcefmaven.CefAppBuilder;
+import me.friwi.jcefmaven.EnumProgress;
+import me.friwi.jcefmaven.MavenCefAppHandlerAdapter;
+import me.friwi.jcefmaven.impl.progress.ConsoleProgressHandler;
+import org.cef.CefApp;
+import org.cef.browser.CefBrowser;
+import org.cef.browser.CefMessageRouter;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.IOException;
+import java.awt.event.*;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.awt.Dialog.ModalityType.APPLICATION_MODAL;
 import static java.lang.Short.MAX_VALUE;
+import static java.util.logging.Level.SEVERE;
 import static javax.swing.BoxLayout.Y_AXIS;
 
 public class Overlays extends JPanel {
-
     private final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
-    private final OverlayRepository repository;
-    private final JEditorPane overlayView;
-    private final JComboBox<String> selector;
 
-    public Overlays(com.naver.idealproduction.song.gui.Window window, OverlayRepository repository) {
+    private final OverlayRepository repository;
+    private final JComboBox<String> selector;
+    private final JPanel overlayPane;
+    private CefApp cefApp;
+    private CefBrowser browser = null;
+
+    public Overlays(Window window, OverlayRepository repository) {
         this.repository = repository;
         String[] items = repository.getAll()
                 .stream()
                 .map(Overlay::getName)
                 .toArray(String[]::new);
-
         selector = new JComboBox<>(items);
-        overlayView = new JEditorPane();
+        overlayPane = new JPanel(new GridLayout(1, 1));
         var useBtn = new JButton("Use overlay");
         var controlPane = new JPanel();
         var controlLayout = new GroupLayout(controlPane);
@@ -74,33 +80,99 @@ public class Overlays extends JPanel {
         controlPane.add(useBtn);
         controlPane.add(Box.createHorizontalStrut(20));
 
-        var overlayPane = new JPanel(new GridLayout(1, 1));
-        var item = (String) selector.getSelectedItem();
-        Optional<Overlay> overlay = Optional.ofNullable(item).flatMap(repository::get);
-        overlayView.setEditable(false);
-        overlayView.setContentType("text/html");
-
-        try {
-            if (overlay.isEmpty()) {
-                overlayView.setPage(SimOverlayNG.getWebURL("/404"));
-            } else {
-                var path = overlay.get().getPath();
-                overlayView.setPage(SimOverlayNG.getWebURL(path));
-            }
-        } catch (IOException e) {
-            logger.log(Level.WARNING, e.getMessage(), e);
-        }
-
-        overlayPane.setBorder(BorderFactory.createLineBorder(Color.black));
-        overlayPane.add(overlayView);
-
         var borderLayout = new BoxLayout(this, Y_AXIS);
         setLayout(borderLayout);
         setBorder(BorderFactory.createTitledBorder("Overlay"));
         add(controlPane);
         add(overlayPane);
 
+        var item = (String) selector.getSelectedItem();
+        Optional<Overlay> overlay = Optional.ofNullable(item).flatMap(repository::get);
+        String url;
+
+        if (overlay.isEmpty()) {
+            url = SimOverlayNG.getWebURL("/404").toString();
+        } else {
+            var path = overlay.get().getPath();
+            url = SimOverlayNG.getWebURL(path).toString();
+        }
+
+        invokeLater(() -> createBrowser(url));
+        window.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                invokeLater(() -> disposeBrowser());
+            }
+        });
         repository.addUpdateListener(() -> SwingUtilities.invokeLater(this::updateSelector));
+    }
+
+    private void invokeLater(Runnable run) {
+        var thread = new Thread(() -> {
+            try {
+                run.run();
+            } catch (Exception e) {
+                logger.log(SEVERE, e.getMessage(), e);
+            }
+        });
+        thread.start();
+    }
+
+    private void createBrowser(String url) {
+        try {
+            var builder = new CefAppBuilder();
+            var dir = SimOverlayNG.getDirectory().resolve("jcef-bundle").toFile();
+            builder.setInstallDir(dir);
+            builder.setAppHandler(new MavenCefAppHandlerAdapter() {
+                @Override
+                public boolean onBeforeTerminate() {
+                    return true;
+                }
+            });
+            builder.setProgressHandler(new ConsoleProgressHandler() {
+                @Override
+                public void handleProgress(EnumProgress state, float percent) {
+                    Objects.requireNonNull(state, "state cannot be null");
+                    if (percent != -1f && (percent < 0f || percent > 100f)) {
+                        throw new RuntimeException("percent has to be -1f or between 0f and 100f. Got " + percent + " instead");
+                    }
+                    String s = state.toString();
+                    String state_ = Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase();
+                    String percent_ = (percent == -1f) ? "" : (percent + "%");
+                    logger.info(state_ + " cef browser... " + percent_);
+                }
+            });
+            builder.getCefSettings().windowless_rendering_enabled = true;
+            cefApp = builder.build();
+            var cefClient = cefApp.createClient();
+            var router = CefMessageRouter.create();
+            cefClient.addMessageRouter(router);
+            browser = cefClient.createBrowser(url, true, false);
+            loadBrowser(browser.getUIComponent());
+        } catch (Exception e) {
+            logger.log(SEVERE, "Failed to load overlay viewer!", e);
+            loadBrowser(null);
+        }
+    }
+
+    private void loadBrowser(Component comp) {
+        SwingUtilities.invokeLater(() -> {
+            overlayPane.setBorder(BorderFactory.createLineBorder(Color.black));
+
+            if (comp != null) {
+                overlayPane.add(comp);
+                comp.repaint();
+            } else {
+                var blank = new JPanel();
+                blank.setBackground(Color.black);
+                overlayPane.add(blank);
+            }
+        });
+    }
+
+    private void disposeBrowser() {
+        CefApp.getInstance().dispose();
+        cefApp.dispose();
     }
 
     private void updateSelector() {
@@ -121,17 +193,24 @@ public class Overlays extends JPanel {
         }
 
         var overlay = repository.get(overlayName);
+        String url;
+
         repository.select(overlayName);
 
-        try {
-            if (overlay.isEmpty()) {
-                overlayView.setPage(SimOverlayNG.getWebURL("/404"));
-            } else {
-                String path = overlay.get().getPath();
-                overlayView.setPage(SimOverlayNG.getWebURL(path));
+        if (overlay.isEmpty()) {
+            url = SimOverlayNG.getWebURL("/404").toString();
+        } else {
+            String path = overlay.get().getPath();
+            url = SimOverlayNG.getWebURL(path).toString();
+        }
+
+        if (browser != null) {
+            try {
+                browser.loadURL(url);
+                browser.getUIComponent().repaint();
+            } catch (Exception e) {
+                logger.log(SEVERE, "Failed to load: " + url, e);
             }
-        } catch (IOException e) {
-            logger.log(Level.SEVERE, e.getMessage(), e);
         }
     }
 
@@ -140,7 +219,7 @@ public class Overlays extends JPanel {
         final var dialog = new JDialog(window, "Overlay URL", APPLICATION_MODAL);
         var panel = new JPanel();
         var layout = new GroupLayout(panel);
-        var message = new JLabel("Copy this URL into your OBS browser source.");
+        var message = new JLabel("Copy it into your OBS browser source.");
         var urlField = new JTextField(url);
         var button = new JButton("Copy");
 
@@ -170,7 +249,7 @@ public class Overlays extends JPanel {
                     var selection = new StringSelection(url);
                     clipboard.setContents(selection, selection);
                 } catch (Exception ex) {
-                    logger.log(Level.SEVERE, "Failed to edit system clipboard.", ex);
+                    logger.log(SEVERE, "Failed to edit system clipboard.", ex);
                 }
                 dialog.dispose();
             }

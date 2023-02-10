@@ -20,6 +20,10 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
+	// Java Chromium Embedded Framework
+	implementation 'me.friwi:jcefmaven:109.1.11.1'
+//	implementation 'me.friwi:jcef-natives-windows-i386:jcef-854af1f+cef-109.1.11+g6d4fdb2+chromium-109.0.5414.87'
+
 	// Mockito
 	testImplementation "org.mockito:mockito-core:3.+"
 
