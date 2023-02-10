@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <title>SimOverlayNG</title>
     <meta charset="UTF-8">
     <link href="../static/hud.css" type="text/css" rel="stylesheet" th:href="hud.css">
     <script src="../static/hud.js" type="text/javascript" charset="UTF-8" th:src="hud.js"></script>
 </head>
 <body>
 
-<img id="background" src="../static/hud.png" th:src="hud.png">
+<img id="background" alt="Image not found" src="../static/hud.png" th:src="hud.png">
+
+<canvas id="canvas">
+    This browser does not support HTML5.
+</canvas>
 
 </body>
 </html>
