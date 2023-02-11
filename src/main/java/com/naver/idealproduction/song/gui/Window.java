@@ -12,6 +12,7 @@ import static javax.swing.JOptionPane.*;
 public class Window extends JFrame {
 
     private SimTracker simTracker;
+    private JTabbedPane contentPane;
 
     public void start(
             Console console,
@@ -25,7 +26,7 @@ public class Window extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setTitle("SimOverlayNG");
 
-        var contentPane = new JTabbedPane();
+        contentPane = new JTabbedPane();
         var dashboard = new Dashboard(console, simTracker);
         var overlayPanel = new Overlays(this, overlayRepository);
         contentPane.addTab("Dashboard", dashboard);
@@ -50,6 +51,10 @@ public class Window extends JFrame {
             case ERROR_MESSAGE -> title = "Error";
         }
         JOptionPane.showMessageDialog(this, message, title, type);
+    }
+
+    public JTabbedPane getContentTab() {
+        return contentPane;
     }
 
     @Override

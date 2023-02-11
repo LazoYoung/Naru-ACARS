@@ -3,6 +3,7 @@ package com.naver.idealproduction.song.gui;
 import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.Overlay;
 import com.naver.idealproduction.song.entity.repository.OverlayRepository;
+import jakarta.annotation.Nullable;
 import me.friwi.jcefmaven.CefAppBuilder;
 import me.friwi.jcefmaven.EnumProgress;
 import me.friwi.jcefmaven.MavenCefAppHandlerAdapter;
@@ -26,7 +27,6 @@ import static javax.swing.BoxLayout.Y_AXIS;
 
 public class Overlays extends JPanel {
     private final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
-
     private final OverlayRepository repository;
     private final JComboBox<String> selector;
     private final JPanel overlayPane;
@@ -57,6 +57,7 @@ public class Overlays extends JPanel {
                         .addComponent(useBtn))
                 .addGap(10);
 
+        selector.setSelectedItem(items[0]);
         selector.setMaximumSize(new Dimension(80, 30));
         selector.addActionListener(this::onComboSelect);
         useBtn.addMouseListener(new MouseAdapter() {
@@ -86,6 +87,7 @@ public class Overlays extends JPanel {
         add(controlPane);
         add(overlayPane);
 
+        final var tab = window.getContentTab();
         var item = (String) selector.getSelectedItem();
         Optional<Overlay> overlay = Optional.ofNullable(item).flatMap(repository::get);
         String url;
@@ -96,8 +98,12 @@ public class Overlays extends JPanel {
             var path = overlay.get().getPath();
             url = SimOverlayNG.getWebURL(path).toString();
         }
-
         invokeLater(() -> createBrowser(url));
+        tab.addChangeListener(e -> {
+            if (tab.getSelectedComponent().equals(this)) {
+                updateBrowser(null);
+            }
+        });
         window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -192,9 +198,8 @@ public class Overlays extends JPanel {
             return;
         }
 
-        var overlay = repository.get(overlayName);
         String url;
-
+        var overlay = repository.get(overlayName);
         repository.select(overlayName);
 
         if (overlay.isEmpty()) {
@@ -204,13 +209,21 @@ public class Overlays extends JPanel {
             url = SimOverlayNG.getWebURL(path).toString();
         }
 
-        if (browser != null) {
-            try {
-                browser.loadURL(url);
-                browser.getUIComponent().repaint();
-            } catch (Exception e) {
-                logger.log(SEVERE, "Failed to load: " + url, e);
-            }
+        updateBrowser(url);
+    }
+
+    private void updateBrowser(@Nullable String url) {
+        if (browser == null) {
+            return;
+        }
+        if (url == null) {
+            url = browser.getURL();
+        }
+        try {
+            browser.loadURL(url);
+            browser.getUIComponent().repaint();
+        } catch (Exception e) {
+            logger.log(SEVERE, "Failed to load: " + url, e);
         }
     }
 
