@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.entity.repository;
+package com.naver.idealproduction.song.service;
 
 import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.Airport;
@@ -17,7 +17,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.util.logging.Level.SEVERE;
 
-public class AirportRepository {
+public class AirportService {
     private enum DataType {
         ICAO("gps_code"),
         IATA("iata_code"),
@@ -43,7 +43,7 @@ public class AirportRepository {
     private final String fileName = "airports.csv";
     private File file = null;
 
-    public AirportRepository() {
+    public AirportService() {
         try {
             file = copyCSV(false);
         } catch (RuntimeException e) {

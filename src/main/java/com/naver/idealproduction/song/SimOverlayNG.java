@@ -1,11 +1,10 @@
 package com.naver.idealproduction.song;
 
 import com.mouseviator.fsuipc.FSUIPC;
-import com.naver.idealproduction.song.entity.Overlay;
 import com.naver.idealproduction.song.entity.Properties;
-import com.naver.idealproduction.song.entity.repository.OverlayRepository;
 import com.naver.idealproduction.song.gui.Window;
 import com.naver.idealproduction.song.gui.panel.Console;
+import com.naver.idealproduction.song.service.OverlayService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -70,11 +69,8 @@ public class SimOverlayNG {
 		try {
 			final var finalPort = port;
 			final var defaultPort = Properties.read().getPort();
-			final var overlayRepository = builder.context().getBean(OverlayRepository.class);
+			final var overlayRepository = builder.context().getBean(OverlayService.class);
 			final var simTracker = new SimTracker(1000);
-			var headsUpDisplay = new Overlay("HUD", "/hud");
-			var platformDisplay = new Overlay("Platform display", "/platform");
-			var boardingPass = new Overlay("Boarding pass", "/boarding");
 
 			SwingUtilities.invokeLater(() -> {
 				window.start(console, simTracker, overlayRepository);
@@ -84,7 +80,6 @@ public class SimOverlayNG {
 			});
 			simTracker.start();
 			Runtime.getRuntime().addShutdownHook(new Thread(simTracker::terminate));
-			overlayRepository.add(headsUpDisplay, platformDisplay, boardingPass);
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 			exit(context);
@@ -117,15 +112,15 @@ public class SimOverlayNG {
 	}
 
 	public static ClassPathResource getResource(String fileName) {
-		return new ClassPathResource(directory + '/' + fileName);
+		return new ClassPathResource("flat/" + fileName);
 	}
 
 	private static void copyLibraries() throws IOException {
 		var fsuipc32 = "fsuipc_java32.dll";
 		var fsuipc64 = "fsuipc_java64.dll";
 		var userDir = Path.of(System.getProperty("user.dir"));
-		var fsuipc32Resource = new ClassPathResource(fsuipc32);
-		var fsuipc64Resource = new ClassPathResource(fsuipc64);
+		var fsuipc32Resource = getResource(fsuipc32);
+		var fsuipc64Resource = getResource(fsuipc64);
 		var fsuipc32Stream = fsuipc32Resource.getInputStream();
 		var fsuipc64Stream = fsuipc64Resource.getInputStream();
 		Files.copy(fsuipc32Stream, userDir.resolve(fsuipc32), REPLACE_EXISTING);

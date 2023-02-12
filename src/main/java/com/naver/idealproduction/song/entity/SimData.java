@@ -9,16 +9,16 @@ import com.mouseviator.fsuipc.datarequest.primitives.StringRequest;
 import com.mouseviator.fsuipc.helpers.SimHelper;
 import com.mouseviator.fsuipc.helpers.aircraft.AircraftHelper;
 import com.mouseviator.fsuipc.helpers.avionics.GPSHelper;
-import com.naver.idealproduction.song.entity.repository.AirportRepository;
 import com.naver.idealproduction.song.entity.unit.Length;
 import com.naver.idealproduction.song.entity.unit.Speed;
+import com.naver.idealproduction.song.service.AirportService;
 
 import java.time.LocalTime;
 import java.util.Optional;
 
 public class SimData {
 
-    private final AirportRepository airportRepo = new AirportRepository();
+    private final AirportService airportRepo = new AirportService();
     private final FSUIPC fsuipc = FSUIPC.getInstance();
     private final IDataRequest<Float> fps;
     private final StringRequest aircraftType;

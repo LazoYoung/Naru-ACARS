@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>SimOverlayNG</title>
+    <meta charset="UTF-8">
+    <link href="/overlay.css" type="text/css" rel="stylesheet">
+    <script src="/overlay.js" type="text/javascript" charset="UTF-8"></script>
+</head>
+<body>
+
+<img id="background" src="/background.png" th:src="${background}" alt="N/A">
+<img id="icon-arrival" class="icon" src="/icon/arrival.png" alt="N/A"/>
+<img id="icon-departure" class="icon" src="/icon/departure.png" alt="N/A"/>
+<img id="icon-flight" class="icon" src="/icon/flight.png" alt="N/A"/>
+<img id="icon-phase" class="icon" src="/icon/phase.png" alt="N/A"/>
+
+<canvas id="canvas">
+    This browser does not support HTML5.
+</canvas>
+
+</body>
+</html>

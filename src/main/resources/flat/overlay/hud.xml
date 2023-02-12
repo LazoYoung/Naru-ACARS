@@ -1,4 +1,4 @@
-<overlay id="hud" name="HUD" background="hud.png">
+<overlay name="HUD" background="hud.png">
     <icon file="icon/flight.png" x="90" y="60" width="50" height="50"/>
     <label x="160" y="95" size="30">
         <animate type="slide" interval="5">

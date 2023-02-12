@@ -1,8 +1,8 @@
 package com.naver.idealproduction.song.gui;
 
 import com.naver.idealproduction.song.SimTracker;
-import com.naver.idealproduction.song.entity.repository.OverlayRepository;
 import com.naver.idealproduction.song.gui.panel.Console;
+import com.naver.idealproduction.song.service.OverlayService;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +17,7 @@ public class Window extends JFrame {
     public void start(
             Console console,
             SimTracker simTracker,
-            OverlayRepository overlayRepository
+            OverlayService overlayService
     ) {
         this.simTracker = simTracker;
 
@@ -28,7 +28,7 @@ public class Window extends JFrame {
 
         contentPane = new JTabbedPane();
         var dashboard = new Dashboard(console, simTracker);
-        var overlayPanel = new Overlays(this, overlayRepository);
+        var overlayPanel = new Overlays(this, overlayService);
         contentPane.addTab("Dashboard", dashboard);
         contentPane.addTab("Overlays", overlayPanel);
         setContentPane(contentPane);

@@ -17,6 +17,7 @@ public class Properties {
     private static File file = null;
     private int port = 8080;
     private String simbriefName = "";
+    private String overlay = null;
 
     static {
         try {
@@ -63,6 +64,11 @@ public class Properties {
         return simbriefName;
     }
 
+    @JsonGetter("overlay")
+    public String getOverlay() {
+        return overlay;
+    }
+
     @JsonSetter("port")
     public void setPort(int port) {
         if (port < 0 || port > 65535) {
@@ -71,8 +77,13 @@ public class Properties {
         this.port = port;
     }
 
-    @JsonGetter("simbrief-name")
+    @JsonSetter("simbrief-name")
     public void setSimbriefName(String simbriefName) {
         this.simbriefName = simbriefName;
+    }
+
+    @JsonSetter("overlay")
+    public void setOverlay(String overlay) {
+        this.overlay = overlay;
     }
 }
