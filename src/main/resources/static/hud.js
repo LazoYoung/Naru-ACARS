@@ -1,4 +1,5 @@
 let canvas, bg_img;
+let font_family = 'serif';
 
 window.addEventListener('load', () => {
     canvas = document.getElementById('canvas');
@@ -25,7 +26,7 @@ function drawCanvas() {
     let height = bg_img.height * scale;
     ctx.drawImage(bg_img, 0, 0, canvas.width, height);
 
-    let flight_icon = document.getElementById('flight-icon');
+    let flight_icon = document.getElementById('icon-flight');
     let flight_icon_x = 90 * scale;
     let flight_icon_y = 60 * scale;
     let flight_icon_width = flight_icon.width * scale;
@@ -37,14 +38,16 @@ function drawCanvas() {
     let callsign_y = 95 * scale;
     let callsign_size = 30 * scale;
     ctx.fillStyle = 'white';
-    ctx.font = callsign_size + 'px staatliches';
+    ctx.font = callsign_size + 'px ' + font_family;
     ctx.fillText(callsign, callsign_x, callsign_y);
 }
 
 async function loadFonts() {
-    let font = new FontFace('staatliches', 'url(/fonts/staatliches.ttf)');
+    let family = 'staatliches';
+    let font = new FontFace(family, `url(/font/${family}.ttf)`);
     return font.load()
         .then(() => {
             document.fonts.add(font);
+            font_family = family;
         });
 }

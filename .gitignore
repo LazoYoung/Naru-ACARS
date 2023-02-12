@@ -6,7 +6,10 @@ javadoc/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### Runtime resources ###
+### Flat resources ###
+!**/resources/flat/**
+
+### Runtime files ###
 SimOverlayNG/
 *.dll
 *.log
@@ -41,3 +44,4 @@ out/
 
 ### VS Code ###
 .vscode/
+
