@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.entity;
+package com.naver.idealproduction.song;
 
 import com.mouseviator.fsuipc.FSUIPC;
 import com.mouseviator.fsuipc.datarequest.IDataRequest;
@@ -9,6 +9,7 @@ import com.mouseviator.fsuipc.datarequest.primitives.StringRequest;
 import com.mouseviator.fsuipc.helpers.SimHelper;
 import com.mouseviator.fsuipc.helpers.aircraft.AircraftHelper;
 import com.mouseviator.fsuipc.helpers.avionics.GPSHelper;
+import com.naver.idealproduction.song.entity.Airport;
 import com.naver.idealproduction.song.entity.unit.Length;
 import com.naver.idealproduction.song.entity.unit.Speed;
 import com.naver.idealproduction.song.service.AirportService;
@@ -16,7 +17,7 @@ import com.naver.idealproduction.song.service.AirportService;
 import java.time.LocalTime;
 import java.util.Optional;
 
-public class SimData {
+public class SimBridge {
 
     private final AirportService airportRepo = new AirportService();
     private final FSUIPC fsuipc = FSUIPC.getInstance();
@@ -39,7 +40,7 @@ public class SimData {
 //    private final IDataRequest<Integer> eta;
 
     @SuppressWarnings("unchecked")
-    public SimData() {
+    public SimBridge() {
         var aircraft = new AircraftHelper();
         var gps = new GPSHelper();
         var sim = new SimHelper();

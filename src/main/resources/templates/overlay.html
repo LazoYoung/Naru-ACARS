@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--suppress HtmlRequiredAltAttribute -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>SimOverlayNG</title>
@@ -8,12 +9,16 @@
 </head>
 <body>
 
-<img id="background" src="/background.png" th:src="${background}" alt="N/A">
-<img id="icon-arrival" class="icon" src="/icon/arrival.png" alt="N/A"/>
-<img id="icon-departure" class="icon" src="/icon/departure.png" alt="N/A"/>
-<img id="icon-flight" class="icon" src="/icon/flight.png" alt="N/A"/>
-<img id="icon-phase" class="icon" src="/icon/phase.png" alt="N/A"/>
-
+<img id="background" src="/background.png" th:src="${background}">
+<img class="icon" th:each="i : ${icons}" th:src="${i.file}" th:data-x="${i.x}" th:data-y="${i.y}"
+     th:data-width="${i.width}" th:data-height="${i.height}">
+<overlay-label th:each="l : ${staticLabels}" th:x="${l.x}" th:y="${l.y}" th:size="${l.size}" th:color="${l.color}">
+    <div is="overlay-text" th:simvar="${l.simVar}"></div>
+</overlay-label>
+<overlay-label th:each="l : ${animatedLabels}" th:x="${l.x}" th:y="${l.y}" th:size="${l.size}" th:color="${l.color}"
+               th:type="${l.animate.type}" th:interval="${l.animate.interval}">
+    <div is="overlay-text" th:each="simvar : ${l.animate.simVars}" th:simvar="${simvar}"></div>
+</overlay-label>
 <canvas id="canvas">
     This browser does not support HTML5.
 </canvas>

@@ -56,6 +56,9 @@ public class Overlay {
     }
 
     public String getBackground() {
+        if (!background.startsWith("/overlay/")) {
+            background = "/overlay/" + background;
+        }
         return background;
     }
 

@@ -1,7 +1,7 @@
 package com.naver.idealproduction.song.gui.panel;
 
 import com.naver.idealproduction.song.SimTracker;
-import com.naver.idealproduction.song.entity.SimData;
+import com.naver.idealproduction.song.SimBridge;
 import com.naver.idealproduction.song.gui.Dashboard;
 
 import javax.swing.*;
@@ -48,7 +48,7 @@ public class SimMonitor extends SimplePanel {
         updateContentPane(true);
     }
 
-    private void onUpdate(SimData data) {
+    private void onUpdate(SimBridge data) {
         boolean _online = isConnected;
         isConnected = data.isConnected();
 

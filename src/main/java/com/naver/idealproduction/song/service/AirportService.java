@@ -51,13 +51,21 @@ public class AirportService {
             return;
         }
 
-        try (var reader = new FileReader(file, UTF_8);
-             CSVReader csv = new CSVReader(reader)) {
+        try (
+                var reader = new FileReader(file, UTF_8);
+                var csv = new CSVReader(reader)
+        ) {
             String[] firstLine = csv.readNext();
             String[] line;
 
             for (int i = 0; i < firstLine.length; ++i) {
-                mapColumnLocator(i, firstLine[i]);
+                String column = firstLine[i];
+                for (var type : DataType.values()) {
+                    if (type.getColumn().equals(column)) {
+                        columnLocator.put(type, i);
+                        return;
+                    }
+                }
             }
 
             int row = 1;
@@ -116,14 +124,5 @@ public class AirportService {
         double latitude = Double.parseDouble(line[columnLocator.get(DataType.LATITUDE)]);
         double longitude = Double.parseDouble(line[columnLocator.get(DataType.LONGITUDE)]);
         return new Airport(icao, iata, name, city, latitude, longitude);
-    }
-
-    private void mapColumnLocator(int index, String column) {
-        for (var type : DataType.values()) {
-            if (type.getColumn().equals(column)) {
-                columnLocator.put(type, index);
-                return;
-            }
-        }
     }
 }

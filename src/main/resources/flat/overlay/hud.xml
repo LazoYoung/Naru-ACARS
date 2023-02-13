@@ -1,14 +1,14 @@
 <overlay name="HUD" background="hud.png">
-    <icon file="icon/flight.png" x="90" y="60" width="50" height="50"/>
-    <label x="160" y="95" size="30">
+    <icon file="icon/flight.png" x="90" y="60" width="50" height="50" color="white"/>
+    <label x="160" y="95" size="30" color="white">
         <animate type="slide" interval="5">
             <simvar>callsign</simvar>
             <simvar>airline_icao</simvar>
             <simvar>aircraft_name</simvar>
         </animate>
     </label>
-    <icon file="icon/phase.png" x="1400" y="95" width="40" height="40"/>
-    <label x="1470" y="95" size="30">
+    <icon file="icon/phase.png" x="1400" y="95" width="40" height="40" color="white"/>
+    <label x="1470" y="95" size="30" color="white">
         <simvar>phase</simvar>
     </label>
 </overlay>

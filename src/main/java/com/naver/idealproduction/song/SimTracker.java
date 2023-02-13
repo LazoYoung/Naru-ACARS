@@ -4,7 +4,6 @@ import com.mouseviator.fsuipc.FSUIPC;
 import com.mouseviator.fsuipc.FSUIPCWrapper;
 import com.mouseviator.fsuipc.IFSUIPCListener;
 import com.mouseviator.fsuipc.datarequest.IDataRequest;
-import com.naver.idealproduction.song.entity.SimData;
 import com.naver.idealproduction.song.entity.unit.Length;
 import com.naver.idealproduction.song.entity.unit.Speed;
 
@@ -18,13 +17,13 @@ public class SimTracker implements IFSUIPCListener {
 
     private static final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
     private final FSUIPC fsuipc = FSUIPC.getInstance();
-    private final List<Consumer<SimData>> listeners = new ArrayList<>();
+    private final List<Consumer<SimBridge>> listeners = new ArrayList<>();
 
-    private final SimData data;
+    private final SimBridge data;
     private final int refreshRate;
 
     public SimTracker(int refreshRate) {
-        data = new SimData();
+        data = new SimBridge();
         this.refreshRate = refreshRate;
     }
 
@@ -32,7 +31,7 @@ public class SimTracker implements IFSUIPCListener {
         return refreshRate;
     }
 
-    public SimData getData() {
+    public SimBridge getData() {
         return data;
     }
 
@@ -57,7 +56,7 @@ public class SimTracker implements IFSUIPCListener {
         logger.info("Disconnected from fsuipc.");
     }
 
-    public void addUpdateListener(Consumer<SimData> listener) {
+    public void addUpdateListener(Consumer<SimBridge> listener) {
         listeners.add(listener);
     }
 

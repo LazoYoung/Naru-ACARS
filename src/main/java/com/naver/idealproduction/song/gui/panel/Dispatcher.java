@@ -7,7 +7,7 @@ import com.naver.idealproduction.song.SimTracker;
 import com.naver.idealproduction.song.entity.Airport;
 import com.naver.idealproduction.song.entity.FlightPlan;
 import com.naver.idealproduction.song.entity.Properties;
-import com.naver.idealproduction.song.entity.SimData;
+import com.naver.idealproduction.song.SimBridge;
 import com.naver.idealproduction.song.gui.Dashboard;
 import com.naver.idealproduction.song.gui.component.TextInput;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -184,7 +184,7 @@ public class Dispatcher extends SimplePanel {
         var arr = Optional.ofNullable(arrInput.getText()).orElse("");
         var depHintSize = depHint.getSize();
         var arrHintSize = arrHint.getSize();
-        SimData data = simTracker.getData();
+        SimBridge data = simTracker.getData();
         Optional<Airport> departure = data.getAirport(dep);
         Optional<Airport> arrival = data.getAirport(arr);
         boolean valid = departure.isPresent() && arrival.isPresent();

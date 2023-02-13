@@ -10,6 +10,7 @@ public class Label {
     private int x;
     private int y;
     private int size;
+    private String color;
     private String simVar;
     private Animate animate;
 
@@ -26,6 +27,11 @@ public class Label {
     @XmlAttribute(name = "size")
     public void setSize(int size) {
         this.size = size;
+    }
+
+    @XmlAttribute(name = "color")
+    public void setColor(String color) {
+        this.color = color;
     }
 
     @XmlElement(name = "simvar")
@@ -48,6 +54,10 @@ public class Label {
 
     public int getSize() {
         return size;
+    }
+
+    public String getColor() {
+        return color;
     }
 
     @Nullable

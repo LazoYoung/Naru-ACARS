@@ -35,6 +35,9 @@ public class Icon {
     }
 
     public String getFile() {
+        if (!file.startsWith("/")) {
+            file = "/" + file;
+        }
         return file;
     }
 
