@@ -31,7 +31,7 @@ class OverlayLabel extends HTMLElement {
         this.interval = 0;
         this.timer = 0;
 
-        if (this.type) { // is animated label
+        if (this.type) {
             this.interval = this.getAttribute('interval') * 1000;
             this.timer = this.interval;
         }
@@ -40,28 +40,70 @@ class OverlayLabel extends HTMLElement {
             window.clearInterval(this.task_id);
         }
 
-        window.setInterval(this.updateText, refresh_ms, this);
+        this.startTask();
     }
 
-    updateText(elem) {
-        if (elem.interval > 0) {
-            elem.timer -= refresh_ms;
+    startTask() {
+        this.task_id = window.setInterval(() => this.updateText(), refresh_ms);
+    }
 
-            if (elem.timer < 0) {
-                let lastDiv = elem.children.item(elem.index);
-                lastDiv.erase();
-                elem.timer = elem.interval;
-                elem.index = (elem.index + 1 < elem.childElementCount) ? ++elem.index : 0;
+    stopTask() {
+        window.clearInterval(this.task_id);
+    }
+
+    getText() {
+        return this.children.item(this.index);
+    }
+
+    updateText() {
+        if (this.interval > 0) {
+            this.timer -= refresh_ms;
+
+            if (this.timer < 0) {
+                let last = this.getText();
+                this.timer = this.interval;
+                this.index = (++this.index % this.childElementCount);
+                this.animateText(last);
+                return;
             }
         }
 
-        let div = elem.children.item(elem.index);
+        let div = this.children.item(this.index);
         let scale = getScale();
-        let x = elem.x * scale;
-        let y = elem.y * scale;
-        let size = elem.size * scale;
-        let width = elem.width * scale;
-        div.drawText(x, y, size, width, elem.color);
+        let x = this.x * scale;
+        let y = this.y * scale;
+        let size = this.size * scale;
+        let width = this.width * scale;
+        div.drawText(x, y, size, width, this.color);
+    }
+
+    animateText(last) {
+        let fade_out, fade_in;
+
+        switch (this.type) {
+            case 'slide':
+                fade_out = 'slide-out';
+                fade_in = 'slide-in';
+                break;
+            case 'fade':
+            default:
+                fade_out = 'fade-out';
+                fade_in = 'fade-in';
+        }
+
+        last.classList.add(fade_out);
+        this.stopTask();
+        setTimeout(() => {
+            last.innerText = null;
+
+            const text = this.getText();
+            text.classList.add(fade_in);
+            this.startTask();
+            setTimeout(() => {
+                last.classList.remove(fade_out)
+                text.classList.remove(fade_in)
+            }, 1000);
+        }, 900);
     }
 }
 class OverlayText extends HTMLDivElement {
@@ -91,6 +133,7 @@ class OverlayText extends HTMLDivElement {
 
         this.style.setProperty('left', `${x}px`);
         this.style.setProperty('top', `${y}px`);
+        this.style.setProperty('font-family', font_family);
         this.style.setProperty('font-size', `${size}px`);
         if (width) {
             this.style.setProperty('overflow', 'hidden');
@@ -101,11 +144,6 @@ class OverlayText extends HTMLDivElement {
         if (color) {
             this.style.setProperty('color', color);
         }
-        this.style.setProperty('font-family', font_family);
-    }
-
-    erase() {
-        this.innerText = null;
     }
 }
 
@@ -131,20 +169,21 @@ window.addEventListener('resize', () => {
 
 function fetchSimData() {
     fetch('/fetch')
-        .catch(() => {
-            sim_data = null;
-        })
         .then(response => {
             if (response && response.ok) {
                 return response.json();
             } else if (response) {
                 console.error(`HTTP error: ${response.status}`);
             }
+            return null;
         })
         .then(json => {
             if (json) {
                 sim_data = json.map;
             }
+        })
+        .catch(() => {
+            sim_data = null;
         });
 }
 
@@ -172,7 +211,7 @@ function getScale() {
 }
 
 async function loadFonts() {
-    let family = 'staatliches';
+    let family = 'bebasneue';
     let font = new FontFace(family, `url(/font/${family}.ttf)`);
     return font.load()
         .then(() => {
