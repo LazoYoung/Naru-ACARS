@@ -7,9 +7,10 @@ import com.naver.idealproduction.song.SimTracker;
 import com.naver.idealproduction.song.entity.Airport;
 import com.naver.idealproduction.song.entity.FlightPlan;
 import com.naver.idealproduction.song.entity.Properties;
-import com.naver.idealproduction.song.SimBridge;
 import com.naver.idealproduction.song.gui.Dashboard;
 import com.naver.idealproduction.song.gui.component.TextInput;
+import com.naver.idealproduction.song.service.AircraftService;
+import com.naver.idealproduction.song.service.SimBridge;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
@@ -41,17 +42,21 @@ public class Dispatcher extends SimplePanel {
     private final String NOT_FOUND = "Not found";
     private final String FORM_EMPTY = "Please fill out the form";
     private final SimTracker simTracker;
+    private final AircraftService aircraftService;
     private final JTextField csInput;
     private final JTextField acfInput;
     private final TextInput depInput;
     private final TextInput arrInput;
     private final JLabel depHint;
     private final JLabel arrHint;
-    private final JLabel simbriefLabel;
+    private final JLabel actionLabel;
     private final JButton simbriefBtn;
     private final JButton submitBtn;
+    private FlightPlan plan = null;
 
     public Dispatcher(Dashboard dashboard) {
+        this.simTracker = dashboard.getSimTracker();
+        this.aircraftService = dashboard.getSpringContext().getBean(AircraftService.class);
         var dispatcherPane = new JPanel();
         var formPane = new JPanel();
         var formLayout = new GroupLayout(formPane);
@@ -61,7 +66,6 @@ public class Dispatcher extends SimplePanel {
         var acfLabel = bakeLabel("Aircraft", labelFont, Color.black);
         var depLabel = bakeLabel("Departure", labelFont, Color.black);
         var arrLabel = bakeLabel("Arrival", labelFont, Color.black);
-        this.simTracker = dashboard.getSimTracker();
         csInput = new TextInput(6, true);
         acfInput = new TextInput(6, true);
         depInput = new TextInput("ICAO", 6, true);
@@ -121,7 +125,7 @@ public class Dispatcher extends SimplePanel {
                         .addComponent(arrHint))
                 .addContainerGap(20, 20);
         var actionPane = new JPanel();
-        simbriefLabel = new JLabel();
+        actionLabel = new JLabel();
         simbriefBtn = new JButton("Simbrief");
         submitBtn = new JButton("SUBMIT");
         var console = dashboard.getConsole();
@@ -129,6 +133,8 @@ public class Dispatcher extends SimplePanel {
         var consoleArea = console.getTextArea();
 
         // Flight Dispatcher
+        csInput.setForeground(Color.black);
+        acfInput.setForeground(Color.black);
         depInput.getDocument().addDocumentListener(docListener);
         arrInput.getDocument().addDocumentListener(docListener);
         depHint.setOpaque(true);
@@ -147,14 +153,16 @@ public class Dispatcher extends SimplePanel {
         submitBtn.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                submitFlightPlan();
+                if (e.getComponent().isEnabled()) {
+                    submitFlightPlan();
+                }
             }
         });
         submitBtn.setToolTipText(FORM_EMPTY);
         submitBtn.setEnabled(false);
         actionPane.setLayout(new BoxLayout(actionPane, BoxLayout.X_AXIS));
         actionPane.add(Box.createHorizontalGlue());
-        actionPane.add(simbriefLabel);
+        actionPane.add(actionLabel);
         actionPane.add(Box.createHorizontalStrut(20));
         actionPane.add(simbriefBtn);
         actionPane.add(Box.createHorizontalStrut(10));
@@ -184,9 +192,9 @@ public class Dispatcher extends SimplePanel {
         var arr = Optional.ofNullable(arrInput.getText()).orElse("");
         var depHintSize = depHint.getSize();
         var arrHintSize = arrHint.getSize();
-        SimBridge data = simTracker.getData();
-        Optional<Airport> departure = data.getAirport(dep);
-        Optional<Airport> arrival = data.getAirport(arr);
+        SimBridge simBridge = simTracker.getBridge();
+        Optional<Airport> departure = simBridge.getAirport(dep);
+        Optional<Airport> arrival = simBridge.getAirport(arr);
         boolean valid = departure.isPresent() && arrival.isPresent();
 
         depHint.setText(departure.map(Airport::getName).orElse(NOT_FOUND));
@@ -213,8 +221,8 @@ public class Dispatcher extends SimplePanel {
         }
 
         simbriefBtn.setEnabled(false);
-        simbriefLabel.setForeground(Color.black);
-        simbriefLabel.setText("Loading...");
+        actionLabel.setForeground(Color.black);
+        actionLabel.setText("Loading...");
 
         var endpoint = "https://www.simbrief.com/api/xml.fetcher.php?username=%s&json=1";
         var client = HttpClient.newHttpClient();
@@ -226,14 +234,14 @@ public class Dispatcher extends SimplePanel {
         client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .exceptionally(t -> {
                     if (ExceptionUtils.indexOfType(t, HttpTimeoutException.class) > -1) {
-                        simbriefLabel.setText("Connection timeout");
+                        actionLabel.setText("Connection timeout");
                     } else if (ExceptionUtils.indexOfType(t, ConnectException.class) > -1) {
-                        simbriefLabel.setText("Connection refused");
+                        actionLabel.setText("Connection refused");
                     } else {
-                        simbriefLabel.setText("Failed to fetch");
+                        actionLabel.setText("Failed to fetch");
                         logger.log(Level.SEVERE, "Failed to fetch simbrief OFP.", t);
                     }
-                    simbriefLabel.setForeground(Color.red);
+                    actionLabel.setForeground(Color.red);
                     simbriefBtn.setEnabled(true);
                     return null;
                 })
@@ -246,27 +254,40 @@ public class Dispatcher extends SimplePanel {
                         return new ObjectMapper().readValue(response.body(), FlightPlan.class);
                     } catch (JsonProcessingException e) {
                         logger.log(Level.SEVERE, "Failed to parse json.", e);
-                        simbriefLabel.setText(null);
+                        actionLabel.setText(null);
                         simbriefBtn.setEnabled(true);
                         return null;
                     }
                 })
-                .thenAccept(flightPlan -> SwingUtilities.invokeLater(() -> {
-                    if (flightPlan == null) {
+                .thenAccept(plan -> SwingUtilities.invokeLater(() -> {
+                    if (plan == null) {
                         return;
                     }
 
-                    csInput.setText(flightPlan.getCallsign());
-                    acfInput.setText(flightPlan.getAircraft().getIcaoCode());
-                    depInput.setText(flightPlan.getDeparture());
-                    arrInput.setText(flightPlan.getArrival());
-                    simbriefLabel.setForeground(Color.blue);
-                    simbriefLabel.setText("Fetch complete");
+                    this.plan = plan;
+                    csInput.setText(plan.getCallsign());
+                    acfInput.setText(plan.getAircraft().getIcaoCode());
+                    depInput.setText(plan.getDepartureCode());
+                    arrInput.setText(plan.getArrivalCode());
+                    actionLabel.setForeground(Color.blue);
+                    actionLabel.setText("Fetch complete");
                     simbriefBtn.setEnabled(true);
+                    validateInput();
                 }));
     }
 
     private void submitFlightPlan() {
-        // todo method stub
+        if (plan == null) {
+            plan = new FlightPlan(null, null, null, null, null);
+        }
+
+        var cs = csInput.getText();
+        var acf = acfInput.getText();
+        var aircraft = (acf != null) ? aircraftService.get(acf) : null;
+        var dep = depInput.getText();
+        var arr = arrInput.getText();
+        var route = plan.getRoute();
+        FlightPlan.submit(new FlightPlan(cs, aircraft, dep, arr, route));
+        actionLabel.setText("Plan sent");
     }
 }

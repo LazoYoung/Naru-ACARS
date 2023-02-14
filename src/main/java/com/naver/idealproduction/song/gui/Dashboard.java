@@ -4,18 +4,21 @@ import com.naver.idealproduction.song.SimTracker;
 import com.naver.idealproduction.song.gui.panel.Console;
 import com.naver.idealproduction.song.gui.panel.Dispatcher;
 import com.naver.idealproduction.song.gui.panel.SimMonitor;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.swing.*;
 
 public class Dashboard extends JSplitPane {
     private final Console console;
     private final SimTracker simTracker;
+    private final ConfigurableApplicationContext context;
 
-    public Dashboard(Console console, SimTracker simTracker) {
+    public Dashboard(Console console, SimTracker simTracker, ConfigurableApplicationContext context) {
         super(HORIZONTAL_SPLIT);
 
         this.console = console;
         this.simTracker = simTracker;
+        this.context = context;
         var simMonitor = new SimMonitor(this);
         var dispatcher = new Dispatcher(this);
 
@@ -31,5 +34,9 @@ public class Dashboard extends JSplitPane {
 
     public SimTracker getSimTracker() {
         return simTracker;
+    }
+
+    public ConfigurableApplicationContext getSpringContext() {
+        return context;
     }
 }

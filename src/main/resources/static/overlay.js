@@ -4,7 +4,7 @@ let refresh_ms = 500;
 let font_family = 'serif';
 
 class OverlayLabel extends HTMLElement {
-    x; y; size; color; type; index; interval; timer; task_id;
+    x; y; size; width; color; type; index; interval; timer; task_id;
 
     constructor() {
         super();
@@ -24,6 +24,7 @@ class OverlayLabel extends HTMLElement {
         this.x = this.getAttribute('x');
         this.y = this.getAttribute('y');
         this.size = this.getAttribute('size');
+        this.width = this.getAttribute('width');
         this.color = this.getAttribute('color');
         this.type = this.getAttribute('type');
         this.index = 0;
@@ -59,7 +60,8 @@ class OverlayLabel extends HTMLElement {
         let x = elem.x * scale;
         let y = elem.y * scale;
         let size = elem.size * scale;
-        div.drawText(x, y, size, elem.color);
+        let width = elem.width * scale;
+        div.drawText(x, y, size, width, elem.color);
     }
 }
 class OverlayText extends HTMLDivElement {
@@ -80,17 +82,25 @@ class OverlayText extends HTMLDivElement {
         this.simvar = this.getAttribute('simvar');
     }
 
-    drawText(x, y, size, color) {
-        if (!this.simvar || !sim_data) {
+    drawText(x, y, size, width, color) {
+        if (!this.simvar || !sim_data || !sim_data[this.simvar]) {
             this.innerText = 'N/A';
         } else {
             this.innerText = sim_data[this.simvar];
         }
 
-        this.style.setProperty('color', color);
         this.style.setProperty('left', `${x}px`);
         this.style.setProperty('top', `${y}px`);
         this.style.setProperty('font-size', `${size}px`);
+        if (width) {
+            this.style.setProperty('overflow', 'hidden');
+            this.style.setProperty('white-space', 'nowrap');
+            this.style.setProperty('text-overflow', 'ellipsis')
+            this.style.setProperty('max-width', `${width}px`);
+        }
+        if (color) {
+            this.style.setProperty('color', color);
+        }
         this.style.setProperty('font-family', font_family);
     }
 
@@ -121,16 +131,21 @@ window.addEventListener('resize', () => {
 
 function fetchSimData() {
     fetch('/fetch')
+        .catch(() => {
+            sim_data = null;
+        })
         .then(response => {
-            if (!response.ok) {
-                console.error(`HTTP error: ${response.status}`);
-            } else {
+            if (response && response.ok) {
                 return response.json();
+            } else if (response) {
+                console.error(`HTTP error: ${response.status}`);
             }
         })
-        .then(response => {
-            sim_data = response.map;
-        })
+        .then(json => {
+            if (json) {
+                sim_data = json.map;
+            }
+        });
 }
 
 function drawCanvas() {

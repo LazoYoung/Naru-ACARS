@@ -6,6 +6,7 @@ import com.mouseviator.fsuipc.IFSUIPCListener;
 import com.mouseviator.fsuipc.datarequest.IDataRequest;
 import com.naver.idealproduction.song.entity.unit.Length;
 import com.naver.idealproduction.song.entity.unit.Speed;
+import com.naver.idealproduction.song.service.SimBridge;
 
 import java.util.AbstractQueue;
 import java.util.ArrayList;
@@ -19,11 +20,11 @@ public class SimTracker implements IFSUIPCListener {
     private final FSUIPC fsuipc = FSUIPC.getInstance();
     private final List<Consumer<SimBridge>> listeners = new ArrayList<>();
 
-    private final SimBridge data;
+    private final SimBridge bridge;
     private final int refreshRate;
 
-    public SimTracker(int refreshRate) {
-        data = new SimBridge();
+    public SimTracker(SimBridge bridge, int refreshRate) {
+        this.bridge = bridge;
         this.refreshRate = refreshRate;
     }
 
@@ -31,8 +32,8 @@ public class SimTracker implements IFSUIPCListener {
         return refreshRate;
     }
 
-    public SimBridge getData() {
-        return data;
+    public SimBridge getBridge() {
+        return bridge;
     }
 
     public void start() {
@@ -81,22 +82,22 @@ public class SimTracker implements IFSUIPCListener {
             notifyListeners();
 
             log("-- Simulator data --");
-            log("Aircraft type: %s", data.getAircraftType());
-            log("Aircraft name: %s", data.getAircraftName());
-            log("Aircraft altitude: %d ft", data.getAltitude(Length.FEET));
-            log("Aircraft true heading: %d", data.getHeading(false));
-            log("Aircraft mag. heading: %d", data.getHeading(true));
-            log("Aircraft airspeed: %d knots", data.getAirspeed(Speed.KNOT));
-            log("Aircraft ground speed: %d knots", data.getGroundSpeed(Speed.KNOT));
-            log("Aircraft latitude: %.9f", data.getLatitude());
-            log("Aircraft longitude: %.9f", data.getLongitude());
+            log("Aircraft type: %s", bridge.getAircraftType());
+            log("Aircraft name: %s", bridge.getAircraftName());
+            log("Aircraft altitude: %d ft", bridge.getAltitude(Length.FEET));
+            log("Aircraft true heading: %d", bridge.getHeading(false));
+            log("Aircraft mag. heading: %d", bridge.getHeading(true));
+            log("Aircraft airspeed: %d knots", bridge.getAirspeed(Speed.KNOT));
+            log("Aircraft ground speed: %d knots", bridge.getGroundSpeed(Speed.KNOT));
+            log("Aircraft latitude: %.9f", bridge.getLatitude());
+            log("Aircraft longitude: %.9f", bridge.getLongitude());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void notifyListeners() {
-        listeners.forEach(e -> e.accept(data));
+        listeners.forEach(e -> e.accept(bridge));
     }
 
     @Override

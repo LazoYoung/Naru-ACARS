@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song;
+package com.naver.idealproduction.song.service;
 
 import com.mouseviator.fsuipc.FSUIPC;
 import com.mouseviator.fsuipc.datarequest.IDataRequest;
@@ -12,14 +12,16 @@ import com.mouseviator.fsuipc.helpers.avionics.GPSHelper;
 import com.naver.idealproduction.song.entity.Airport;
 import com.naver.idealproduction.song.entity.unit.Length;
 import com.naver.idealproduction.song.entity.unit.Speed;
-import com.naver.idealproduction.song.service.AirportService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
 import java.util.Optional;
 
+@Service
 public class SimBridge {
 
-    private final AirportService airportRepo = new AirportService();
+    private final AirportService airportService;
     private final FSUIPC fsuipc = FSUIPC.getInstance();
     private final IDataRequest<Float> fps;
     private final StringRequest aircraftType;
@@ -33,14 +35,11 @@ public class SimBridge {
     private final IntRequest localTime;
     private final DoubleRequest aircraftLatitude;
     private final DoubleRequest aircraftLongitude;
-// These are not available in MSFS
-//    private final IDataRequest<String> destination;
-//    private final IDataRequest<Double> routeDistanceMeters;
-//    private final IDataRequest<Integer> ete;
-//    private final IDataRequest<Integer> eta;
 
     @SuppressWarnings("unchecked")
-    public SimBridge() {
+    @Autowired
+    public SimBridge(AirportService airportService) {
+        this.airportService = airportService;
         var aircraft = new AircraftHelper();
         var gps = new GPSHelper();
         var sim = new SimHelper();
@@ -68,7 +67,7 @@ public class SimBridge {
     }
 
     public Optional<Airport> getAirport(String icao) {
-        return Optional.ofNullable(airportRepo.get(icao));
+        return Optional.ofNullable(airportService.get(icao));
     }
 
     public String getAircraftType() {
@@ -127,19 +126,5 @@ public class SimBridge {
     public int getFramerate() {
         return Math.round(fps.getValue());
     }
-
-//    public int getRouteDistance(Length unit) {
-//        double value = routeDistanceMeters.getValue();
-//        float converted = Length.METER.convertTo(unit, value).floatValue();
-//        return Math.round(converted);
-//    }
-//
-//    public int getETE() {
-//        return ete.getValue();
-//    }
-//
-//    public int getETA() {
-//        return eta.getValue();
-//    }
 
 }

@@ -13,8 +13,8 @@ public class SimData {
         return map;
     }
 
-    public void put(Placeholder placeholder, Object value) {
-        var key = placeholder.toString().toLowerCase();
+    public void put(SimVar simVar, Object value) {
+        var key = simVar.toString().toLowerCase();
         map.put(key, value);
     }
 }

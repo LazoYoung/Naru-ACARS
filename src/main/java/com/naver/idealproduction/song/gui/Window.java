@@ -3,6 +3,7 @@ package com.naver.idealproduction.song.gui;
 import com.naver.idealproduction.song.SimTracker;
 import com.naver.idealproduction.song.gui.panel.Console;
 import com.naver.idealproduction.song.service.OverlayService;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +18,7 @@ public class Window extends JFrame {
     public void start(
             Console console,
             SimTracker simTracker,
-            OverlayService overlayService
+            ConfigurableApplicationContext context
     ) {
         this.simTracker = simTracker;
 
@@ -27,8 +28,8 @@ public class Window extends JFrame {
         setTitle("SimOverlayNG");
 
         contentPane = new JTabbedPane();
-        var dashboard = new Dashboard(console, simTracker);
-        var overlayPanel = new Overlays(this, overlayService);
+        var dashboard = new Dashboard(console, simTracker, context);
+        var overlayPanel = new Overlays(this, context.getBean(OverlayService.class));
         contentPane.addTab("Dashboard", dashboard);
         contentPane.addTab("Overlays", overlayPanel);
         setContentPane(contentPane);

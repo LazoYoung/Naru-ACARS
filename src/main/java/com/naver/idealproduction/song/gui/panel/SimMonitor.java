@@ -1,8 +1,8 @@
 package com.naver.idealproduction.song.gui.panel;
 
 import com.naver.idealproduction.song.SimTracker;
-import com.naver.idealproduction.song.SimBridge;
 import com.naver.idealproduction.song.gui.Dashboard;
+import com.naver.idealproduction.song.service.SimBridge;
 
 import javax.swing.*;
 import java.awt.*;

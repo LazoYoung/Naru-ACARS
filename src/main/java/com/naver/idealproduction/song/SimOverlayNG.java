@@ -4,7 +4,7 @@ import com.mouseviator.fsuipc.FSUIPC;
 import com.naver.idealproduction.song.entity.Properties;
 import com.naver.idealproduction.song.gui.Window;
 import com.naver.idealproduction.song.gui.panel.Console;
-import com.naver.idealproduction.song.service.OverlayService;
+import com.naver.idealproduction.song.service.SimBridge;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -69,11 +69,10 @@ public class SimOverlayNG {
 		try {
 			final var finalPort = port;
 			final var defaultPort = Properties.read().getPort();
-			final var overlayRepository = builder.context().getBean(OverlayService.class);
-			final var simTracker = new SimTracker(1000);
+			final var simTracker = new SimTracker(context.getBean(SimBridge.class), 500);
 
 			SwingUtilities.invokeLater(() -> {
-				window.start(console, simTracker, overlayRepository);
+				window.start(console, simTracker, context);
 				if (finalPort != defaultPort) {
 					window.showDialog(JOptionPane.WARNING_MESSAGE, String.format("Failed to bind port %d.\nUsing new port: %d", defaultPort, finalPort));
 				}

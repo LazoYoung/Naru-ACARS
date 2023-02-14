@@ -11,7 +11,7 @@ public class Airport {
     public Airport(String icao, String iata, String name, String city, Double latitude, Double longitude) {
         this.icao = icao;
         this.iata = iata;
-        this.name = name;
+        this.name = name.replaceAll("([Ii]nternational)", "Int'l");
         this.city = city;
         this.latitude = latitude;
         this.longitude = longitude;

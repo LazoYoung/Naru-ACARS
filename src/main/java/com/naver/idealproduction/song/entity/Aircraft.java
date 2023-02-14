@@ -10,8 +10,6 @@ import java.util.Optional;
 public class Aircraft {
     private String icaoCode = "";
     private String name = "";
-    private String registration = "";
-    private int capacity = 0;
 
     @JsonSetter("icao_code")
     public void setIcaoCode(String icaoCode) {
@@ -23,16 +21,6 @@ public class Aircraft {
         this.name = name;
     }
 
-    @JsonSetter("reg")
-    public void setRegistration(String registration) {
-        this.registration = registration;
-    }
-
-    @JsonSetter("max_passengers")
-    public void setCapacity(int capacity) {
-        this.capacity = capacity;
-    }
-
     @Nonnull
     public String getIcaoCode() {
         return Optional.ofNullable(icaoCode).orElse("");
@@ -41,14 +29,5 @@ public class Aircraft {
     @Nonnull
     public String getName() {
         return Optional.ofNullable(name).orElse("");
-    }
-
-    @Nonnull
-    public String getRegistration() {
-        return Optional.ofNullable(registration).orElse("");
-    }
-
-    public int getCapacity() {
-        return capacity;
     }
 }

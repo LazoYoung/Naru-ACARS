@@ -14,12 +14,15 @@ Not available yet! (Read the roadmap)
 
 # Roadmap
 ### v1.0 (Feb 2023)
-- Reads simulator data through FSUIPC
+- FSUIPC, Simbrief data fed into overlay
   -	Local/Zulu time
   - ETA/ETE
-  - Route distance
+  - Route
+  - Distance
+  - Callsign
+  - Airline data (ICAO, IATA, Name, Callsign) (*Not up to date)
   - Airport data (ICAO, IATA, Name, City)
-  -	Aircraft data (ICAO, Name, Altitude, Heading, Ground/Airspeed, VS, Lat/Longitude)
+  -	Aircraft data (ICAO, Name, Altitude, Heading, Ground/Airspeed, VS)
   - ... and more
 - Stock overlay templates
   - HUD
@@ -34,6 +37,10 @@ Not available yet! (Read the roadmap)
 - Landing rate widget
 
 # Legal notice
-SimOverlayNG copyright by LazoYoung. Feel free to contact me if you'd like to modify, redistribute, or contribute to this project.
+SimOverlayNG &#169; 2023 LazoYoung, All rights reserved.
 
-This software depends on [FSUIPC-Java by Mouseviator](https://github.com/Mouseviator/FSUIPC-Java) which is licensed under [LGPL v3.0](https://github.com/Mouseviator/FSUIPC-Java/blob/master/LICENSE.txt).
+Feel free to contact me for any question. This application is proudly powered by these amazing works...!
+
+- [FSUIPC-Java](https://github.com/Mouseviator/FSUIPC-Java) by Mouseviator licensed under [LGPL v3.0](https://github.com/Mouseviator/FSUIPC-Java/blob/master/LICENSE.txt)
+- Airline database from [openflights.org](https://github.com/jpatokal/openflights/blob/master/data/LICENSE)
+- Airport database by [David Megginson](https://github.com/davidmegginson/ourairports-data)
