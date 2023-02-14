@@ -17,8 +17,7 @@ public class FlightPlan {
     private String arrivalCode;
     private String route;
 
-
-    // todo ETE, ETA, distance
+    // todo ETE, ETA
     public static FlightPlan getInstance() {
         if (instance == null) {
             instance = new FlightPlan();

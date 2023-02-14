@@ -1,30 +1,30 @@
 <overlay name="HUD" background="hud.png">
     <icon file="icon/flight.png" color="white" x="90" y="60" width="50" height="50"/>
     <label x="170" y="65" size="32" width="300" color="white">
-        <animate type="slide" interval="5">
+        <animate type="slide" interval="7">
             <simvar>callsign</simvar>
             <simvar>airline_name</simvar>
             <simvar>aircraft_name</simvar>
         </animate>
     </label>
-    <icon file="icon/departure.png" color="white" x="540" y="60" width="45" height="45"/>
+    <icon file="icon/departure.png" color="white" x="540" y="62" width="45" height="45"/>
     <label x="620" y="65" size="32" width="300" color="white">
-        <animate type="slide" interval="5">
+        <animate type="slide" interval="7">
             <simvar>departure_icao</simvar>
             <simvar>departure_name</simvar>
             <simvar>departure_city</simvar>
         </animate>
     </label>
-    <icon file="icon/arrival.png" color="white" x="990" y="60" width="45" height="45"/>
+    <icon file="icon/arrival.png" color="white" x="990" y="62" width="45" height="45"/>
     <label x="1070" y="65" size="32" width="300" color="white">
-        <animate type="slide" interval="5">
+        <animate type="slide" interval="7">
             <simvar>arrival_icao</simvar>
             <simvar>arrival_name</simvar>
             <simvar>arrival_city</simvar>
         </animate>
     </label>
-    <icon file="icon/phase.png" color="white" x="1430" y="63" width="40" height="40"/>
-    <label x="1490" y="65" size="32" width="300" color="white">
+    <icon file="icon/clock.png" color="white" x="1435" y="66" width="35" height="35"/>
+    <label x="1500" y="65" size="32" width="300" color="white">
         <simvar>phase</simvar>
     </label>
 </overlay>

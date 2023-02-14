@@ -88,10 +88,13 @@ public class WebController {
         var arr = (plan != null) ? airportService.get(plan.getArrivalCode()) : null;
         var airline = (plan != null) ? airlineService.get(plan.getAirline()) : null;
         var acf = (plan != null) ? plan.getAircraft() : null;
+        var dist = (arr != null) ? Length.KILOMETER.getDistance(simBridge.getLatitude(), simBridge.getLongitude(), arr.getLatitude(), arr.getLongitude()) : null;
 
-        // todo eta, ete, distance missing
+        // todo eta, ete missing
         data.put(SimVar.LOCAL_TIME, simBridge.getLocalTime().format(timeFormat));
         data.put(SimVar.ZULU_TIME, ZonedDateTime.now(ZoneOffset.UTC).format(timeFormat) + "z");
+        data.put(SimVar.DISTANCE_KM, (dist != null) ? dist : notAvail);
+        data.put(SimVar.DISTANCE_NM, (dist != null) ? Length.KILOMETER.convertTo(Length.NAUTICAL_MILE, dist) : notAvail);
         data.put(SimVar.DEPARTURE_ICAO, (dep != null) ? dep.getIcao() : notAvail);
         data.put(SimVar.DEPARTURE_IATA, (dep != null) ? dep.getIata() : notAvail);
         data.put(SimVar.DEPARTURE_NAME, (dep != null) ? dep.getName() : notAvail);
@@ -118,9 +121,7 @@ public class WebController {
         data.put(SimVar.GROUND_SPEED_MPH, simBridge.getGroundSpeed(Speed.MILE_PER_HOUR));
         data.put(SimVar.VERTICAL_SPEED, simBridge.getVerticalSpeed(Speed.FEET_PER_MIN));
         data.put(SimVar.CALLSIGN, (plan != null) ? plan.getCallsign() : notAvail);
-
-        // todo implement phase
-        data.put(SimVar.PHASE, notAvail);
+        data.put(SimVar.PHASE, simBridge.getFlightPhase());
         return data;
     }
 }
