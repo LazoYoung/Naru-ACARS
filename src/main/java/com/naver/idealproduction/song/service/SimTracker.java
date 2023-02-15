@@ -1,12 +1,14 @@
-package com.naver.idealproduction.song;
+package com.naver.idealproduction.song.service;
 
 import com.mouseviator.fsuipc.FSUIPC;
 import com.mouseviator.fsuipc.FSUIPCWrapper;
 import com.mouseviator.fsuipc.IFSUIPCListener;
 import com.mouseviator.fsuipc.datarequest.IDataRequest;
+import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.unit.Length;
 import com.naver.idealproduction.song.entity.unit.Speed;
-import com.naver.idealproduction.song.service.SimBridge;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.AbstractQueue;
 import java.util.ArrayList;
@@ -14,18 +16,18 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+@Service
 public class SimTracker implements IFSUIPCListener {
 
     private static final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
     private final FSUIPC fsuipc = FSUIPC.getInstance();
     private final List<Consumer<SimBridge>> listeners = new ArrayList<>();
-
+    private final int refreshRate = 500;
     private final SimBridge bridge;
-    private final int refreshRate;
 
-    public SimTracker(SimBridge bridge, int refreshRate) {
+    @Autowired
+    public SimTracker(SimBridge bridge) {
         this.bridge = bridge;
-        this.refreshRate = refreshRate;
     }
 
     public int getRefreshRate() {

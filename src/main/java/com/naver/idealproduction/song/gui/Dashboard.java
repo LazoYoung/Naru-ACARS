@@ -1,6 +1,6 @@
 package com.naver.idealproduction.song.gui;
 
-import com.naver.idealproduction.song.SimTracker;
+import com.naver.idealproduction.song.service.SimTracker;
 import com.naver.idealproduction.song.gui.panel.Console;
 import com.naver.idealproduction.song.gui.panel.Dispatcher;
 import com.naver.idealproduction.song.gui.panel.SimMonitor;

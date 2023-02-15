@@ -3,7 +3,7 @@ package com.naver.idealproduction.song.gui.panel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.naver.idealproduction.song.SimOverlayNG;
-import com.naver.idealproduction.song.SimTracker;
+import com.naver.idealproduction.song.service.SimTracker;
 import com.naver.idealproduction.song.entity.Airport;
 import com.naver.idealproduction.song.entity.FlightPlan;
 import com.naver.idealproduction.song.entity.Properties;

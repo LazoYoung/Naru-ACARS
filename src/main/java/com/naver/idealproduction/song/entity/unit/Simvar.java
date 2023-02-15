@@ -1,6 +1,6 @@
-package com.naver.idealproduction.song.entity.overlay;
+package com.naver.idealproduction.song.entity.unit;
 
-public enum SimVar {
+public enum Simvar {
     LOCAL_TIME,
     ZULU_TIME,
     ETA,

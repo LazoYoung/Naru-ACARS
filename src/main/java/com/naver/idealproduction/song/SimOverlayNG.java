@@ -4,7 +4,7 @@ import com.mouseviator.fsuipc.FSUIPC;
 import com.naver.idealproduction.song.entity.Properties;
 import com.naver.idealproduction.song.gui.Window;
 import com.naver.idealproduction.song.gui.panel.Console;
-import com.naver.idealproduction.song.service.SimBridge;
+import com.naver.idealproduction.song.service.SimTracker;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -69,7 +69,7 @@ public class SimOverlayNG {
 		try {
 			final var finalPort = port;
 			final var defaultPort = Properties.read().getPort();
-			final var simTracker = new SimTracker(context.getBean(SimBridge.class), 500);
+			final var simTracker = context.getBean(SimTracker.class);
 
 			SwingUtilities.invokeLater(() -> {
 				window.start(console, simTracker, context);

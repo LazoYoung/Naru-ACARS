@@ -21,7 +21,6 @@ import java.util.Optional;
 
 @Service
 public class SimBridge {
-
     private final AirportService airportService;
     private final FSUIPC fsuipc = FSUIPC.getInstance();
     private final IDataRequest<Float> fps;
@@ -168,6 +167,7 @@ public class SimBridge {
 
             boolean powered = (eng1FF.getValue() > 5.0) || (eng2FF.getValue() > 5.0) || (eng3FF.getValue() > 5.0) || (eng4FF.getValue() > 5.0);
             if (!powered) {
+                // todo aircraft always !powered
                 return "AT GATE";
             }
 
