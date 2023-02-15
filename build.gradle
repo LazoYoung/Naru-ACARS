@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.naver.idealproduction'
-version = '0.0.1-SNAPSHOT'
+version = '1.0.0'
 sourceCompatibility = '17'
 var fsuipc = 'lib/FSUIPC-1.0.2.jar'
 
@@ -21,8 +21,10 @@ dependencies {
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
 	// Java Chromium Embedded Framework
-	implementation 'me.friwi:jcefmaven:109.1.11.1'
-//	implementation 'me.friwi:jcef-natives-windows-i386:jcef-854af1f+cef-109.1.11+g6d4fdb2+chromium-109.0.5414.87'
+	implementation 'me.friwi:jcefmaven:110.0.25'
+
+	// Burningwave Core (Let us export module packages required for JCEF)
+	implementation 'org.burningwave:core:12.62.5'
 
 	// Mockito
 	testImplementation "org.mockito:mockito-core:3.+"

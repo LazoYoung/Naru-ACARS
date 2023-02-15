@@ -23,6 +23,7 @@ import static java.awt.Dialog.ModalityType.APPLICATION_MODAL;
 import static java.lang.Short.MAX_VALUE;
 import static java.util.logging.Level.SEVERE;
 import static javax.swing.BoxLayout.Y_AXIS;
+import static org.burningwave.core.assembler.StaticComponentContainer.Modules;
 
 public class Overlays extends JPanel {
     private final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
@@ -114,6 +115,13 @@ public class Overlays extends JPanel {
     }
 
     private void createBrowser() {
+        Modules.exportPackageToAllUnnamed("java.base", "java.lang");
+        Modules.exportPackageToAllUnnamed("java.desktop", "sun.awt", "sun.java2d");
+
+        try { // Mac OSX specific packages
+            Modules.exportPackageToAllUnnamed("java.desktop", "sun.lwawt", "sun.lwawt.macosx");
+        } catch (Exception ignored) {}
+
         try {
             var builder = new CefAppBuilder();
             var dir = SimOverlayNG.getDirectory().resolve("jcef-bundle").toFile();
