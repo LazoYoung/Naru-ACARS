@@ -10,12 +10,15 @@ import org.springframework.stereotype.Service;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.naver.idealproduction.song.entity.unit.Simvar.*;
 
 @Service
 public class SimDataService {
     private final SimData data = new SimData();
+    private final List<Runnable> listeners = new ArrayList<>();
     private final AirportService airportService;
     private final AirlineService airlineService;
     private final SimTracker simTracker;
@@ -35,6 +38,10 @@ public class SimDataService {
         return data;
     }
 
+    public void addUpdateListener(Runnable run) {
+        listeners.add(run);
+    }
+
     public void requestUpdate() {
         update(simTracker.getBridge());
     }
@@ -49,11 +56,10 @@ public class SimDataService {
         var acf = (plan != null) ? plan.getAircraft() : null;
         var dist = (arr != null) ? Length.KILOMETER.getDistance(simBridge.getLatitude(), simBridge.getLongitude(), arr.getLatitude(), arr.getLongitude()) : null;
 
-        // todo eta, ete missing
         data.put(LOCAL_TIME, simBridge.getLocalTime().format(timeFormat));
         data.put(ZULU_TIME, ZonedDateTime.now(ZoneOffset.UTC).format(timeFormat) + "z");
-        data.put(DISTANCE_KM, (dist != null) ? dist : notAvail);
-        data.put(DISTANCE_NM, (dist != null) ? Length.KILOMETER.convertTo(Length.NAUTICAL_MILE, dist) : notAvail);
+        data.put(DTG_KM, (dist != null) ? dist : notAvail);
+        data.put(DTG_NM, (dist != null) ? Length.KILOMETER.convertTo(Length.NAUTICAL_MILE, dist) : notAvail);
         data.put(DEPARTURE_ICAO, (dep != null) ? dep.getIcao() : notAvail);
         data.put(DEPARTURE_IATA, (dep != null) ? dep.getIata() : notAvail);
         data.put(DEPARTURE_NAME, (dep != null) ? dep.getName() : notAvail);
@@ -68,6 +74,8 @@ public class SimDataService {
         data.put(AIRLINE_CALLSIGN, (airline != null) ? airline.getCallsign() : notAvail);
         data.put(AIRCRAFT_ICAO, (acf != null) ? acf.getIcaoCode() : notAvail);
         data.put(AIRCRAFT_NAME, (acf != null) ? acf.getName() : notAvail);
+        data.put(LATITUDE, simBridge.getLatitude());
+        data.put(LONGITUDE, simBridge.getLongitude());
         data.put(ALTITUDE_FEET, simBridge.getAltitude(Length.FEET));
         data.put(ALTITUDE_METER, simBridge.getAltitude(Length.METER));
         data.put(HEADING_MAG, simBridge.getHeading(true));
@@ -79,7 +87,18 @@ public class SimDataService {
         data.put(GROUND_SPEED_KPH, simBridge.getGroundSpeed(Speed.KILOMETER_PER_HOUR));
         data.put(GROUND_SPEED_MPH, simBridge.getGroundSpeed(Speed.MILE_PER_HOUR));
         data.put(VERTICAL_SPEED, simBridge.getVerticalSpeed(Speed.FEET_PER_MIN));
+        // todo FF data needs to be verified
+        data.put(ENGINE1_FUEL_FLOW, simBridge.getEngineFuelFlow(1));
+        data.put(ENGINE1_FUEL_FLOW, simBridge.getEngineFuelFlow(2));
+        data.put(ENGINE1_FUEL_FLOW, simBridge.getEngineFuelFlow(3));
+        data.put(ENGINE1_FUEL_FLOW, simBridge.getEngineFuelFlow(4));
         data.put(CALLSIGN, (plan != null) ? plan.getCallsign() : notAvail);
         data.put(PHASE, simBridge.getFlightPhase());
+
+        notifyListeners();
+    }
+
+    private void notifyListeners() {
+        listeners.forEach(Runnable::run);
     }
 }

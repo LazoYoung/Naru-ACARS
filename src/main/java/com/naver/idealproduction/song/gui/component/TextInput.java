@@ -11,13 +11,15 @@ import java.awt.event.FocusListener;
 
 public class TextInput extends JTextField implements FocusListener {
 
-    private boolean isHint = true;
+    private boolean isHint;
     private final String hint;
 
     public TextInput(String hint, int column, boolean uppercase) {
-        super(hint);
+        super();
+        super.setColumns(column);
+        super.setText(hint);
+        this.isHint = (hint != null);
         this.hint = hint;
-        setColumns(column);
         setForeground(Color.gray);
         addFocusListener(this);
 
@@ -53,6 +55,10 @@ public class TextInput extends JTextField implements FocusListener {
 
     @Override
     public void setText(String t) {
+        if (hint == null) {
+            return;
+        }
+
         isHint = false;
         setForeground(Color.black);
         super.setText(t);
@@ -62,19 +68,21 @@ public class TextInput extends JTextField implements FocusListener {
     public void focusGained(FocusEvent e) {
         if (isHint) {
             isHint = false;
-            setText("");
+            super.setText("");
             setForeground(Color.black);
         }
     }
 
     @Override
     public void focusLost(FocusEvent e) {
-        String text = super.getText();
+        if (hint != null) {
+            String text = super.getText();
 
-        if (text == null || text.isEmpty()) {
-            isHint = true;
-            setText(hint);
-            setForeground(Color.gray);
+            if (text == null || text.isEmpty()) {
+                isHint = true;
+                super.setText(hint);
+                setForeground(Color.gray);
+            }
         }
     }
 }

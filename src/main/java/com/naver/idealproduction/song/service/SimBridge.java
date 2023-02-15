@@ -141,6 +141,16 @@ public class SimBridge {
         return aircraftLongitude.getValue();
     }
 
+    public double getEngineFuelFlow(int engine) {
+        return switch (engine) {
+            case 1 -> eng1FF.getValue();
+            case 2 -> eng2FF.getValue();
+            case 3 -> eng3FF.getValue();
+            case 4 -> eng4FF.getValue();
+            default -> throw new IllegalArgumentException("Invalid engine number: " + engine);
+        };
+    }
+
     public String getSimulator() {
         return fsuipc.getFSVersion();
     }

@@ -77,7 +77,7 @@ public class FlightPlan {
     }
 
     public Aircraft getAircraft() {
-        return (aircraft != null) ? aircraft : new Aircraft();
+        return aircraft;
     }
 
     public String getDepartureCode() {

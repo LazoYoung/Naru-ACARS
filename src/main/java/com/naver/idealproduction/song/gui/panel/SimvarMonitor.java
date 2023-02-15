@@ -2,11 +2,11 @@ package com.naver.idealproduction.song.gui.panel;
 
 import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.entity.unit.Simvar;
+import com.naver.idealproduction.song.gui.Dashboard;
 import com.naver.idealproduction.song.service.SimDataService;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,46 +16,59 @@ import static javax.swing.GroupLayout.PREFERRED_SIZE;
 
 public class SimvarMonitor extends SimplePanel {
 
-    private final Font font =  new Font("Monospaced", Font.PLAIN, 17);
-    private final JLabel label = bakeLabel("N/A", font, Color.yellow);
+    private final Font font =  new Font("Monospaced", Font.BOLD, 14);
+    private final JLabel label1 = bakeLabel("N/A", font, Color.black);
+    private final JLabel label2 = bakeLabel("N/A", font, Color.black);
     private final SimDataService simDataService;
 
-    public SimvarMonitor(SimDataService simDataService) {
-        this.simDataService = simDataService;
+    public SimvarMonitor(Dashboard dashboard) {
+        var context = dashboard.getSpringContext();
+        this.simDataService = context.getBean(SimDataService.class);
         var items = Arrays.stream(Simvar.values()).map(Simvar::toString).toArray(String[]::new);
-        var comboBox = new JComboBox<>(items);
-
+        final var comboBox1 = new JComboBox<>(items);
+        final var comboBox2 = new JComboBox<>(items);
         var layout = new GroupLayout(this);
         var hGroup = layout.createSequentialGroup()
-                .addComponent(comboBox)
-                .addComponent(label, PREFERRED_SIZE, PREFERRED_SIZE, MAX_VALUE);
-        var vGroup = layout.createParallelGroup()
-                .addComponent(comboBox)
-                .addComponent(label);
+                .addGroup(layout.createParallelGroup()
+                        .addComponent(comboBox1)
+                        .addComponent(comboBox2))
+                .addGroup(layout.createParallelGroup()
+                                .addComponent(label1, PREFERRED_SIZE, PREFERRED_SIZE, MAX_VALUE)
+                                .addComponent(label2, PREFERRED_SIZE, PREFERRED_SIZE, MAX_VALUE));
+        var vGroup = layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup()
+                                .addComponent(comboBox1)
+                                .addComponent(label1))
+                .addGroup(layout.createParallelGroup()
+                                .addComponent(comboBox2)
+                                .addComponent(label2));
 
-        comboBox.setMaximumSize(new Dimension(150, 50));
-        comboBox.addActionListener(this::onComboSelect);
-        label.setOpaque(true);
-        label.setBackground(Color.gray);
-        label.setHorizontalTextPosition(SwingConstants.CENTER);
-        updateLabel(comboBox);
+        comboBox1.setSelectedIndex(0);
+        comboBox2.setSelectedIndex(1);
+        comboBox1.setMaximumSize(new Dimension(150, 50));
+        comboBox2.setMaximumSize(new Dimension(150, 50));
+        comboBox1.addActionListener(e -> updateLabel(label1, comboBox1));
+        comboBox2.addActionListener(e -> updateLabel(label2, comboBox2));
+        label1.setBorder(BorderFactory.createLineBorder(Color.gray, 2));
+        label2.setBorder(BorderFactory.createLineBorder(Color.gray, 2));
+        updateLabel(label1, comboBox1);
+        updateLabel(label2, comboBox2);
         layout.setHorizontalGroup(hGroup);
         layout.setVerticalGroup(vGroup);
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
         this.setBorder(BorderFactory.createTitledBorder("Simulator Variables"));
         this.setLayout(layout);
+
+        simDataService.addUpdateListener(() -> {
+            updateLabel(label1, comboBox1);
+            updateLabel(label2, comboBox2);
+        });
     }
 
-    @SuppressWarnings("unchecked")
-    private void onComboSelect(ActionEvent e) {
-        updateLabel((JComboBox<String>) e.getSource());
-    }
-
-    // todo Text won't refresh
-    private void updateLabel(JComboBox<String> comboBox) {
-        String item = (String) comboBox.getSelectedItem();
+    private void updateLabel(JLabel label, JComboBox<String> comboBox) {
         Simvar simvar;
+        String item = (String) comboBox.getSelectedItem();
 
         try {
             simvar = Simvar.valueOf(item);
@@ -67,7 +80,6 @@ public class SimvarMonitor extends SimplePanel {
 
         Object o = simDataService.getVariable(simvar);
         label.setText((o == null) ? "N/A" : String.valueOf(o));
-        label.setForeground((o == null) ? Color.yellow : Color.white);
     }
 
 }

@@ -3,8 +3,6 @@ package com.naver.idealproduction.song.gui.panel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.naver.idealproduction.song.SimOverlayNG;
-import com.naver.idealproduction.song.service.SimDataService;
-import com.naver.idealproduction.song.service.SimTracker;
 import com.naver.idealproduction.song.entity.Airport;
 import com.naver.idealproduction.song.entity.FlightPlan;
 import com.naver.idealproduction.song.entity.Properties;
@@ -12,6 +10,8 @@ import com.naver.idealproduction.song.gui.Dashboard;
 import com.naver.idealproduction.song.gui.component.TextInput;
 import com.naver.idealproduction.song.service.AircraftService;
 import com.naver.idealproduction.song.service.SimBridge;
+import com.naver.idealproduction.song.service.SimDataService;
+import com.naver.idealproduction.song.service.SimTracker;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
@@ -256,8 +256,9 @@ public class Dispatcher extends SimplePanel {
                     }
 
                     this.plan = plan;
+                    var acf = plan.getAircraft();
                     csInput.setText(plan.getCallsign());
-                    acfInput.setText(plan.getAircraft().getIcaoCode());
+                    acfInput.setText((acf != null) ? acf.getIcaoCode() : "");
                     depInput.setText(plan.getDepartureCode());
                     arrInput.setText(plan.getArrivalCode());
                     actionLabel.setForeground(Color.blue);

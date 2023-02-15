@@ -61,7 +61,8 @@ public class Overlays extends JPanel {
                 .addGap(10);
 
         repository.get(false).ifPresent(overlay -> selector.setSelectedItem(overlay.getName()));
-        selector.setMaximumSize(new Dimension(80, 30));
+        selector.setMinimumSize(new Dimension(150, 25));
+        selector.setMaximumSize(new Dimension(150, 25));
         selector.addActionListener(this::onComboSelect);
         useBtn.addMouseListener(new MouseAdapter() {
             @Override

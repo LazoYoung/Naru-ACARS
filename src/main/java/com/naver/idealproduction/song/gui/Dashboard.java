@@ -3,7 +3,6 @@ package com.naver.idealproduction.song.gui;
 import com.naver.idealproduction.song.gui.panel.Dispatcher;
 import com.naver.idealproduction.song.gui.panel.SimMonitor;
 import com.naver.idealproduction.song.gui.panel.SimvarMonitor;
-import com.naver.idealproduction.song.service.SimDataService;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.swing.*;
@@ -14,10 +13,9 @@ public class Dashboard extends JSplitPane {
     public Dashboard(ConfigurableApplicationContext context) {
         super(HORIZONTAL_SPLIT);
         this.context = context;
-        var simDataService = context.getBean(SimDataService.class);
         var simMonitor = new SimMonitor(this);
         var dispatcher = new Dispatcher(this);
-        var simvarMonitor = new SimvarMonitor(simDataService);
+        var simvarMonitor = new SimvarMonitor(this);
         var rPanel = new JPanel();
 
         rPanel.setLayout(new BoxLayout(rPanel, BoxLayout.Y_AXIS));

@@ -33,9 +33,9 @@ public enum Length {
         lon1 = Math.toRadians(lon1);
         lat2 = Math.toRadians(lat2);
         lon2 = Math.toRadians(lon2);
-        var dlat = lat2 - lat1;
-        var dlon = lon2 - lon1;
-        var a = Math.pow(Math.sin(dlat / 2), 2) + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(dlon / 2), 2);
+        var dLat = lat2 - lat1;
+        var dLon = lon2 - lon1;
+        var a = Math.pow(Math.sin(dLat / 2), 2) + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(dLon / 2), 2);
         var km = 2 * 6371 * Math.asin(Math.sqrt(a));
         return Length.KILOMETER.convertTo(this, km);
     }
