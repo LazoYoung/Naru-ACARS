@@ -24,7 +24,7 @@ public class SimMonitor extends SimplePanel {
     private boolean isConnected = false;
 
     public SimMonitor(Dashboard dashboard) {
-        simTracker = dashboard.getSimTracker();
+        simTracker = dashboard.getSpringContext().getBean(SimTracker.class);
         simTracker.addUpdateListener(this::onUpdate);
 
         var labelFont = new Font("Monospaced", Font.BOLD, 18);

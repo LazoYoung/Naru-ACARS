@@ -3,6 +3,7 @@ package com.naver.idealproduction.song.gui.panel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.naver.idealproduction.song.SimOverlayNG;
+import com.naver.idealproduction.song.service.SimDataService;
 import com.naver.idealproduction.song.service.SimTracker;
 import com.naver.idealproduction.song.entity.Airport;
 import com.naver.idealproduction.song.entity.FlightPlan;
@@ -42,6 +43,7 @@ public class Dispatcher extends SimplePanel {
     private final String NOT_FOUND = "Not found";
     private final String FORM_EMPTY = "Please fill out the form";
     private final SimTracker simTracker;
+    private final SimDataService simDataService;
     private final AircraftService aircraftService;
     private final JTextField csInput;
     private final JTextField acfInput;
@@ -55,9 +57,9 @@ public class Dispatcher extends SimplePanel {
     private FlightPlan plan = null;
 
     public Dispatcher(Dashboard dashboard) {
-        this.simTracker = dashboard.getSimTracker();
+        this.simTracker = dashboard.getSpringContext().getBean(SimTracker.class);
         this.aircraftService = dashboard.getSpringContext().getBean(AircraftService.class);
-        var dispatcherPane = new JPanel();
+        this.simDataService = dashboard.getSpringContext().getBean(SimDataService.class);
         var formPane = new JPanel();
         var formLayout = new GroupLayout(formPane);
         var labelFont = new Font("Monospaced", Font.BOLD, 14);
@@ -128,9 +130,6 @@ public class Dispatcher extends SimplePanel {
         actionLabel = new JLabel();
         simbriefBtn = new JButton("Simbrief");
         submitBtn = new JButton("SUBMIT");
-        var console = dashboard.getConsole();
-        var consolePane = new JPanel(new GridLayout(1, 1));
-        var consoleArea = console.getTextArea();
 
         // Flight Dispatcher
         csInput.setForeground(Color.black);
@@ -171,20 +170,12 @@ public class Dispatcher extends SimplePanel {
         formLayout.setHorizontalGroup(hGroup);
         formLayout.setVerticalGroup(vGroup);
         formPane.setLayout(formLayout);
-        dispatcherPane.setBorder(BorderFactory.createTitledBorder("Flight Dispatcher"));
-        dispatcherPane.setLayout(new BoxLayout(dispatcherPane, BoxLayout.Y_AXIS));
-        dispatcherPane.add(formPane);
-        dispatcherPane.add(Box.createVerticalStrut(10));
-        dispatcherPane.add(actionPane);
-        dispatcherPane.add(Box.createVerticalStrut(20));
-
-        // Console
-        consoleArea.setEditable(false);
-        consolePane.setBorder(BorderFactory.createTitledBorder("Console"));
-        consolePane.add(new JScrollPane(consoleArea));
+        this.setBorder(BorderFactory.createTitledBorder("Flight Dispatcher"));
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        this.add(dispatcherPane);
-        this.add(consolePane);
+        this.add(formPane);
+        this.add(Box.createVerticalStrut(10));
+        this.add(actionPane);
+        this.add(Box.createVerticalStrut(20));
     }
 
     private void validateInput() {
@@ -288,6 +279,7 @@ public class Dispatcher extends SimplePanel {
         var arr = arrInput.getText();
         var route = plan.getRoute();
         FlightPlan.submit(new FlightPlan(cs, aircraft, dep, arr, route));
-        actionLabel.setText("Plan sent");
+        simDataService.requestUpdate();
+        actionLabel.setText("Plan sent!");
     }
 }

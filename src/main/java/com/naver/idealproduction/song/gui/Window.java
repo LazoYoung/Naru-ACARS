@@ -20,19 +20,17 @@ public class Window extends JFrame {
             ConfigurableApplicationContext context
     ) {
         this.simTracker = simTracker;
-
+        contentPane = new JTabbedPane();
+        var dashboard = new Dashboard(context);
+        var overlayPanel = new Overlays(this, context.getBean(OverlayService.class));
+        contentPane.addTab("Dashboard", dashboard);
+        contentPane.addTab("Overlays", overlayPanel);
+        contentPane.addTab("Console", console);
+        setContentPane(contentPane);
         setResizable(false);
         setPreferredSize(new Dimension(800, 500));
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setTitle("SimOverlayNG");
-
-        contentPane = new JTabbedPane();
-        var dashboard = new Dashboard(console, simTracker, context);
-        var overlayService = context.getBean(OverlayService.class);
-        var overlayPanel = new Overlays(this, overlayService);
-        contentPane.addTab("Dashboard", dashboard);
-        contentPane.addTab("Overlays", overlayPanel);
-        setContentPane(contentPane);
         pack();
         setLocationRelativeTo(null);
         setVisible(true);

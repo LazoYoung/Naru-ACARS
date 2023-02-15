@@ -5,6 +5,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
 import javax.swing.text.DefaultCaret;
+import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.logging.*;
@@ -76,20 +77,20 @@ public class Console extends JPanel {
         }
     }
 
-    private final JTextArea textArea;
-
     public Console(Logger logger, Window window) {
-        this.textArea = new JTextArea();
-        LogHandler handler = new LogHandler(window, textArea);
-        DefaultCaret caret = (DefaultCaret) textArea.getCaret();
+        var layout = new GridLayout(1, 1);
+        var textArea = new JTextArea();
+        var handler = new LogHandler(window, textArea);
+        var caret = (DefaultCaret) textArea.getCaret();
+
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         caret.setBlinkRate(200);
         handler.setFormatter(new LogFormatter());
         handler.setLevel(Level.INFO);
         logger.addHandler(handler);
-    }
-
-    public JTextArea getTextArea() {
-        return textArea;
+        textArea.setEditable(false);
+        this.setLayout(layout);
+        this.setBorder(BorderFactory.createTitledBorder("Console"));
+        this.add(new JScrollPane(textArea));
     }
 }

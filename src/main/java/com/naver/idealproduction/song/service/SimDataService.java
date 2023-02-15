@@ -18,11 +18,13 @@ public class SimDataService {
     private final SimData data = new SimData();
     private final AirportService airportService;
     private final AirlineService airlineService;
+    private final SimTracker simTracker;
 
     public SimDataService(AirportService airportService, AirlineService airlineService, SimTracker simTracker) {
         this.airportService = airportService;
         this.airlineService = airlineService;
-        simTracker.addUpdateListener(this::onUpdate);
+        this.simTracker = simTracker;
+        simTracker.addUpdateListener(this::update);
     }
 
     public Object getVariable(Simvar simvar) {
@@ -33,7 +35,11 @@ public class SimDataService {
         return data;
     }
 
-    private void onUpdate(SimBridge simBridge) {
+    public void requestUpdate() {
+        update(simTracker.getBridge());
+    }
+
+    private void update(SimBridge simBridge) {
         var notAvail = "N/A";
         var timeFormat = DateTimeFormatter.ofPattern("HH:mm");
         var plan = FlightPlan.getInstance();

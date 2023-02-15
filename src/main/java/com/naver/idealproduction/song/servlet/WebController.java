@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.web;
+package com.naver.idealproduction.song.servlet;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.naver.idealproduction.song.entity.overlay.Label;

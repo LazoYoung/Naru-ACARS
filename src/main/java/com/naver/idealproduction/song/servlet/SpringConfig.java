@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.web;
+package com.naver.idealproduction.song.servlet;
 
 import com.naver.idealproduction.song.SimOverlayNG;
 import org.springframework.context.annotation.Configuration;

@@ -1,39 +1,32 @@
 package com.naver.idealproduction.song.gui;
 
-import com.naver.idealproduction.song.service.SimTracker;
-import com.naver.idealproduction.song.gui.panel.Console;
 import com.naver.idealproduction.song.gui.panel.Dispatcher;
 import com.naver.idealproduction.song.gui.panel.SimMonitor;
+import com.naver.idealproduction.song.gui.panel.SimvarMonitor;
+import com.naver.idealproduction.song.service.SimDataService;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.swing.*;
 
 public class Dashboard extends JSplitPane {
-    private final Console console;
-    private final SimTracker simTracker;
     private final ConfigurableApplicationContext context;
 
-    public Dashboard(Console console, SimTracker simTracker, ConfigurableApplicationContext context) {
+    public Dashboard(ConfigurableApplicationContext context) {
         super(HORIZONTAL_SPLIT);
-
-        this.console = console;
-        this.simTracker = simTracker;
         this.context = context;
+        var simDataService = context.getBean(SimDataService.class);
         var simMonitor = new SimMonitor(this);
         var dispatcher = new Dispatcher(this);
+        var simvarMonitor = new SimvarMonitor(simDataService);
+        var rPanel = new JPanel();
 
+        rPanel.setLayout(new BoxLayout(rPanel, BoxLayout.Y_AXIS));
+        rPanel.add(dispatcher);
+        rPanel.add(simvarMonitor);
         setLeftComponent(simMonitor);
-        setRightComponent(dispatcher);
+        setRightComponent(rPanel);
         setDividerSize(0);
         setResizeWeight(0.0);
-    }
-
-    public Console getConsole() {
-        return console;
-    }
-
-    public SimTracker getSimTracker() {
-        return simTracker;
     }
 
     public ConfigurableApplicationContext getSpringContext() {
