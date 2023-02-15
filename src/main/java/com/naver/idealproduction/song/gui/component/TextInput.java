@@ -55,12 +55,10 @@ public class TextInput extends JTextField implements FocusListener {
 
     @Override
     public void setText(String t) {
-        if (hint == null) {
-            return;
+        if (hint != null) {
+            isHint = false;
+            setForeground(Color.black);
         }
-
-        isHint = false;
-        setForeground(Color.black);
         super.setText(t);
     }
 
