@@ -5,8 +5,6 @@ import com.mouseviator.fsuipc.FSUIPCWrapper;
 import com.mouseviator.fsuipc.IFSUIPCListener;
 import com.mouseviator.fsuipc.datarequest.IDataRequest;
 import com.naver.idealproduction.song.SimOverlayNG;
-import com.naver.idealproduction.song.entity.unit.Length;
-import com.naver.idealproduction.song.entity.unit.Speed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +20,6 @@ public class SimTracker implements IFSUIPCListener {
     private static final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
     private final FSUIPC fsuipc = FSUIPC.getInstance();
     private final List<Consumer<SimBridge>> listeners = new ArrayList<>();
-    private final int refreshRate = 500;
     private final SimBridge bridge;
 
     @Autowired
@@ -31,7 +28,7 @@ public class SimTracker implements IFSUIPCListener {
     }
 
     public int getRefreshRate() {
-        return refreshRate;
+        return bridge.getRefreshRate();
     }
 
     public SimBridge getBridge() {
@@ -59,7 +56,7 @@ public class SimTracker implements IFSUIPCListener {
         logger.info("Disconnected from fsuipc.");
     }
 
-    public void addUpdateListener(Consumer<SimBridge> listener) {
+    public void addProcessListener(Consumer<SimBridge> listener) {
         listeners.add(listener);
     }
 
@@ -67,7 +64,7 @@ public class SimTracker implements IFSUIPCListener {
     public void onConnected() {
         logger.info("Connected to fsuipc!");
         logger.info("Detected simulator: " + fsuipc.getFSVersion());
-        fsuipc.processRequests(refreshRate, true);
+        fsuipc.processRequests(bridge.getRefreshRate(), true);
         notifyListeners();
     }
 
@@ -80,22 +77,7 @@ public class SimTracker implements IFSUIPCListener {
 
     @Override
     public void onProcess(AbstractQueue<IDataRequest> arRequests) {
-        try {
-            notifyListeners();
-
-            log("-- Simulator data --");
-            log("Aircraft type: %s", bridge.getAircraftType());
-            log("Aircraft name: %s", bridge.getAircraftName());
-            log("Aircraft altitude: %d ft", bridge.getAltitude(Length.FEET));
-            log("Aircraft true heading: %d", bridge.getHeading(false));
-            log("Aircraft mag. heading: %d", bridge.getHeading(true));
-            log("Aircraft airspeed: %d knots", bridge.getAirspeed(Speed.KNOT));
-            log("Aircraft ground speed: %d knots", bridge.getGroundSpeed(Speed.KNOT));
-            log("Aircraft latitude: %.9f", bridge.getLatitude());
-            log("Aircraft longitude: %.9f", bridge.getLongitude());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        notifyListeners();
     }
 
     private void notifyListeners() {
@@ -108,7 +90,4 @@ public class SimTracker implements IFSUIPCListener {
         logger.warning("Fsuipc error: " + msg);
     }
 
-    private void log(String format, Object... args) {
-        logger.info(String.format(format, args));
-    }
 }

@@ -140,8 +140,8 @@ public class Dispatcher extends SimplePanel {
         arrHint.setOpaque(true);
         depHint.setBorder(getMargin(depHint, 0, 10, 0, 10));
         arrHint.setBorder(getMargin(arrHint, 0, 10, 0, 10));
-        depHint.setBackground(Color.gray);
-        arrHint.setBackground(Color.gray);
+        depHint.setBackground(Color.darkGray);
+        arrHint.setBackground(Color.darkGray);
         simbriefBtn.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {

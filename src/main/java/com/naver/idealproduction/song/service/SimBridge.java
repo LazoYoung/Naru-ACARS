@@ -2,10 +2,7 @@ package com.naver.idealproduction.song.service;
 
 import com.mouseviator.fsuipc.FSUIPC;
 import com.mouseviator.fsuipc.datarequest.IDataRequest;
-import com.mouseviator.fsuipc.datarequest.primitives.DoubleRequest;
-import com.mouseviator.fsuipc.datarequest.primitives.FloatRequest;
-import com.mouseviator.fsuipc.datarequest.primitives.IntRequest;
-import com.mouseviator.fsuipc.datarequest.primitives.StringRequest;
+import com.mouseviator.fsuipc.datarequest.primitives.*;
 import com.mouseviator.fsuipc.helpers.SimHelper;
 import com.mouseviator.fsuipc.helpers.aircraft.*;
 import com.mouseviator.fsuipc.helpers.avionics.GPSHelper;
@@ -22,12 +19,8 @@ import java.util.Optional;
 @Service
 public class SimBridge {
     private final AirportService airportService;
-    private final FSUIPC fsuipc = FSUIPC.getInstance();
     private final IDataRequest<Float> fps;
-    private final StringRequest aircraftType;
-    private final StringRequest aircraftName;
     private final DoubleRequest altitude;
-    private final IDataRequest<Double> groundAltitude;
     private final FloatRequest headingTrue;
     private final DoubleRequest headingMag;
     private final FloatRequest airspeed;
@@ -39,10 +32,18 @@ public class SimBridge {
     private final IDataRequest<Short> onGround;
     private final IDataRequest<Integer> flapsHandle;
     private final IDataRequest<Integer> gearHandle;
-    private final DoubleRequest eng1FF;
-    private final DoubleRequest eng2FF;
-    private final DoubleRequest eng3FF;
-    private final DoubleRequest eng4FF;
+    private final DoubleRequest jetEng1FF;
+    private final DoubleRequest jetEng2FF;
+    private final DoubleRequest jetEng3FF;
+    private final DoubleRequest jetEng4FF;
+    private final DoubleRequest pistonEng1FF;
+    private final DoubleRequest pistonEng2FF;
+    private final DoubleRequest pistonEng3FF;
+    private final DoubleRequest pistonEng4FF;
+    private final FSUIPC fsuipc = FSUIPC.getInstance();
+    private final int refreshRate = 500;
+    private int phaseSkipCounter = 0;
+    private String phase;
 
     @SuppressWarnings("unchecked")
     @Autowired
@@ -52,10 +53,7 @@ public class SimBridge {
         var gps = new GPSHelper();
         var sim = new SimHelper();
         fps = fsuipc.addContinualRequest(sim.getFrameRate());
-        aircraftType = (StringRequest) fsuipc.addContinualRequest(new StringRequest(0x0618, 16));
-        aircraftName = (StringRequest) fsuipc.addContinualRequest(new StringRequest(0x3D00, 256));
         altitude = (DoubleRequest) fsuipc.addContinualRequest(aircraft.getAltitude(true));
-        groundAltitude = fsuipc.addContinualRequest(sim.getGroundAltitude(true));
         headingTrue = (FloatRequest) fsuipc.addContinualRequest(aircraft.getHeading());
         headingMag = (DoubleRequest) fsuipc.addContinualRequest(new DoubleRequest() {
             {
@@ -72,26 +70,26 @@ public class SimBridge {
         onGround = fsuipc.addContinualRequest(aircraft.getOnGround());
         flapsHandle = fsuipc.addContinualRequest(new IntRequest(0x0BDC));
         gearHandle = fsuipc.addContinualRequest(new GearHelper().getControlLever());
-        eng1FF = (DoubleRequest) fsuipc.addContinualRequest(new Engine1Helper().getFuelFlow());
-        eng2FF = (DoubleRequest) fsuipc.addContinualRequest(new Engine2Helper().getFuelFlow());
-        eng3FF = (DoubleRequest) fsuipc.addContinualRequest(new Engine3Helper().getFuelFlow());
-        eng4FF = (DoubleRequest) fsuipc.addContinualRequest(new Engine4Helper().getFuelFlow());
+        pistonEng1FF = (DoubleRequest) fsuipc.addContinualRequest(new DoubleRequest(0x0918));
+        pistonEng2FF = (DoubleRequest) fsuipc.addContinualRequest(new DoubleRequest(0x09B0));
+        pistonEng3FF = (DoubleRequest) fsuipc.addContinualRequest(new DoubleRequest(0x0A48));
+        pistonEng4FF = (DoubleRequest) fsuipc.addContinualRequest(new DoubleRequest(0x0AE0));
+        jetEng1FF = (DoubleRequest) fsuipc.addContinualRequest(new DoubleRequest(0x2020));
+        jetEng2FF = (DoubleRequest) fsuipc.addContinualRequest(new DoubleRequest(0x2120));
+        jetEng3FF = (DoubleRequest) fsuipc.addContinualRequest(new DoubleRequest(0x2220));
+        jetEng4FF = (DoubleRequest) fsuipc.addContinualRequest(new DoubleRequest(0x2320));
     }
 
     public boolean isConnected() {
         return fsuipc.isConnected();
     }
 
+    public int getRefreshRate() {
+        return refreshRate;
+    }
+
     public Optional<Airport> getAirport(String icao) {
         return Optional.ofNullable(airportService.get(icao));
-    }
-
-    public String getAircraftType() {
-        return aircraftType.getValue();
-    }
-
-    public String getAircraftName() {
-        return aircraftName.getValue();
     }
 
     public int getAltitude(Length unit) {
@@ -99,12 +97,6 @@ public class SimBridge {
         float converted = Length.FEET.convertTo(unit, value).floatValue();
         return Math.round(converted);
     }
-
-//    public int getAGL(Length unit) {
-//        var value = groundAltitude.getValue();
-//        int converted = Math.round(Length.FEET.convertTo(unit, value).floatValue());
-//        return getAltitude(unit) - converted;
-//    }
 
     public int getHeading(boolean magnetic) {
         var value = magnetic ? headingMag.getValue().floatValue() : headingTrue.getValue();
@@ -141,16 +133,6 @@ public class SimBridge {
         return aircraftLongitude.getValue();
     }
 
-    public double getEngineFuelFlow(int engine) {
-        return switch (engine) {
-            case 1 -> eng1FF.getValue();
-            case 2 -> eng2FF.getValue();
-            case 3 -> eng3FF.getValue();
-            case 4 -> eng4FF.getValue();
-            default -> throw new IllegalArgumentException("Invalid engine number: " + engine);
-        };
-    }
-
     public String getSimulator() {
         return fsuipc.getFSVersion();
     }
@@ -163,6 +145,7 @@ public class SimBridge {
         var plan = FlightPlan.getInstance();
 
         if (plan == null || !isConnected()) {
+            phase = null;
             return null;
         }
 
@@ -171,18 +154,25 @@ public class SimBridge {
             var arrCode = plan.getArrivalCode();
             var dep = airportService.get(depCode);
             var arr = airportService.get(arrCode);
+
             if (dep == null || arr == null || depCode.equals(arrCode)) {
-                return "ON GROUND";
+                phase = "ON GROUND";
+                return phase;
             }
 
-            boolean powered = (eng1FF.getValue() > 5.0) || (eng2FF.getValue() > 5.0) || (eng3FF.getValue() > 5.0) || (eng4FF.getValue() > 5.0);
-            if (!powered) {
-                // todo aircraft always !powered
-                return "AT GATE";
+            if (getEngineFuelFlow(1) < 1.0 && getEngineFuelFlow(2) < 1.0
+                    && getEngineFuelFlow(3) < 1.0 && getEngineFuelFlow(4) < 1.0) {
+                phase = "AT GATE";
+                return phase;
             }
 
-            var distance = Length.KILOMETER.getDistance(dep.getLatitude(), dep.getLongitude(), getLatitude(), getLongitude());
-            return (distance < 30.0) ? "DEPARTING" : "ARRIVED";
+            var depLat = dep.getLatitude();
+            var depLon = dep.getLongitude();
+            var lat = getLatitude();
+            var lon = getLongitude();
+            var distance = Length.KILOMETER.getDistance(depLat, depLon, lat, lon);
+            phase = (distance < 30.0) ? "DEPARTING" : "ARRIVED";
+            return phase;
         }
 
         // 0 = Flaps up, 1 = Flaps full
@@ -190,16 +180,46 @@ public class SimBridge {
         int vs = getVerticalSpeed(Speed.FEET_PER_MIN);
 
         if (flaps > 0.2f && vs < 100) {
-            return (gearHandle.getValue() == 16383) ? "LANDING" : "APPROACHING";
+            phase = (gearHandle.getValue() == 16383) ? "LANDING" : "APPROACHING";
+            return phase;
         }
 
         if (vs > 300) {
-            return "CLIMBING";
+            phase = "CLIMBING";
         } else if (vs < 300) {
-            return "DESCENDING";
+            phase = "DESCENDING";
         } else {
-            return "EN ROUTE";
+            phase = "EN ROUTE";
         }
+        return phase;
     }
 
+    public double getEngineFuelFlow(int engine) {
+        double piston, jet;
+
+        switch (engine) {
+            case 1 -> {
+                piston = pistonEng1FF.getValue();
+                jet = jetEng1FF.getValue();
+            }
+            case 2 -> {
+                piston = pistonEng2FF.getValue();
+                jet = jetEng2FF.getValue();
+            }
+            case 3 -> {
+                piston = pistonEng3FF.getValue();
+                jet = jetEng3FF.getValue();
+            }
+            case 4 -> {
+                piston = pistonEng4FF.getValue();
+                jet = jetEng4FF.getValue();
+            }
+            default -> {
+                piston = 0.0;
+                jet = 0.0;
+            }
+        }
+
+        return Math.max(piston, jet);
+    }
 }

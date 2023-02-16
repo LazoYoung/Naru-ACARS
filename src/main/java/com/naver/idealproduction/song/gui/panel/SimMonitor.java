@@ -25,7 +25,7 @@ public class SimMonitor extends SimplePanel {
 
     public SimMonitor(Dashboard dashboard) {
         simTracker = dashboard.getSpringContext().getBean(SimTracker.class);
-        simTracker.addUpdateListener(this::onUpdate);
+        simTracker.addProcessListener(this::onUpdate);
 
         var labelFont = new Font("Monospaced", Font.BOLD, 18);
         var valueFont = new Font("Serif", Font.PLAIN, 16);

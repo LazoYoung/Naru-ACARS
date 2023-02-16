@@ -27,7 +27,7 @@ public class SimDataService {
         this.airportService = airportService;
         this.airlineService = airlineService;
         this.simTracker = simTracker;
-        simTracker.addUpdateListener(this::update);
+        simTracker.addProcessListener(this::update);
     }
 
     public Object getVariable(Simvar simvar) {
@@ -87,11 +87,10 @@ public class SimDataService {
         data.put(GROUND_SPEED_KPH, simBridge.getGroundSpeed(Speed.KILOMETER_PER_HOUR));
         data.put(GROUND_SPEED_MPH, simBridge.getGroundSpeed(Speed.MILE_PER_HOUR));
         data.put(VERTICAL_SPEED, simBridge.getVerticalSpeed(Speed.FEET_PER_MIN));
-        // todo FF data needs to be verified
         data.put(ENGINE1_FUEL_FLOW, simBridge.getEngineFuelFlow(1));
-        data.put(ENGINE1_FUEL_FLOW, simBridge.getEngineFuelFlow(2));
-        data.put(ENGINE1_FUEL_FLOW, simBridge.getEngineFuelFlow(3));
-        data.put(ENGINE1_FUEL_FLOW, simBridge.getEngineFuelFlow(4));
+        data.put(ENGINE2_FUEL_FLOW, simBridge.getEngineFuelFlow(2));
+        data.put(ENGINE3_FUEL_FLOW, simBridge.getEngineFuelFlow(3));
+        data.put(ENGINE4_FUEL_FLOW, simBridge.getEngineFuelFlow(4));
         data.put(CALLSIGN, (plan != null) ? plan.getCallsign() : notAvail);
         data.put(PHASE, simBridge.getFlightPhase());
 
