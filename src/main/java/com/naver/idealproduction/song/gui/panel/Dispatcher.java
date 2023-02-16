@@ -62,18 +62,17 @@ public class Dispatcher extends SimplePanel {
         this.simDataService = dashboard.getSpringContext().getBean(SimDataService.class);
         var formPane = new JPanel();
         var formLayout = new GroupLayout(formPane);
-        var labelFont = new Font("Monospaced", Font.BOLD, 14);
-        var hintFont = new Font("Monospaced", Font.BOLD, 14);
-        var csLabel = bakeLabel("Callsign", labelFont, Color.black);
-        var acfLabel = bakeLabel("Aircraft", labelFont, Color.black);
-        var depLabel = bakeLabel("Departure", labelFont, Color.black);
-        var arrLabel = bakeLabel("Arrival", labelFont, Color.black);
+        var boldFont = new Font("Ubuntu Medium", Font.PLAIN, 15);
+        var csLabel = bakeLabel("Callsign", boldFont, Color.black);
+        var acfLabel = bakeLabel("Aircraft", boldFont, Color.black);
+        var depLabel = bakeLabel("Departure", boldFont, Color.black);
+        var arrLabel = bakeLabel("Arrival", boldFont, Color.black);
         csInput = new TextInput(6, true);
         acfInput = new TextInput(6, true);
         depInput = new TextInput("ICAO", 6, true);
         arrInput = new TextInput("ICAO", 6, true);
-        depHint = bakeLabel(NOT_FOUND, hintFont, Color.yellow);
-        arrHint = bakeLabel(NOT_FOUND, hintFont, Color.yellow);
+        depHint = bakeLabel(NOT_FOUND, Color.yellow);
+        arrHint = bakeLabel(NOT_FOUND, Color.yellow);
         DocumentListener docListener = new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -149,6 +148,7 @@ public class Dispatcher extends SimplePanel {
             }
         });
         simbriefBtn.setToolTipText("Import your Simbrief flight plan.");
+        simbriefBtn.setFont(boldFont);
         submitBtn.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -159,6 +159,7 @@ public class Dispatcher extends SimplePanel {
         });
         submitBtn.setToolTipText(FORM_EMPTY);
         submitBtn.setEnabled(false);
+        submitBtn.setFont(boldFont);
         actionPane.setLayout(new BoxLayout(actionPane, BoxLayout.X_AXIS));
         actionPane.add(Box.createHorizontalGlue());
         actionPane.add(actionLabel);
@@ -169,6 +170,8 @@ public class Dispatcher extends SimplePanel {
         actionPane.add(Box.createHorizontalStrut(20));
         formLayout.setHorizontalGroup(hGroup);
         formLayout.setVerticalGroup(vGroup);
+        formLayout.linkSize(SwingConstants.VERTICAL, depInput, depHint);
+        formLayout.linkSize(SwingConstants.VERTICAL, arrInput, arrHint);
         formPane.setLayout(formLayout);
         this.setBorder(BorderFactory.createTitledBorder("Flight Dispatcher"));
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -225,11 +228,11 @@ public class Dispatcher extends SimplePanel {
         client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .exceptionally(t -> {
                     if (ExceptionUtils.indexOfType(t, HttpTimeoutException.class) > -1) {
-                        actionLabel.setText("Connection timeout");
+                        actionLabel.setText("Connection timeout.");
                     } else if (ExceptionUtils.indexOfType(t, ConnectException.class) > -1) {
-                        actionLabel.setText("Connection refused");
+                        actionLabel.setText("Connection refused.");
                     } else {
-                        actionLabel.setText("Failed to fetch");
+                        actionLabel.setText("Failed to fetch.");
                         logger.log(Level.SEVERE, "Failed to fetch simbrief OFP.", t);
                     }
                     actionLabel.setForeground(Color.red);
@@ -262,7 +265,7 @@ public class Dispatcher extends SimplePanel {
                     depInput.setText(plan.getDepartureCode());
                     arrInput.setText(plan.getArrivalCode());
                     actionLabel.setForeground(Color.blue);
-                    actionLabel.setText("Fetch complete");
+                    actionLabel.setText("Fetch complete!");
                     simbriefBtn.setEnabled(true);
                     validateInput();
                 }));

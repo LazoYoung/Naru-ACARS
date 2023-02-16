@@ -110,7 +110,7 @@ public class SimOverlayNG {
 		return path;
 	}
 
-	public static ClassPathResource getResource(String fileName) {
+	public static ClassPathResource getFlatResource(String fileName) {
 		return new ClassPathResource("flat/" + fileName);
 	}
 
@@ -118,8 +118,8 @@ public class SimOverlayNG {
 		var fsuipc32 = "fsuipc_java32.dll";
 		var fsuipc64 = "fsuipc_java64.dll";
 		var userDir = Path.of(System.getProperty("user.dir"));
-		var fsuipc32Resource = getResource(fsuipc32);
-		var fsuipc64Resource = getResource(fsuipc64);
+		var fsuipc32Resource = getFlatResource(fsuipc32);
+		var fsuipc64Resource = getFlatResource(fsuipc64);
 		var fsuipc32Stream = fsuipc32Resource.getInputStream();
 		var fsuipc64Stream = fsuipc64Resource.getInputStream();
 		Files.copy(fsuipc32Stream, userDir.resolve(fsuipc32), REPLACE_EXISTING);

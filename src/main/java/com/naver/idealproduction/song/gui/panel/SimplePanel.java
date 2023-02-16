@@ -15,9 +15,16 @@ public class SimplePanel extends JPanel {
 
     public JLabel bakeLabel(String text, Font font, Color color) {
         var label = new JLabel(text, JLabel.CENTER);
-        label.setFont(font);
+
+        if (font != null) {
+            label.setFont(font);
+        }
         label.setAlignmentX(CENTER_ALIGNMENT);
         label.setForeground(color);
         return label;
+    }
+
+    public JLabel bakeLabel(String text, Color color) {
+        return this.bakeLabel(text, null, color);
     }
 }

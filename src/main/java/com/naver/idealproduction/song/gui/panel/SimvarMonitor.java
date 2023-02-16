@@ -16,9 +16,8 @@ import static javax.swing.GroupLayout.PREFERRED_SIZE;
 
 public class SimvarMonitor extends SimplePanel {
 
-    private final Font font =  new Font("Monospaced", Font.BOLD, 14);
-    private final JLabel label1 = bakeLabel("N/A", font, Color.black);
-    private final JLabel label2 = bakeLabel("N/A", font, Color.black);
+    private final JLabel label1 = bakeLabel("N/A", Color.black);
+    private final JLabel label2 = bakeLabel("N/A", Color.black);
     private final SimDataService simDataService;
 
     public SimvarMonitor(Dashboard dashboard) {
@@ -42,9 +41,12 @@ public class SimvarMonitor extends SimplePanel {
                 .addGroup(layout.createParallelGroup()
                                 .addComponent(comboBox2)
                                 .addComponent(label2));
+        var boldFont = new Font("Ubuntu Medium", Font.PLAIN, 15);
 
         comboBox1.setSelectedIndex(0);
         comboBox2.setSelectedIndex(1);
+        comboBox1.setFont(boldFont);
+        comboBox2.setFont(boldFont);
         comboBox1.setMaximumSize(new Dimension(150, 50));
         comboBox2.setMaximumSize(new Dimension(150, 50));
         comboBox1.addActionListener(e -> updateLabel(label1, comboBox1));
@@ -57,6 +59,8 @@ public class SimvarMonitor extends SimplePanel {
         layout.setVerticalGroup(vGroup);
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
+        layout.linkSize(SwingConstants.VERTICAL, comboBox1, label1);
+        layout.linkSize(SwingConstants.VERTICAL, comboBox2, label2);
         this.setBorder(BorderFactory.createTitledBorder("Simulator Variables"));
         this.setLayout(layout);
 

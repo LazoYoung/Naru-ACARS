@@ -37,8 +37,8 @@ public class OverlayService {
             if (files == null || files.length == 0) {
                 var png = "hud.png";
                 var xml = "hud.xml";
-                var pngResource = SimOverlayNG.getResource("overlay/" + png);
-                var xmlResource = SimOverlayNG.getResource("overlay/" + xml);
+                var pngResource = SimOverlayNG.getFlatResource("overlay/" + png);
+                var xmlResource = SimOverlayNG.getFlatResource("overlay/" + xml);
                 Files.copy(pngResource.getInputStream(), dir.resolve(png), REPLACE_EXISTING);
                 Files.copy(xmlResource.getInputStream(), dir.resolve(xml), REPLACE_EXISTING);
                 files = dirFile.listFiles((d, name) -> name.matches(regex));

@@ -56,7 +56,7 @@ public abstract class CSV<T> {
     }
 
     public File copyCSV(boolean overwrite) throws RuntimeException {
-        var resource = SimOverlayNG.getResource(fileName);
+        var resource = SimOverlayNG.getFlatResource(fileName);
 
         try (var stream = resource.getInputStream()) {
             var dest = SimOverlayNG.getDirectory().resolve(fileName);

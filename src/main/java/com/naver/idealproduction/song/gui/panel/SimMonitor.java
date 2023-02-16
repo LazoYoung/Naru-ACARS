@@ -27,9 +27,9 @@ public class SimMonitor extends SimplePanel {
         simTracker = dashboard.getSpringContext().getBean(SimTracker.class);
         simTracker.addProcessListener(this::onUpdate);
 
-        var labelFont = new Font("Monospaced", Font.BOLD, 18);
-        var valueFont = new Font("Serif", Font.PLAIN, 16);
-        var stateFont = new Font("Monospaced", Font.BOLD, 30);
+        var labelFont = new Font("Ubuntu Medium", Font.PLAIN, 18);
+        var valueFont = new Font("Ubuntu Regular", Font.PLAIN, 16);
+        var stateFont = new Font("Ubuntu Medium", Font.PLAIN, 30);
         fsuipcLabel = bakeLabel("FSUIPC", stateFont, Color.white);
         simLabel = bakeLabel("Simulator", labelFont, Color.gray);
         simValue = bakeLabel(NOT_AVAIL, valueFont, Color.black);

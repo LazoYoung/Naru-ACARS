@@ -1,18 +1,35 @@
 package com.naver.idealproduction.song.gui;
 
+import com.naver.idealproduction.song.SimOverlayNG;
 import com.naver.idealproduction.song.gui.panel.Console;
 import com.naver.idealproduction.song.servlet.service.OverlayService;
 import com.naver.idealproduction.song.servlet.service.SimTracker;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.io.ClassPathResource;
 
 import javax.swing.*;
+import javax.swing.plaf.FontUIResource;
 import java.awt.*;
+import java.io.IOException;
+import java.util.logging.Logger;
 
+import static java.awt.Font.TRUETYPE_FONT;
 import static javax.swing.JOptionPane.*;
 
 public class Window extends JFrame {
     private SimTracker simTracker;
     private JTabbedPane contentPane;
+
+    public Window() {
+        try {
+            var font = registerFonts("ubuntu-regular.ttf", 15f);
+            registerFonts("ubuntu-medium.ttf", 15f);
+            setDefaultFont(new FontUIResource(font));
+        } catch (IOException | FontFormatException e) {
+            Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
+            logger.warning("Failed to register custom fonts.");
+        }
+    }
 
     public void start(
             Console console,
@@ -60,5 +77,27 @@ public class Window extends JFrame {
     public void dispose() {
         super.dispose();
         simTracker.terminate();
+    }
+
+    private Font registerFonts(String fileName, float size) throws IOException, FontFormatException {
+        var resource = new ClassPathResource("static/font/" + fileName);
+        var font = Font.createFont(TRUETYPE_FONT, resource.getInputStream())
+                .deriveFont(size);
+        var env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        env.registerFont(font);
+        return font;
+    }
+
+    private void setDefaultFont(FontUIResource font) {
+        var defaults = UIManager.getDefaults();
+
+        for (var keys = defaults.keys(); keys.hasMoreElements();) {
+            Object key = keys.nextElement();
+            Object value = defaults.get(key);
+
+            if (value instanceof FontUIResource) {
+                defaults.put(key, font);
+            }
+        }
     }
 }
