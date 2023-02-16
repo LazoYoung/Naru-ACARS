@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.entity;
+package com.naver.idealproduction.song.domain;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
@@ -43,14 +43,12 @@ public class Properties {
         }
     }
 
-    public boolean save() {
+    public void save() {
         try {
             var mapper = new ObjectMapper();
             mapper.writeValue(file, this);
-            return true;
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to read " + fileName, e);
-            return false;
         }
     }
 

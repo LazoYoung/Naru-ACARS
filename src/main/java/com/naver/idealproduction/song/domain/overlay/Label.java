@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.entity.overlay;
+package com.naver.idealproduction.song.domain.overlay;
 
 import jakarta.annotation.Nullable;
 import jakarta.xml.bind.annotation.XmlAttribute;

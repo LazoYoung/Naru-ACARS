@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.service;
+package com.naver.idealproduction.song.servlet.repository;
 
 import com.naver.idealproduction.song.SimOverlayNG;
 import com.opencsv.CSVReader;
@@ -15,13 +15,17 @@ import java.util.logging.Logger;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
-public abstract class CSVService<T> {
+public abstract class CSV<T> {
     protected final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
     protected File file;
     protected String fileName;
-    private final Map<String, Integer> rowLocator = new HashMap<>();
+    private final Map<String, T> data = new HashMap<>();
 
-    protected CSVService(String fileName, int primaryColumn) {
+    protected CSV(String fileName, int primaryColumn) {
+        this(fileName, primaryColumn, 0);
+    }
+
+    protected CSV(String fileName, int primaryColumn, int skipLines) {
         this.fileName = fileName;
 
         try {
@@ -35,14 +39,16 @@ public abstract class CSVService<T> {
                 var csv = new CSVReader(fileReader)
         ) {
             String[] line;
-            int row = 0;
+            csv.skip(skipLines);
 
             while ((line = csv.readNext()) != null) {
                 var primaryKey = line[primaryColumn].toLowerCase();
                 if (!primaryKey.isBlank()) {
-                    rowLocator.put(primaryKey, row);
+                    if (!data.containsKey(primaryKey)) {
+                        T obj = parseLine(line);
+                        data.put(primaryKey, obj);
+                    }
                 }
-                ++row;
             }
         } catch (IOException | CsvValidationException e) {
             logger.log(Level.SEVERE, "File corrupted: " + fileName, e);
@@ -65,28 +71,8 @@ public abstract class CSVService<T> {
         }
     }
 
-    // todo Cache into memory (92% CPU load)
     protected T get(String primaryKey) {
-        if (primaryKey == null || primaryKey.isBlank()) {
-            return null;
-        }
-
-        Integer row = rowLocator.get(primaryKey.toLowerCase());
-
-        if (file == null || row == null) {
-            return null;
-        }
-
-        try (
-                var fileReader = new FileReader(file);
-                var csv = new CSVReader(fileReader)
-        ) {
-            csv.skip(row);
-            return parseLine(csv.readNext());
-        } catch (IOException | CsvValidationException e) {
-            logger.log(Level.SEVERE, "File corrupted: " + fileName, e);
-            return null;
-        }
+        return (primaryKey != null) ? data.get(primaryKey.toLowerCase()) : null;
     }
 
     protected abstract T parseLine(String[] line);

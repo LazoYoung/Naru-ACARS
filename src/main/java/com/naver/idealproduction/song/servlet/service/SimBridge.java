@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.service;
+package com.naver.idealproduction.song.servlet.service;
 
 import com.mouseviator.fsuipc.FSUIPC;
 import com.mouseviator.fsuipc.datarequest.IDataRequest;
@@ -6,10 +6,11 @@ import com.mouseviator.fsuipc.datarequest.primitives.*;
 import com.mouseviator.fsuipc.helpers.SimHelper;
 import com.mouseviator.fsuipc.helpers.aircraft.*;
 import com.mouseviator.fsuipc.helpers.avionics.GPSHelper;
-import com.naver.idealproduction.song.entity.Airport;
-import com.naver.idealproduction.song.entity.FlightPlan;
-import com.naver.idealproduction.song.entity.unit.Length;
-import com.naver.idealproduction.song.entity.unit.Speed;
+import com.naver.idealproduction.song.domain.Airport;
+import com.naver.idealproduction.song.domain.FlightPlan;
+import com.naver.idealproduction.song.servlet.repository.AirportRepository;
+import com.naver.idealproduction.song.domain.unit.Length;
+import com.naver.idealproduction.song.domain.unit.Speed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,7 @@ import java.util.Optional;
 
 @Service
 public class SimBridge {
-    private final AirportService airportService;
+    private final AirportRepository airportRepo;
     private final IDataRequest<Float> fps;
     private final DoubleRequest altitude;
     private final FloatRequest headingTrue;
@@ -47,8 +48,8 @@ public class SimBridge {
 
     @SuppressWarnings("unchecked")
     @Autowired
-    public SimBridge(AirportService airportService) {
-        this.airportService = airportService;
+    public SimBridge(AirportRepository airportRepo) {
+        this.airportRepo = airportRepo;
         var aircraft = new AircraftHelper();
         var gps = new GPSHelper();
         var sim = new SimHelper();
@@ -89,7 +90,7 @@ public class SimBridge {
     }
 
     public Optional<Airport> getAirport(String icao) {
-        return Optional.ofNullable(airportService.get(icao));
+        return Optional.ofNullable(airportRepo.get(icao));
     }
 
     public int getAltitude(Length unit) {
@@ -142,6 +143,13 @@ public class SimBridge {
     }
 
     public String getFlightPhase() {
+        if (--phaseSkipCounter >= 0) {
+            return phase;
+        } else {
+            int heavyRefreshRate = 5000;
+            phaseSkipCounter = (int) Math.ceil((double) heavyRefreshRate / refreshRate);
+        }
+
         var plan = FlightPlan.getInstance();
 
         if (plan == null || !isConnected()) {
@@ -152,8 +160,8 @@ public class SimBridge {
         if (onGround.getValue() == 1) {
             var depCode = plan.getDepartureCode();
             var arrCode = plan.getArrivalCode();
-            var dep = airportService.get(depCode);
-            var arr = airportService.get(arrCode);
+            var dep = airportRepo.get(depCode);
+            var arr = airportRepo.get(arrCode);
 
             if (dep == null || arr == null || depCode.equals(arrCode)) {
                 phase = "ON GROUND";

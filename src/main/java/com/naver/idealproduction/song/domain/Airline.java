@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.entity;
+package com.naver.idealproduction.song.domain;
 
 public class Airline {
     private String name;

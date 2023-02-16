@@ -1,10 +1,10 @@
 package com.naver.idealproduction.song.servlet;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.naver.idealproduction.song.entity.overlay.Label;
-import com.naver.idealproduction.song.entity.overlay.SimData;
-import com.naver.idealproduction.song.service.OverlayService;
-import com.naver.idealproduction.song.service.SimDataService;
+import com.naver.idealproduction.song.domain.overlay.Label;
+import com.naver.idealproduction.song.domain.overlay.SimData;
+import com.naver.idealproduction.song.servlet.service.OverlayService;
+import com.naver.idealproduction.song.servlet.service.SimDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

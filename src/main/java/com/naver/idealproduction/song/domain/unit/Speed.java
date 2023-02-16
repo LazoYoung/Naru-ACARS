@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.entity.unit;
+package com.naver.idealproduction.song.domain.unit;
 
 import java.math.BigDecimal;
 import java.math.MathContext;

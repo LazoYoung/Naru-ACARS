@@ -1,8 +1,8 @@
 package com.naver.idealproduction.song.gui;
 
 import com.naver.idealproduction.song.SimOverlayNG;
-import com.naver.idealproduction.song.entity.overlay.Overlay;
-import com.naver.idealproduction.song.service.OverlayService;
+import com.naver.idealproduction.song.domain.overlay.Overlay;
+import com.naver.idealproduction.song.servlet.service.OverlayService;
 import jakarta.annotation.Nullable;
 import me.friwi.jcefmaven.CefAppBuilder;
 import me.friwi.jcefmaven.EnumProgress;

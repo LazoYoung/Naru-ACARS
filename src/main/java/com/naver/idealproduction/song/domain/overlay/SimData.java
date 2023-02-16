@@ -1,7 +1,7 @@
-package com.naver.idealproduction.song.entity.overlay;
+package com.naver.idealproduction.song.domain.overlay;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.naver.idealproduction.song.entity.unit.Simvar;
+import com.naver.idealproduction.song.domain.unit.Simvar;
 
 import java.util.HashMap;
 import java.util.Map;

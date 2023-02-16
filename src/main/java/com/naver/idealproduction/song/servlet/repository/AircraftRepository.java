@@ -1,14 +1,14 @@
-package com.naver.idealproduction.song.service;
+package com.naver.idealproduction.song.servlet.repository;
 
-import com.naver.idealproduction.song.entity.Aircraft;
-import org.springframework.stereotype.Service;
+import com.naver.idealproduction.song.domain.Aircraft;
+import org.springframework.stereotype.Repository;
 
-@Service
-public class AircraftService extends CSVService<Aircraft> {
+@Repository
+public class AircraftRepository extends CSV<Aircraft> {
     private static final int COL_NAME = 0;
     private static final int COL_ICAO = 2;
 
-    protected AircraftService() {
+    protected AircraftRepository() {
         super("planes.dat", COL_ICAO);
     }
 

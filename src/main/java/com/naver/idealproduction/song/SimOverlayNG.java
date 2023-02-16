@@ -1,10 +1,10 @@
 package com.naver.idealproduction.song;
 
 import com.mouseviator.fsuipc.FSUIPC;
-import com.naver.idealproduction.song.entity.Properties;
+import com.naver.idealproduction.song.domain.Properties;
 import com.naver.idealproduction.song.gui.Window;
 import com.naver.idealproduction.song.gui.panel.Console;
-import com.naver.idealproduction.song.service.SimTracker;
+import com.naver.idealproduction.song.servlet.service.SimTracker;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;

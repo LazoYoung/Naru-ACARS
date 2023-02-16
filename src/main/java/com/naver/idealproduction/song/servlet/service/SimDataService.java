@@ -1,10 +1,12 @@
-package com.naver.idealproduction.song.service;
+package com.naver.idealproduction.song.servlet.service;
 
-import com.naver.idealproduction.song.entity.FlightPlan;
-import com.naver.idealproduction.song.entity.overlay.SimData;
-import com.naver.idealproduction.song.entity.unit.Length;
-import com.naver.idealproduction.song.entity.unit.Simvar;
-import com.naver.idealproduction.song.entity.unit.Speed;
+import com.naver.idealproduction.song.domain.FlightPlan;
+import com.naver.idealproduction.song.domain.overlay.SimData;
+import com.naver.idealproduction.song.servlet.repository.AirlineRepository;
+import com.naver.idealproduction.song.servlet.repository.AirportRepository;
+import com.naver.idealproduction.song.domain.unit.Length;
+import com.naver.idealproduction.song.domain.unit.Simvar;
+import com.naver.idealproduction.song.domain.unit.Speed;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneOffset;
@@ -13,19 +15,19 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.naver.idealproduction.song.entity.unit.Simvar.*;
+import static com.naver.idealproduction.song.domain.unit.Simvar.*;
 
 @Service
 public class SimDataService {
     private final SimData data = new SimData();
     private final List<Runnable> listeners = new ArrayList<>();
-    private final AirportService airportService;
-    private final AirlineService airlineService;
+    private final AirportRepository airportService;
+    private final AirlineRepository airlineRepo;
     private final SimTracker simTracker;
 
-    public SimDataService(AirportService airportService, AirlineService airlineService, SimTracker simTracker) {
+    public SimDataService(AirportRepository airportService, AirlineRepository airlineRepo, SimTracker simTracker) {
         this.airportService = airportService;
-        this.airlineService = airlineService;
+        this.airlineRepo = airlineRepo;
         this.simTracker = simTracker;
         simTracker.addProcessListener(this::update);
     }
@@ -52,7 +54,7 @@ public class SimDataService {
         var plan = FlightPlan.getInstance();
         var dep = (plan != null) ? airportService.get(plan.getDepartureCode()) : null;
         var arr = (plan != null) ? airportService.get(plan.getArrivalCode()) : null;
-        var airline = (plan != null) ? airlineService.get(plan.getAirline()) : null;
+        var airline = (plan != null) ? airlineRepo.get(plan.getAirline()) : null;
         var acf = (plan != null) ? plan.getAircraft() : null;
         var dist = (arr != null) ? Length.KILOMETER.getDistance(simBridge.getLatitude(), simBridge.getLongitude(), arr.getLatitude(), arr.getLongitude()) : null;
 

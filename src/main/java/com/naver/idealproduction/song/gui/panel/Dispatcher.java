@@ -3,15 +3,15 @@ package com.naver.idealproduction.song.gui.panel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.naver.idealproduction.song.SimOverlayNG;
-import com.naver.idealproduction.song.entity.Airport;
-import com.naver.idealproduction.song.entity.FlightPlan;
-import com.naver.idealproduction.song.entity.Properties;
+import com.naver.idealproduction.song.domain.Airport;
+import com.naver.idealproduction.song.domain.FlightPlan;
+import com.naver.idealproduction.song.domain.Properties;
 import com.naver.idealproduction.song.gui.Dashboard;
 import com.naver.idealproduction.song.gui.component.TextInput;
-import com.naver.idealproduction.song.service.AircraftService;
-import com.naver.idealproduction.song.service.SimBridge;
-import com.naver.idealproduction.song.service.SimDataService;
-import com.naver.idealproduction.song.service.SimTracker;
+import com.naver.idealproduction.song.servlet.repository.AircraftRepository;
+import com.naver.idealproduction.song.servlet.service.SimBridge;
+import com.naver.idealproduction.song.servlet.service.SimDataService;
+import com.naver.idealproduction.song.servlet.service.SimTracker;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
@@ -44,7 +44,7 @@ public class Dispatcher extends SimplePanel {
     private final String FORM_EMPTY = "Please fill out the form";
     private final SimTracker simTracker;
     private final SimDataService simDataService;
-    private final AircraftService aircraftService;
+    private final AircraftRepository aircraftRepo;
     private final JTextField csInput;
     private final JTextField acfInput;
     private final TextInput depInput;
@@ -58,7 +58,7 @@ public class Dispatcher extends SimplePanel {
 
     public Dispatcher(Dashboard dashboard) {
         this.simTracker = dashboard.getSpringContext().getBean(SimTracker.class);
-        this.aircraftService = dashboard.getSpringContext().getBean(AircraftService.class);
+        this.aircraftRepo = dashboard.getSpringContext().getBean(AircraftRepository.class);
         this.simDataService = dashboard.getSpringContext().getBean(SimDataService.class);
         var formPane = new JPanel();
         var formLayout = new GroupLayout(formPane);
@@ -275,7 +275,7 @@ public class Dispatcher extends SimplePanel {
 
         var cs = csInput.getText();
         var acf = acfInput.getText();
-        var aircraft = (acf != null) ? aircraftService.get(acf) : null;
+        var aircraft = (acf != null) ? aircraftRepo.get(acf) : null;
         var dep = depInput.getText();
         var arr = arrInput.getText();
         var route = plan.getRoute();

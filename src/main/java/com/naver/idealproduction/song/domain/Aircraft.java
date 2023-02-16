@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.entity;
+package com.naver.idealproduction.song.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSetter;

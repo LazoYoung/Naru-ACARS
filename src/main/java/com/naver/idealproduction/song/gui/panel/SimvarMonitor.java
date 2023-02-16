@@ -1,9 +1,9 @@
 package com.naver.idealproduction.song.gui.panel;
 
 import com.naver.idealproduction.song.SimOverlayNG;
-import com.naver.idealproduction.song.entity.unit.Simvar;
+import com.naver.idealproduction.song.domain.unit.Simvar;
 import com.naver.idealproduction.song.gui.Dashboard;
-import com.naver.idealproduction.song.service.SimDataService;
+import com.naver.idealproduction.song.servlet.service.SimDataService;
 
 import javax.swing.*;
 import java.awt.*;

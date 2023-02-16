@@ -1,10 +1,10 @@
-package com.naver.idealproduction.song.service;
+package com.naver.idealproduction.song.servlet.repository;
 
-import com.naver.idealproduction.song.entity.Airport;
-import org.springframework.stereotype.Service;
+import com.naver.idealproduction.song.domain.Airport;
+import org.springframework.stereotype.Repository;
 
-@Service
-public class AirportService extends CSVService<Airport> {
+@Repository
+public class AirportRepository extends CSV<Airport> {
     private static final int COL_ICAO = 12;
     private static final int COL_IATA = 13;
     private static final int COL_NAME = 3;
@@ -13,8 +13,8 @@ public class AirportService extends CSVService<Airport> {
     private static final int COL_LONGITUDE = 5;
 
 
-    public AirportService() {
-        super("airports.csv", COL_ICAO);
+    public AirportRepository() {
+        super("airports.csv", COL_ICAO, 1);
     }
 
     public Airport get(String icao) {

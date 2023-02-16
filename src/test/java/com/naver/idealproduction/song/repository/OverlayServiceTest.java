@@ -1,6 +1,6 @@
 package com.naver.idealproduction.song.repository;
 
-import com.naver.idealproduction.song.service.OverlayService;
+import com.naver.idealproduction.song.servlet.service.OverlayService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 

@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.service;
+package com.naver.idealproduction.song.servlet.service;
 
 import com.mouseviator.fsuipc.FSUIPC;
 import com.mouseviator.fsuipc.FSUIPCWrapper;

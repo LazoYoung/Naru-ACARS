@@ -1,8 +1,8 @@
-package com.naver.idealproduction.song.service;
+package com.naver.idealproduction.song.servlet.service;
 
 import com.naver.idealproduction.song.SimOverlayNG;
-import com.naver.idealproduction.song.entity.Properties;
-import com.naver.idealproduction.song.entity.overlay.Overlay;
+import com.naver.idealproduction.song.domain.Properties;
+import com.naver.idealproduction.song.domain.overlay.Overlay;
 import jakarta.annotation.Nullable;
 import jakarta.xml.bind.JAXBContext;
 import org.springframework.stereotype.Service;
