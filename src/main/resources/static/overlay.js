@@ -128,7 +128,12 @@ class OverlayText extends HTMLDivElement {
         if (!this.simvar || !sim_data || !sim_data[this.simvar]) {
             this.innerText = 'N/A';
         } else {
-            this.innerText = sim_data[this.simvar];
+            let data = sim_data[this.simvar];
+
+            if (typeof data === 'number') {
+                data = data.toFixed();
+            }
+            this.innerText = data;
         }
 
         this.style.setProperty('left', `${x}px`);
