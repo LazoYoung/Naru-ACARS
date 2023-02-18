@@ -273,16 +273,15 @@ public class Dispatcher extends SimplePanel {
 
     private void submitFlightPlan() {
         if (plan == null) {
-            plan = new FlightPlan(null, null, null, null, null);
+            plan = new FlightPlan();
         }
 
-        var cs = csInput.getText();
         var acf = acfInput.getText();
-        var aircraft = (acf != null) ? aircraftRepo.get(acf) : null;
-        var dep = depInput.getText();
-        var arr = arrInput.getText();
-        var route = plan.getRoute();
-        FlightPlan.submit(new FlightPlan(cs, aircraft, dep, arr, route));
+        plan.setCallsign(csInput.getText());
+        plan.setAircraft((acf != null) ? aircraftRepo.get(acf) : null);
+        plan.setDepartureCode(depInput.getText());
+        plan.setArrivalCode(arrInput.getText());
+        FlightPlan.submit(plan);
         simDataService.requestUpdate();
         actionLabel.setText("Plan sent!");
     }

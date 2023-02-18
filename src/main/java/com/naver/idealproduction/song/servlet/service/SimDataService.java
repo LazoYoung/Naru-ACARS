@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.naver.idealproduction.song.domain.FlightPlan.*;
 import static com.naver.idealproduction.song.domain.overlay.Simvar.Type.*;
 
 @Service
@@ -24,7 +25,6 @@ public class SimDataService {
     private final AirportRepository airportService;
     private final AirlineRepository airlineRepo;
     private final SimTracker simTracker;
-    private final String notAvail = "N/A";
     private int phaseSkipCounter = 0;
     private String lastPhase = null;
 
@@ -58,7 +58,16 @@ public class SimDataService {
         var arr = (plan != null) ? airportService.get(plan.getArrivalCode()) : null;
         var airline = (plan != null) ? airlineRepo.get(plan.getAirline()) : null;
         var acf = (plan != null) ? plan.getAircraft() : null;
-        var dist = (arr != null) ? Length.KILOMETER.getDistance(simBridge.getLatitude(), simBridge.getLongitude(), arr.getLatitude(), arr.getLongitude()) : null;
+        var lat = simBridge.getLatitude();
+        var lon = simBridge.getLongitude();
+        boolean isOnline = (Math.abs(lat) > 0.05 || Math.abs(lon) > 0.05);
+        double distKM = -1;
+        double distNM = -1;
+
+        if (isOnline && arr != null) {
+            distKM = Length.KILOMETER.getDistance(lat, lon, arr.getLatitude(), arr.getLongitude());
+            distNM = Length.NAUTICAL_MILE.getDistance(lat, lon, arr.getLatitude(), arr.getLongitude());
+        }
 
         data.put(LOCAL_TIME, simBridge.getLocalTime().format(timeFormat));
         data.put(ZULU_TIME, ZonedDateTime.now(ZoneOffset.UTC).format(timeFormat));
@@ -104,8 +113,8 @@ public class SimDataService {
         data.put(ENGINE2_FUEL_FLOW, simBridge.getEngineFuelFlow(2));
         data.put(ENGINE3_FUEL_FLOW, simBridge.getEngineFuelFlow(3));
         data.put(ENGINE4_FUEL_FLOW, simBridge.getEngineFuelFlow(4));
-        data.put(CALLSIGN, (plan != null) ? plan.getCallsign() : notAvail);
-        data.put(PHASE, getFlightPhase());
+        data.put(CALLSIGN, (plan != null) ? plan.getCallsign() : null);
+        data.put(PHASE, isOnline ? getFlightPhase() : null);
 
         notifyListeners();
     }
@@ -122,7 +131,7 @@ public class SimDataService {
             phase = simTracker.getBridge().getFlightPhase();
             lastPhase = phase;
         }
-        return (phase != null) ? phase : notAvail;
+        return phase;
     }
 
     private void notifyListeners() {
