@@ -27,7 +27,8 @@
     <label x="1500" y="65" size="32" width="300" color="white">
         <animate type="slide" interval="7">
             <simvar>phase</simvar>
-            <simvar prefix="Distance: " suffix="km" round-scale="0">dtg_km</simvar>
+            <simvar suffix="km to go" round-scale="0">dtg_km</simvar>
+            <simvar prefix="ETA " suffix=" (local)">block_ramp_in_local</simvar>
         </animate>
     </label>
 </overlay>
