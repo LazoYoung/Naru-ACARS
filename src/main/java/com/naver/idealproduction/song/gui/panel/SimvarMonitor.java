@@ -1,7 +1,7 @@
 package com.naver.idealproduction.song.gui.panel;
 
 import com.naver.idealproduction.song.SimOverlayNG;
-import com.naver.idealproduction.song.domain.unit.Simvar;
+import com.naver.idealproduction.song.domain.overlay.Simvar;
 import com.naver.idealproduction.song.gui.Dashboard;
 import com.naver.idealproduction.song.servlet.service.SimDataService;
 
@@ -23,7 +23,7 @@ public class SimvarMonitor extends SimplePanel {
     public SimvarMonitor(Dashboard dashboard) {
         var context = dashboard.getSpringContext();
         this.simDataService = context.getBean(SimDataService.class);
-        var items = Arrays.stream(Simvar.values()).map(Simvar::toString).toArray(String[]::new);
+        var items = Arrays.stream(Simvar.Type.values()).map(Simvar.Type::toString).toArray(String[]::new);
         final var comboBox1 = new JComboBox<>(items);
         final var comboBox2 = new JComboBox<>(items);
         var layout = new GroupLayout(this);
@@ -71,11 +71,11 @@ public class SimvarMonitor extends SimplePanel {
     }
 
     private void updateLabel(JLabel label, JComboBox<String> comboBox) {
-        Simvar simvar;
+        Simvar.Type simvar;
         String item = (String) comboBox.getSelectedItem();
 
         try {
-            simvar = Simvar.valueOf(item);
+            simvar = Simvar.Type.valueOf(item);
         } catch (IllegalArgumentException ex) {
             var logger = Logger.getLogger(SimOverlayNG.class.getName());
             logger.log(Level.SEVERE, "Unknown variable: " + item, ex);

@@ -10,7 +10,7 @@ import java.util.List;
 public class Animate {
     private String type;
     private int interval;
-    private List<String> simVars;
+    private List<Simvar> simVars;
 
     @XmlAttribute(name = "type")
     public void setType(String type) {
@@ -23,7 +23,7 @@ public class Animate {
     }
 
     @XmlElement(name = "simvar")
-    public void setSimVars(List<String> simVars) {
+    public void setSimVars(List<Simvar> simVars) {
         this.simVars = simVars;
     }
 
@@ -35,7 +35,7 @@ public class Animate {
         return interval;
     }
 
-    public List<String> getSimVars() {
+    public List<Simvar> getSimVars() {
         return simVars;
     }
 }

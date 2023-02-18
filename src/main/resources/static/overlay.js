@@ -107,33 +107,50 @@ class OverlayLabel extends HTMLElement {
     }
 }
 class OverlayText extends HTMLDivElement {
-    simvar;
+    text_prefix; text_suffix; round_scale; variable;
 
     constructor() {
         super();
     }
 
     connectedCallback() {
-        this.innerText = null;
-        this.simvar = this.getAttribute('simvar');
-        this.style.setProperty('position', 'absolute');
-        this.style.setProperty('z-index', '1');
+        this.init();
     }
 
     attributeChangedCallback() {
-        this.simvar = this.getAttribute('simvar');
+        this.init();
+    }
+
+    init() {
+        this.innerText = null;
+        this.text_prefix = this.getAttribute('text-prefix');
+        this.text_suffix = this.getAttribute('text-suffix');
+        this.round_scale = Number.parseInt(this.getAttribute('round-scale'));
+        this.variable = this.getAttribute('variable');
+        this.style.setProperty('position', 'absolute');
+        this.style.setProperty('z-index', '1');
+
+        if (isNaN(this.round_scale)) {
+            this.round_scale = 0;
+        }
+        if (!this.text_prefix) {
+            this.text_prefix = String();
+        }
+        if (!this.text_suffix) {
+            this.text_suffix = String();
+        }
     }
 
     drawText(x, y, size, width, color) {
-        if (!this.simvar || !sim_data || !sim_data[this.simvar]) {
+        if (!this.variable || !sim_data || !sim_data[this.variable]) {
             this.innerText = 'N/A';
         } else {
-            let data = sim_data[this.simvar];
+            let data = sim_data[this.variable];
 
             if (typeof data === 'number') {
-                data = data.toFixed();
+                data = data.toFixed(this.round_scale);
             }
-            this.innerText = data;
+            this.innerText = this.text_prefix.concat(data, this.text_suffix);
         }
 
         this.style.setProperty('left', `${x}px`);

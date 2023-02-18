@@ -1,7 +1,6 @@
 package com.naver.idealproduction.song.domain.overlay;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import com.naver.idealproduction.song.domain.unit.Simvar;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,12 +15,12 @@ public class SimData {
         return map;
     }
 
-    public Object get(Simvar simvar) {
+    public Object get(Simvar.Type simvar) {
         var key = simvar.toString().toLowerCase();
         return map.get(key);
     }
 
-    public void put(Simvar simVar, Object value) {
+    public void put(Simvar.Type simVar, Object value) {
         var key = simVar.toString().toLowerCase();
         map.put(key, value);
     }

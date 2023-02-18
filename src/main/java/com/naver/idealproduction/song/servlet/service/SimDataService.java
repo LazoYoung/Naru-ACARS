@@ -5,7 +5,7 @@ import com.naver.idealproduction.song.domain.overlay.SimData;
 import com.naver.idealproduction.song.servlet.repository.AirlineRepository;
 import com.naver.idealproduction.song.servlet.repository.AirportRepository;
 import com.naver.idealproduction.song.domain.unit.Length;
-import com.naver.idealproduction.song.domain.unit.Simvar;
+import com.naver.idealproduction.song.domain.overlay.Simvar;
 import com.naver.idealproduction.song.domain.unit.Speed;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +15,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.naver.idealproduction.song.domain.unit.Simvar.*;
+import static com.naver.idealproduction.song.domain.overlay.Simvar.Type.*;
 
 @Service
 public class SimDataService {
@@ -35,7 +35,7 @@ public class SimDataService {
         simTracker.addProcessListener(this::update);
     }
 
-    public Object getVariable(Simvar simvar) {
+    public Object getVariable(Simvar.Type simvar) {
         return data.get(simvar);
     }
 

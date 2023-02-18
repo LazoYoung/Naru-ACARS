@@ -2,6 +2,7 @@ package com.naver.idealproduction.song.servlet;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.naver.idealproduction.song.domain.overlay.Label;
+import com.naver.idealproduction.song.domain.overlay.Overlay;
 import com.naver.idealproduction.song.domain.overlay.SimData;
 import com.naver.idealproduction.song.servlet.service.OverlayService;
 import com.naver.idealproduction.song.servlet.service.SimDataService;
@@ -39,8 +40,8 @@ public class WebController {
             return "404";
         }
 
-        var overlay = selected.get();
-        var labels = overlay.getLabels();
+        Overlay overlay = selected.get();
+        List<Label> labels = overlay.getLabels();
         List<Label> staticLabels = Collections.emptyList();
         List<Label> animatedLabels = Collections.emptyList();
 

@@ -12,12 +12,16 @@
 <img id="background" src="/background.png" th:src="${background}">
 <img class="icon" th:each="i : ${icons}" th:src="${i.file}" th:data-x="${i.x}" th:data-y="${i.y}"
      th:data-width="${i.width}" th:data-height="${i.height}">
-<overlay-label th:each="l : ${staticLabels}" th:x="${l.x}" th:y="${l.y}" th:size="${l.size}" th:width="${l.width}" th:color="${l.color}">
-    <div is="overlay-text" th:simvar="${l.simVar}"></div>
+<overlay-label th:each="l : ${staticLabels}" th:x="${l.x}" th:y="${l.y}"
+               th:size="${l.size}" th:width="${l.width}" th:color="${l.color}">
+    <div is="overlay-text" th:text-prefix="${l.simVar.prefix}" th:text-suffix="${l.simVar.suffix}"
+         th:round-scale="${l.simVar.roundScale}" th:variable="${l.simVar.variable}"></div>
 </overlay-label>
-<overlay-label th:each="l : ${animatedLabels}" th:x="${l.x}" th:y="${l.y}" th:size="${l.size}" th:width="${l.width}" th:color="${l.color}"
+<overlay-label th:each="l : ${animatedLabels}" th:x="${l.x}" th:y="${l.y}"
+               th:size="${l.size}" th:width="${l.width}" th:color="${l.color}"
                th:type="${l.animate.type}" th:interval="${l.animate.interval}">
-    <div is="overlay-text" th:each="simvar : ${l.animate.simVars}" th:simvar="${simvar}"></div>
+    <div is="overlay-text" th:each="var : ${l.animate.simVars}" th:text-prefix="${var.prefix}" th:text-suffix="${var.suffix}"
+         th:round-scale="${var.roundScale}" th:variable="${var.variable}"></div>
 </overlay-label>
 <canvas id="canvas">
     This browser does not support HTML5.
