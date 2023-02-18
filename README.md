@@ -1,9 +1,12 @@
-## SimOverlayNG
+## Overview
 > This project is at experimental stage. Use at your own risk!
 
 SimOverlayNG is a software creating livestream overlays for flight simmers.
 
-## Download
+![Demo](https://github.com/LazoYoung/SimOverlayNG/blob/main/demo.gif)
+
+## Links
+
 - [Download](https://github.com/LazoYoung/SimOverlayNG/releases)
 - [How to use](https://github.com/LazoYoung/SimOverlayNG/wiki)
 - [Roadmap](https://github.com/LazoYoung/SimOverlayNG/wiki/Roadmap)
