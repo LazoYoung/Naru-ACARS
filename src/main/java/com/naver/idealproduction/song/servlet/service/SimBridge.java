@@ -42,9 +42,6 @@ public class SimBridge {
     private final DoubleRequest pistonEng3FF;
     private final DoubleRequest pistonEng4FF;
     private final FSUIPC fsuipc = FSUIPC.getInstance();
-    private final int refreshRate = 500;
-    private int phaseSkipCounter = 0;
-    private String phase;
 
     @SuppressWarnings("unchecked")
     @Autowired
@@ -83,10 +80,6 @@ public class SimBridge {
 
     public boolean isConnected() {
         return fsuipc.isConnected();
-    }
-
-    public int getRefreshRate() {
-        return refreshRate;
     }
 
     public Optional<Airport> getAirport(String icao) {
@@ -143,17 +136,9 @@ public class SimBridge {
     }
 
     public String getFlightPhase() {
-        if (--phaseSkipCounter >= 0) {
-            return phase;
-        } else {
-            int heavyRefreshRate = 5000;
-            phaseSkipCounter = (int) Math.ceil((double) heavyRefreshRate / refreshRate);
-        }
-
         var plan = FlightPlan.getInstance();
 
         if (plan == null || !isConnected()) {
-            phase = null;
             return null;
         }
 
@@ -164,14 +149,12 @@ public class SimBridge {
             var arr = airportRepo.get(arrCode);
 
             if (dep == null || arr == null || depCode.equals(arrCode)) {
-                phase = "ON GROUND";
-                return phase;
+                return "ON GROUND";
             }
 
             if (getEngineFuelFlow(1) < 1.0 && getEngineFuelFlow(2) < 1.0
                     && getEngineFuelFlow(3) < 1.0 && getEngineFuelFlow(4) < 1.0) {
-                phase = "AT GATE";
-                return phase;
+                return "AT GATE";
             }
 
             var depLat = dep.getLatitude();
@@ -179,8 +162,7 @@ public class SimBridge {
             var lat = getLatitude();
             var lon = getLongitude();
             var distance = Length.KILOMETER.getDistance(depLat, depLon, lat, lon);
-            phase = (distance < 30.0) ? "DEPARTING" : "ARRIVED";
-            return phase;
+            return (distance < 30.0) ? "DEPARTING" : "ARRIVED";
         }
 
         // 0 = Flaps up, 1 = Flaps full
@@ -188,18 +170,16 @@ public class SimBridge {
         int vs = getVerticalSpeed(Speed.FEET_PER_MIN);
 
         if (flaps > 0.2f && vs < 100) {
-            phase = (gearHandle.getValue() == 16383) ? "LANDING" : "APPROACHING";
-            return phase;
+            return (gearHandle.getValue() == 16383) ? "LANDING" : "APPROACHING";
         }
 
         if (vs > 300) {
-            phase = "CLIMBING";
+            return "CLIMBING";
         } else if (vs < 300) {
-            phase = "DESCENDING";
+            return "DESCENDING";
         } else {
-            phase = "EN ROUTE";
+            return "EN ROUTE";
         }
-        return phase;
     }
 
     public double getEngineFuelFlow(int engine) {

@@ -21,6 +21,7 @@ public class SimTracker implements IFSUIPCListener {
     private final FSUIPC fsuipc = FSUIPC.getInstance();
     private final List<Consumer<SimBridge>> listeners = new ArrayList<>();
     private final SimBridge bridge;
+    private final int refreshRate = 500;
 
     @Autowired
     public SimTracker(SimBridge bridge) {
@@ -28,7 +29,7 @@ public class SimTracker implements IFSUIPCListener {
     }
 
     public int getRefreshRate() {
-        return bridge.getRefreshRate();
+        return refreshRate;
     }
 
     public SimBridge getBridge() {
@@ -64,7 +65,7 @@ public class SimTracker implements IFSUIPCListener {
     public void onConnected() {
         logger.info("Connected to fsuipc!");
         logger.info("Detected simulator: " + fsuipc.getFSVersion());
-        fsuipc.processRequests(bridge.getRefreshRate(), true);
+        fsuipc.processRequests(refreshRate, true);
         notifyListeners();
     }
 

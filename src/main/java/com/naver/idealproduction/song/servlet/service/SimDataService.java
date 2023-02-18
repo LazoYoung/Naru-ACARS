@@ -24,6 +24,9 @@ public class SimDataService {
     private final AirportRepository airportService;
     private final AirlineRepository airlineRepo;
     private final SimTracker simTracker;
+    private final String notAvail = "N/A";
+    private int phaseSkipCounter = 0;
+    private String lastPhase = null;
 
     public SimDataService(AirportRepository airportService, AirlineRepository airlineRepo, SimTracker simTracker) {
         this.airportService = airportService;
@@ -49,7 +52,6 @@ public class SimDataService {
     }
 
     private void update(SimBridge simBridge) {
-        var notAvail = "N/A";
         var timeFormat = DateTimeFormatter.ofPattern("HH:mm");
         var plan = FlightPlan.getInstance();
         var dep = (plan != null) ? airportService.get(plan.getDepartureCode()) : null;
@@ -94,9 +96,24 @@ public class SimDataService {
         data.put(ENGINE3_FUEL_FLOW, simBridge.getEngineFuelFlow(3));
         data.put(ENGINE4_FUEL_FLOW, simBridge.getEngineFuelFlow(4));
         data.put(CALLSIGN, (plan != null) ? plan.getCallsign() : notAvail);
-        data.put(PHASE, simBridge.getFlightPhase());
+        data.put(PHASE, getFlightPhase());
 
         notifyListeners();
+    }
+
+    private String getFlightPhase() {
+        String phase;
+
+        if (--phaseSkipCounter >= 0) {
+            phase = lastPhase;
+        } else {
+            double heavyRefreshRate = 5000;
+            int refreshRate = simTracker.getRefreshRate();
+            phaseSkipCounter = (int) Math.ceil(heavyRefreshRate / refreshRate);
+            phase = simTracker.getBridge().getFlightPhase();
+            lastPhase = phase;
+        }
+        return (phase != null) ? phase : notAvail;
     }
 
     private void notifyListeners() {
