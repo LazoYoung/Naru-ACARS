@@ -34,7 +34,7 @@ dependencies {
 	implementation 'com.opencsv:opencsv:5.7.1'
 
 	// Jakarta XML Binding API
-	implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.2'
+	implementation 'org.eclipse.persistence:org.eclipse.persistence.moxy:4.0.0'
 	implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0'
 	implementation 'jakarta.activation:jakarta.activation-api:2.1.1'
 
