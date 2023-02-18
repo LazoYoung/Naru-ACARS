@@ -1,42 +1,16 @@
-# SimOverlayNG
+## SimOverlayNG
 > This project is at experimental stage. Use at your own risk!
 
 SimOverlayNG is a software creating livestream overlays for flight simmers.
 
-# Installation
-### Requirements
+## Download
+[> Download link](https://github.com/LazoYoung/SimOverlayNG/releases)
+[> How to use](https://github.com/LazoYoung/SimOverlayNG/wiki)
+[> Roadmap](https://github.com/LazoYoung/SimOverlayNG/wiki/Roadmap)
 
-- [Java 17+](https://www.oracle.com/java/technologies/downloads/)
-- [FSUIPC](http://www.fsuipc.com/)
+Please note that [Java 17+](https://www.oracle.com/java/technologies/downloads/) and [FSUIPC](http://www.fsuipc.com/) is required.
 
-### Download
-Not available yet! (Read the roadmap)
-
-# Roadmap
-### v1.0 (Feb 2023)
-- FSUIPC, Simbrief data fed into overlay
-  -	Local/Zulu time
-  - ETA/ETE
-  - Route
-  - Distance
-  - Callsign
-  - Airline data (ICAO, IATA, Name, Callsign) (*Not up to date)
-  - Airport data (ICAO, IATA, Name, City)
-  -	Aircraft data (ICAO, Name, Altitude, Heading, Ground/Airspeed, VS)
-  - ... and more
-- Stock overlay templates
-  - HUD
-  - Platform display
-  - Boarding pass
-- Animated, changing text
-
-### v2.0 (Mar 2023)
-- Overlay template editor
-  - Customizable text, html
-  - Placeholders
-- Landing rate widget
-
-# Legal notice
+## Legal notice
 SimOverlayNG &#169; 2023 LazoYoung, All rights reserved.
 
 Feel free to contact me for any question. This application is proudly powered by these amazing works...!
