@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.gui.panel;
+package com.naver.idealproduction.song.gui.subpanel;
 
 import javax.swing.*;
 import javax.swing.border.Border;

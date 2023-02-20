@@ -1,7 +1,6 @@
 package com.naver.idealproduction.song.gui;
 
 import com.naver.idealproduction.song.SimOverlayNG;
-import com.naver.idealproduction.song.gui.panel.Console;
 import com.naver.idealproduction.song.servlet.service.OverlayService;
 import com.naver.idealproduction.song.servlet.service.SimTracker;
 import org.springframework.context.ConfigurableApplicationContext;

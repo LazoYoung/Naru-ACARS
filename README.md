@@ -8,7 +8,7 @@ SimOverlayNG is a software creating livestream overlays for flight simmers.
 ## Links
 
 - [Download](https://github.com/LazoYoung/SimOverlayNG/releases)
-- [How to use](https://github.com/LazoYoung/SimOverlayNG/wiki)
+- [Documentation](https://github.com/LazoYoung/SimOverlayNG/wiki)
 - [Roadmap](https://github.com/LazoYoung/SimOverlayNG/wiki/Roadmap)
 
 Please note that [Java 17+](https://www.oracle.com/java/technologies/downloads/) and [FSUIPC](http://www.fsuipc.com/) is required.

@@ -1,4 +1,4 @@
-package com.naver.idealproduction.song.gui.panel;
+package com.naver.idealproduction.song.gui.subpanel;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

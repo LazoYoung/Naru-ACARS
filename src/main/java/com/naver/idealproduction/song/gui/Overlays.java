@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 
 import static java.awt.Dialog.ModalityType.APPLICATION_MODAL;
 import static java.lang.Short.MAX_VALUE;
-import static java.util.logging.Level.SEVERE;
+import static java.util.logging.Level.*;
 import static javax.swing.BoxLayout.Y_AXIS;
 import static org.burningwave.core.assembler.StaticComponentContainer.Modules;
 
@@ -29,6 +29,7 @@ public class Overlays extends JPanel {
     private final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
     private final String validURL = SimOverlayNG.getWebURL("/overlay").toString();
     private final String invalidURL = SimOverlayNG.getWebURL("/404").toString();
+    private final Window window;
     private final OverlayService repository;
     private final JComboBox<String> selector;
     private final JPanel overlayPane;
@@ -36,6 +37,7 @@ public class Overlays extends JPanel {
     private CefBrowser browser = null;
 
     public Overlays(Window window, OverlayService repository) {
+        this.window = window;
         this.repository = repository;
         var items = repository.getOverlays()
                 .stream()
@@ -187,7 +189,9 @@ public class Overlays extends JPanel {
                 .filter(e -> e.getName().equals(overlayName))
                 .findAny();
 
-        if (overlay.isPresent()) {
+        if (browser == null) {
+            window.showDialog(JOptionPane.INFORMATION_MESSAGE, "Viewer is still loading...");
+        } else if (overlay.isPresent()) {
             repository.select(overlay.get().getId());
             updateBrowser(validURL);
         } else {

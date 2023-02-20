@@ -1,8 +1,8 @@
 package com.naver.idealproduction.song.gui;
 
-import com.naver.idealproduction.song.gui.panel.Dispatcher;
-import com.naver.idealproduction.song.gui.panel.SimMonitor;
-import com.naver.idealproduction.song.gui.panel.SimvarMonitor;
+import com.naver.idealproduction.song.gui.subpanel.Dispatcher;
+import com.naver.idealproduction.song.gui.subpanel.SimMonitor;
+import com.naver.idealproduction.song.gui.subpanel.SimvarMonitor;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.swing.*;

@@ -1,6 +1,5 @@
-package com.naver.idealproduction.song.gui.panel;
+package com.naver.idealproduction.song.gui;
 
-import com.naver.idealproduction.song.gui.Window;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;

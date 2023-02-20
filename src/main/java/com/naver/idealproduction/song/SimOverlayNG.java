@@ -2,8 +2,8 @@ package com.naver.idealproduction.song;
 
 import com.mouseviator.fsuipc.FSUIPC;
 import com.naver.idealproduction.song.domain.Properties;
+import com.naver.idealproduction.song.gui.Console;
 import com.naver.idealproduction.song.gui.Window;
-import com.naver.idealproduction.song.gui.panel.Console;
 import com.naver.idealproduction.song.servlet.service.SimTracker;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,18 +12,22 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.swing.*;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 
+import static com.mouseviator.fsuipc.FSUIPC.*;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static javax.swing.JOptionPane.*;
 
 @SpringBootApplication
 public class SimOverlayNG {
@@ -31,9 +35,10 @@ public class SimOverlayNG {
 	private static final String hostAddress = "localhost";
 	private static final String portKey = "server.port";
 	private static final String directory = "SimOverlayNG";
+	private static Window window;
 
 	public static void main(String[] args) {
-		var window = new Window();
+		window = new Window();
 		var console = new Console(logger, window);
 		var builder = new SpringApplicationBuilder(SimOverlayNG.class);
 		var props = new HashMap<String, Object>();
@@ -61,8 +66,7 @@ public class SimOverlayNG {
 			exit(context);
 		}
 
-		if (FSUIPC.load() != FSUIPC.LIB_LOAD_RESULT_OK) {
-			logger.severe("Failed to load library: FSUIPC_Java");
+		if (loadLibrary() != FSUIPC.LIB_LOAD_RESULT_OK) {
 			exit(context);
 		}
 
@@ -74,7 +78,7 @@ public class SimOverlayNG {
 			SwingUtilities.invokeLater(() -> {
 				window.start(console, simTracker, context);
 				if (finalPort != defaultPort) {
-					window.showDialog(JOptionPane.WARNING_MESSAGE, String.format("Failed to bind port %d.\nUsing new port: %d", defaultPort, finalPort));
+					window.showDialog(WARNING_MESSAGE, String.format("Failed to bind port %d.\nUsing new port: %d", defaultPort, finalPort));
 				}
 			});
 			simTracker.start();
@@ -124,6 +128,91 @@ public class SimOverlayNG {
 		var fsuipc64Stream = fsuipc64Resource.getInputStream();
 		Files.copy(fsuipc32Stream, userDir.resolve(fsuipc32), REPLACE_EXISTING);
 		Files.copy(fsuipc64Stream, userDir.resolve(fsuipc64), REPLACE_EXISTING);
+	}
+
+	private static byte loadLibrary() {
+		String arch;
+		String library;
+		String fileName;
+
+		try {
+			arch = System.getProperty("sun.arch.data.model");
+
+			if (arch.equals("32")) {
+				library = LIBRARY_NAME32;
+			} else if (arch.equals("64")) {
+				library = LIBRARY_NAME64;
+			} else {
+				throw new RuntimeException();
+			}
+			fileName = library + ".dll";
+		} catch (Exception e) {
+			window.showDialog(ERROR_MESSAGE, "Failed to determine system architecture!");
+			return LIB_LOAD_RESULT_FAILED;
+		}
+
+		try {
+			var isLoaded = Class.forName(FSUIPC.class.getName()).getDeclaredField("libraryLoaded");
+			isLoaded.setAccessible(true);
+
+			if (isLoaded.getBoolean(null)) {
+				return LIB_LOAD_RESULT_ALREADY_LOADED;
+			} else {
+				System.loadLibrary(library);
+				logger.info("Loaded library: " + library);
+				isLoaded.setBoolean(null, true);
+				return LIB_LOAD_RESULT_OK;
+			}
+		} catch (UnsatisfiedLinkError e) {
+			window.showDialog(ERROR_MESSAGE, "System failed to read native libraries. Resolving...");
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, e.getMessage(), e);
+			return LIB_LOAD_RESULT_FAILED;
+		}
+
+		Path binPath = Paths.get(System.getProperty("java.home"), "bin");
+		File bin = binPath.toFile();
+		FileInputStream fileInput = null;
+		boolean canRead;
+		boolean canWrite;
+
+		try {
+			Path userDir = Path.of(System.getProperty("user.dir"));
+			fileInput = new FileInputStream(userDir.resolve(fileName).toFile());
+			canRead = bin.canRead();
+			canWrite = bin.canWrite();
+
+			if (!canRead && !bin.setReadable(true)) {
+				throw new RuntimeException("File not readable.");
+			}
+			if (!canWrite && !bin.setWritable(true)) {
+				throw new RuntimeException("File not writable.");
+			}
+			Files.copy(fileInput, binPath.resolve(fileName), REPLACE_EXISTING);
+		} catch (Exception e) {
+			window.showDialog(ERROR_MESSAGE, "Failed to load native libraries!\nTry running this program as administrator.");
+			return LIB_LOAD_RESULT_FAILED;
+		} finally {
+			if (fileInput != null) {
+				try {
+					fileInput.close();
+				} catch (IOException e) {
+					logger.log(Level.SEVERE, e.getMessage(), e);
+				}
+			}
+		}
+
+		try {
+			var ignored1 = bin.setReadable(canRead);
+			var ignored2 = bin.setWritable(canWrite);
+		} catch (SecurityException ignored) {}
+
+		try {
+			return FSUIPC.load();
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Failed to load FSUIPC!", e);
+			return LIB_LOAD_RESULT_FAILED;
+		}
 	}
 
 	private static boolean isPortAvailable(int port) {
