@@ -175,7 +175,7 @@ public class SimBridge {
 
         if (vs > 300) {
             return "CLIMBING";
-        } else if (vs < 300) {
+        } else if (vs < -300) {
             return "DESCENDING";
         } else {
             return "EN ROUTE";
