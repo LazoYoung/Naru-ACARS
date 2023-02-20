@@ -62,7 +62,7 @@ public class Overlays extends JPanel {
                         .addComponent(useBtn))
                 .addGap(10);
 
-        repository.get(false).ifPresent(overlay -> selector.setSelectedItem(overlay.getName()));
+        repository.get(true).ifPresent(overlay -> selector.setSelectedItem(overlay.getName()));
         selector.setMinimumSize(new Dimension(150, 25));
         selector.setMaximumSize(new Dimension(150, 25));
         selector.addActionListener(this::onComboSelect);
