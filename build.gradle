@@ -1,5 +1,6 @@
 plugins {
 	id 'java'
+	id 'edu.sc.seis.launch4j' version '2.5.4'
 	id 'org.springframework.boot' version '3.0.2'
 	id 'io.spring.dependency-management' version '1.1.0'
 }
@@ -7,6 +8,7 @@ plugins {
 group = 'com.naver.idealproduction'
 version = '1.0.1'
 sourceCompatibility = '17'
+targetCompatibility = '17'
 var fsuipc = 'lib/FSUIPC-1.0.2.jar'
 
 repositories {
@@ -14,8 +16,6 @@ repositories {
 }
 
 dependencies {
-	// todo Add launch4j
-
 	// Spring Boot
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -42,6 +42,19 @@ dependencies {
 	implementation 'org.eclipse.persistence:org.eclipse.persistence.moxy:4.0.0'
 	implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0'
 	implementation 'jakarta.activation:jakarta.activation-api:2.1.1'
+}
+
+launch4j {
+	mainClassName = 'org.springframework.boot.loader.JarLauncher'
+	productName = rootProject.name
+	dontWrapJar = false
+	headerType = 'gui'
+	errTitle = 'Java not installed!'
+	windowTitle = 'SimOverlayNG'
+	mutexName = 'simoverlayng'
+	downloadUrl = 'https://www.oracle.com/java/technologies/downloads/'
+	stayAlive = false
+	jarTask = project.tasks.bootJar
 }
 
 tasks.named('test') {
