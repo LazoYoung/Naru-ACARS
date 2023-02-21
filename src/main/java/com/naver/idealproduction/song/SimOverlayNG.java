@@ -42,33 +42,20 @@ public class SimOverlayNG {
 		var console = new Console(logger, window);
 		var builder = new SpringApplicationBuilder(SimOverlayNG.class);
 		var props = new HashMap<String, Object>();
-		var port = getSystemPort();
+		var port = getAvailablePort();
 
-		while (!isPortAvailable(port)) {
-			if (++port > 65535) {
-				logger.severe("Unable to bind any port!");
-				System.exit(1);
-			}
-			System.setProperty(portKey, String.valueOf(port));
+		if (port < 0) {
+			logger.severe("Failed to bind port!");
+			System.exit(1);
 		}
 
+		System.setProperty(portKey, String.valueOf(port));
 		props.put("server.address", hostAddress);
-		props.put("server.port", port);
-
-		final var context = builder.properties(props)
+		props.put(portKey, port);
+		var context = builder.properties(props)
 				.headless(false)
 				.run(args);
-
-		try {
-			copyLibraries();
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Failed to install libraries!", e);
-			exit(context);
-		}
-
-		if (loadLibrary() != FSUIPC.LIB_LOAD_RESULT_OK) {
-			exit(context);
-		}
+		loadLibraries(context);
 
 		try {
 			final var finalPort = port;
@@ -78,7 +65,7 @@ public class SimOverlayNG {
 			SwingUtilities.invokeLater(() -> {
 				window.start(console, simTracker, context);
 				if (finalPort != defaultPort) {
-					window.showDialog(WARNING_MESSAGE, String.format("Failed to bind port %d.\nUsing new port: %d", defaultPort, finalPort));
+					window.showDialog(WARNING_MESSAGE, String.format("Failed to bind existing port %d.\nNew port: %d", defaultPort, finalPort));
 				}
 			});
 			simTracker.start();
@@ -87,6 +74,17 @@ public class SimOverlayNG {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 			exit(context);
 		}
+	}
+
+	private static int getAvailablePort() {
+		var port = getSystemPort();
+
+		while (!isPortAvailable(port)) {
+			if (++port > 65535) {
+				return -1;
+			}
+		}
+		return port;
 	}
 
 	public static URL getWebURL(String path) {
@@ -118,19 +116,37 @@ public class SimOverlayNG {
 		return new ClassPathResource("flat/" + fileName);
 	}
 
-	private static void copyLibraries() throws IOException {
-		var fsuipc32 = "fsuipc_java32.dll";
-		var fsuipc64 = "fsuipc_java64.dll";
-		var userDir = Path.of(System.getProperty("user.dir"));
-		var fsuipc32Resource = getFlatResource(fsuipc32);
-		var fsuipc64Resource = getFlatResource(fsuipc64);
-		var fsuipc32Stream = fsuipc32Resource.getInputStream();
-		var fsuipc64Stream = fsuipc64Resource.getInputStream();
-		Files.copy(fsuipc32Stream, userDir.resolve(fsuipc32), REPLACE_EXISTING);
-		Files.copy(fsuipc64Stream, userDir.resolve(fsuipc64), REPLACE_EXISTING);
+	private static void loadLibraries(ConfigurableApplicationContext context) {
+		try {
+			copyNativeBinaries();
+			var success = loadFSUIPC();
+
+			if (success != LIB_LOAD_RESULT_OK) {
+				exit(context);
+			}
+		} catch (Exception e) {
+			window.showDialog(JOptionPane.ERROR_MESSAGE, e.getMessage());
+			exit(context);
+		}
 	}
 
-	private static byte loadLibrary() {
+	private static void copyNativeBinaries() throws RuntimeException {
+		try {
+			var fsuipc32 = "fsuipc_java32.dll";
+			var fsuipc64 = "fsuipc_java64.dll";
+			var userDir = Path.of(System.getProperty("user.dir"));
+			var fsuipc32Resource = getFlatResource(fsuipc32);
+			var fsuipc64Resource = getFlatResource(fsuipc64);
+			var fsuipc32Stream = fsuipc32Resource.getInputStream();
+			var fsuipc64Stream = fsuipc64Resource.getInputStream();
+			Files.copy(fsuipc32Stream, userDir.resolve(fsuipc32), REPLACE_EXISTING);
+			Files.copy(fsuipc64Stream, userDir.resolve(fsuipc64), REPLACE_EXISTING);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to install libraries!");
+		}
+	}
+
+	private static byte loadFSUIPC() {
 		String arch;
 		String library;
 		String fileName;
