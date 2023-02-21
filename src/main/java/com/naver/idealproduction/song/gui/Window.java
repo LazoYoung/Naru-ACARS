@@ -9,6 +9,8 @@ import org.springframework.core.io.ClassPathResource;
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.logging.Logger;
 
@@ -42,10 +44,25 @@ public class Window extends JFrame {
         contentPane.addTab("Dashboard", dashboard);
         contentPane.addTab("Overlays", overlayPanel);
         contentPane.addTab("Console", console);
+
+        final var window = this;
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                String title = "Terminate program";
+                String message = "Confirm you want to exit?";
+                int answer = JOptionPane.showConfirmDialog(window, message, title, YES_NO_OPTION, QUESTION_MESSAGE);
+
+                if (answer == YES_OPTION) {
+                    SimOverlayNG.exit(1);
+                }
+            }
+        });
+
         setContentPane(contentPane);
         setResizable(false);
         setPreferredSize(new Dimension(800, 500));
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setTitle("SimOverlayNG");
         pack();
         setLocationRelativeTo(null);

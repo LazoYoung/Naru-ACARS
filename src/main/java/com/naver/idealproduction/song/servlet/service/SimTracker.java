@@ -53,8 +53,9 @@ public class SimTracker implements IFSUIPCListener {
     }
 
     public void terminate() {
-        fsuipc.disconnect();
-        logger.info("Disconnected from fsuipc.");
+        if (fsuipc.isConnected()) {
+            fsuipc.disconnect();
+        }
     }
 
     public void addProcessListener(Consumer<SimBridge> listener) {
@@ -71,6 +72,7 @@ public class SimTracker implements IFSUIPCListener {
 
     @Override
     public void onDisconnected() {
+        logger.info("Disconnected from fsuipc.");
         notifyListeners();
         terminate();
         start();

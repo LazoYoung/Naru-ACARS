@@ -36,6 +36,7 @@ public class SimOverlayNG {
 	private static final String portKey = "server.port";
 	private static final String directory = "SimOverlayNG";
 	private static Window window;
+	private static ConfigurableApplicationContext context = null;
 
 	public static void main(String[] args) {
 		window = new Window();
@@ -52,10 +53,10 @@ public class SimOverlayNG {
 		System.setProperty(portKey, String.valueOf(port));
 		props.put("server.address", hostAddress);
 		props.put(portKey, port);
-		var context = builder.properties(props)
+		context = builder.properties(props)
 				.headless(false)
 				.run(args);
-		loadLibraries(context);
+		loadLibraries();
 
 		try {
 			final var finalPort = port;
@@ -72,7 +73,7 @@ public class SimOverlayNG {
 			Runtime.getRuntime().addShutdownHook(new Thread(simTracker::terminate));
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, e.getMessage(), e);
-			exit(context);
+			exit(1);
 		}
 	}
 
@@ -116,17 +117,17 @@ public class SimOverlayNG {
 		return new ClassPathResource("flat/" + fileName);
 	}
 
-	private static void loadLibraries(ConfigurableApplicationContext context) {
+	private static void loadLibraries() {
 		try {
 			copyNativeBinaries();
 			var success = loadFSUIPC();
 
 			if (success != LIB_LOAD_RESULT_OK) {
-				exit(context);
+				exit(1);
 			}
 		} catch (Exception e) {
 			window.showDialog(JOptionPane.ERROR_MESSAGE, e.getMessage());
-			exit(context);
+			exit(1);
 		}
 	}
 
@@ -241,8 +242,15 @@ public class SimOverlayNG {
 		}
 	}
 
-	private static void exit(ConfigurableApplicationContext context) {
-		int exitCode = SpringApplication.exit(context, () -> 1);
-		System.exit(exitCode);
+	public static void exit(int code) {
+		if (context != null) {
+			var simTracker = context.getBean(SimTracker.class);
+			simTracker.terminate();
+
+			int exitCode = SpringApplication.exit(context, () -> 1);
+			System.exit(exitCode + code);
+		} else {
+			System.exit(code);
+		}
 	}
 }
