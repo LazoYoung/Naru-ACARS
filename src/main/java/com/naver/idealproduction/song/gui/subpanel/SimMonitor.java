@@ -1,7 +1,7 @@
 package com.naver.idealproduction.song.gui.subpanel;
 
 import com.naver.idealproduction.song.gui.Dashboard;
-import com.naver.idealproduction.song.servlet.service.SimBridge;
+import com.naver.idealproduction.song.servlet.bridge.SimBridge;
 import com.naver.idealproduction.song.servlet.service.SimTracker;
 
 import javax.swing.*;
@@ -53,7 +53,7 @@ public class SimMonitor extends SimplePanel {
         isConnected = data.isConnected();
 
         if (isConnected) {
-            var fps = data.getFramerate();
+            var fps = data.getFPS();
             simText = data.getSimulator();
             fpsText = (fps < 0 || fps > 500) ? NOT_AVAIL : String.valueOf(fps);
             refreshText = simTracker.getRefreshRate() + "ms";

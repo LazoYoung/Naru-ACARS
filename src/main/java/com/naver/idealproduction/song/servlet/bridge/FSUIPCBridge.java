@@ -1,25 +1,26 @@
-package com.naver.idealproduction.song.servlet.service;
+package com.naver.idealproduction.song.servlet.bridge;
 
 import com.mouseviator.fsuipc.FSUIPC;
+import com.mouseviator.fsuipc.FSUIPCWrapper;
+import com.mouseviator.fsuipc.IFSUIPCListener;
 import com.mouseviator.fsuipc.datarequest.IDataRequest;
-import com.mouseviator.fsuipc.datarequest.primitives.*;
+import com.mouseviator.fsuipc.datarequest.primitives.DoubleRequest;
+import com.mouseviator.fsuipc.datarequest.primitives.FloatRequest;
+import com.mouseviator.fsuipc.datarequest.primitives.IntRequest;
 import com.mouseviator.fsuipc.helpers.SimHelper;
-import com.mouseviator.fsuipc.helpers.aircraft.*;
+import com.mouseviator.fsuipc.helpers.aircraft.AircraftHelper;
+import com.mouseviator.fsuipc.helpers.aircraft.GearHelper;
 import com.mouseviator.fsuipc.helpers.avionics.GPSHelper;
-import com.naver.idealproduction.song.domain.Airport;
-import com.naver.idealproduction.song.domain.FlightPlan;
-import com.naver.idealproduction.song.servlet.repository.AirportRepository;
 import com.naver.idealproduction.song.domain.unit.Length;
 import com.naver.idealproduction.song.domain.unit.Speed;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import com.naver.idealproduction.song.servlet.repository.AirportRepository;
+import com.naver.idealproduction.song.servlet.service.SimTracker;
 
 import java.time.LocalTime;
-import java.util.Optional;
+import java.util.AbstractQueue;
 
-@Service
-public class SimBridge {
-    private final AirportRepository airportRepo;
+public class FSUIPCBridge extends SimBridge implements IFSUIPCListener {
+    private final FSUIPC fsuipc = FSUIPC.getInstance();
     private final IDataRequest<Float> fps;
     private final DoubleRequest altitude;
     private final FloatRequest headingTrue;
@@ -41,12 +42,10 @@ public class SimBridge {
     private final DoubleRequest pistonEng2FF;
     private final DoubleRequest pistonEng3FF;
     private final DoubleRequest pistonEng4FF;
-    private final FSUIPC fsuipc = FSUIPC.getInstance();
 
     @SuppressWarnings("unchecked")
-    @Autowired
-    public SimBridge(AirportRepository airportRepo) {
-        this.airportRepo = airportRepo;
+    public FSUIPCBridge(SimTracker tracker, AirportRepository airportRepository) {
+        super(tracker, airportRepository);
         var aircraft = new AircraftHelper();
         var gps = new GPSHelper();
         var sim = new SimHelper();
@@ -78,110 +77,105 @@ public class SimBridge {
         jetEng4FF = (DoubleRequest) fsuipc.addContinualRequest(new DoubleRequest(0x2320));
     }
 
+    @Override
+    public void hook() {
+        boolean success = fsuipc.waitForConnection(FSUIPCWrapper.FSUIPCSimVersion.SIM_ANY, 5);
+
+        if (!success) {
+            logger.warning("Failed to open fsuipc connection!");
+            return;
+        } else {
+            logger.info("Waiting for fsuipc connection...");
+        }
+
+        fsuipc.addListener(this);
+    }
+
+    @Override
+    public void release() {
+        fsuipc.disconnect();
+    }
+
+    @Override
     public boolean isConnected() {
         return fsuipc.isConnected();
     }
 
-    public Optional<Airport> getAirport(String icao) {
-        return Optional.ofNullable(airportRepo.get(icao));
+    @Override
+    public boolean isOnGround() {
+        return onGround.getValue() == 1;
     }
 
+    @Override
+    public boolean isGearDown() {
+        return gearHandle.getValue() == 16383;
+    }
+
+    @Override
+    public float getFlapRatio() {
+        return flapsHandle.getValue() / 16383f;
+    }
+
+    @Override
     public int getAltitude(Length unit) {
         double value = altitude.getValue();
         float converted = Length.FEET.convertTo(unit, value).floatValue();
         return Math.round(converted);
     }
 
+    @Override
     public int getHeading(boolean magnetic) {
         var value = magnetic ? headingMag.getValue().floatValue() : headingTrue.getValue();
         return Math.round(value);
     }
 
+    @Override
     public int getAirspeed(Speed unit) {
         double value = airspeed.getValue();
         float converted = Speed.KNOT.convertTo(unit, value).floatValue();
         return Math.round(converted);
     }
 
+    @Override
     public int getGroundSpeed(Speed unit) {
         double value = groundSpeed.getValue();
         float converted = Speed.KNOT.convertTo(unit, value).floatValue();
         return Math.round(converted);
     }
 
+    @Override
     public int getVerticalSpeed(Speed unit) {
         double value = verticalSpeed.getValue();
         float converted = Speed.FEET_PER_MIN.convertTo(unit, value).floatValue();
         return Math.round(converted);
     }
 
+    @Override
     public LocalTime getLocalTime() {
         return LocalTime.ofSecondOfDay(localTime.getValue());
     }
 
+    @Override
     public double getLatitude() {
         return aircraftLatitude.getValue();
     }
 
+    @Override
     public double getLongitude() {
         return aircraftLongitude.getValue();
     }
 
+    @Override
     public String getSimulator() {
         return fsuipc.getFSVersion();
     }
 
-    public int getFramerate() {
+    @Override
+    public int getFPS() {
         return Math.round(fps.getValue());
     }
 
-    public String getFlightPhase() {
-        var plan = FlightPlan.getInstance();
-
-        if (plan == null || !isConnected()) {
-            return null;
-        }
-
-        if (onGround.getValue() == 1) {
-            var depCode = plan.getDepartureCode();
-            var arrCode = plan.getArrivalCode();
-            var dep = airportRepo.get(depCode);
-            var arr = airportRepo.get(arrCode);
-
-            if (dep == null || arr == null || depCode.equals(arrCode)) {
-                return "ON GROUND";
-            }
-
-            if (getEngineFuelFlow(1) < 1.0 && getEngineFuelFlow(2) < 1.0
-                    && getEngineFuelFlow(3) < 1.0 && getEngineFuelFlow(4) < 1.0) {
-                return "AT GATE";
-            }
-
-            var depLat = dep.getLatitude();
-            var depLon = dep.getLongitude();
-            var lat = getLatitude();
-            var lon = getLongitude();
-            var distance = Length.KILOMETER.getDistance(depLat, depLon, lat, lon);
-            return (distance < 30.0) ? "DEPARTING" : "ARRIVED";
-        }
-
-        // 0 = Flaps up, 1 = Flaps full
-        float flaps = (flapsHandle.getValue() / 16383f);
-        int vs = getVerticalSpeed(Speed.FEET_PER_MIN);
-
-        if (flaps > 0.2f && vs < 100) {
-            return (gearHandle.getValue() == 16383) ? "LANDING" : "APPROACHING";
-        }
-
-        if (vs > 300) {
-            return "CLIMBING";
-        } else if (vs < -300) {
-            return "DESCENDING";
-        } else {
-            return "EN ROUTE";
-        }
-    }
-
+    @Override
     public double getEngineFuelFlow(int engine) {
         double piston, jet;
 
@@ -209,5 +203,30 @@ public class SimBridge {
         }
 
         return Math.max(piston, jet);
+    }
+
+    @Override
+    public void onConnected() {
+        logger.info("Connected to fsuipc!");
+        logger.info("Detected simulator: " + fsuipc.getFSVersion());
+        fsuipc.processRequests(refreshRate, true);
+        listener.onConnected(this);
+    }
+
+    @Override
+    public void onDisconnected() {
+        logger.info("Disconnected from fsuipc.");
+        listener.onDisconnected();
+    }
+
+    @Override
+    public void onProcess(AbstractQueue<IDataRequest> arRequests) {
+        listener.onProcess();
+    }
+
+    @Override
+    public void onFail(int lastResult) {
+        String msg = FSUIPC.FSUIPC_ERROR_MESSAGES.get(FSUIPCWrapper.FSUIPCResult.get(lastResult));
+        listener.onFail(msg);
     }
 }

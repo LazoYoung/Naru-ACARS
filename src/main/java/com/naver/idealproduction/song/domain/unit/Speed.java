@@ -16,16 +16,23 @@ public enum Speed {
         this.ratio = ratio;
     }
 
-    @SuppressWarnings("DuplicatedCode")
     public Double convertTo(Speed unit, double value) {
+        return getConversion(unit, value).doubleValue();
+    }
+
+    public Float convertTo(Speed unit, float value) {
+        return getConversion(unit, value).floatValue();
+    }
+
+    private BigDecimal getConversion(Speed unit, double value) {
         if (this == unit) {
-            return value;
+            return BigDecimal.valueOf(value);
         }
 
         var ctx = MathContext.DECIMAL64;
-        var dividend = BigDecimal.valueOf(unit.ratio);
-        var divisor = BigDecimal.valueOf(this.ratio);
+        var dividend = BigDecimal.valueOf(this.ratio);
+        var divisor = BigDecimal.valueOf(unit.ratio);
         var bigValue = BigDecimal.valueOf(value);
-        return dividend.divide(divisor, ctx).multiply(bigValue, ctx).doubleValue();
+        return dividend.divide(divisor, ctx).multiply(bigValue, ctx);
     }
 }

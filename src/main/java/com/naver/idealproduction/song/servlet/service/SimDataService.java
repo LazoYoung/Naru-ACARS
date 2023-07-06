@@ -2,11 +2,12 @@ package com.naver.idealproduction.song.servlet.service;
 
 import com.naver.idealproduction.song.domain.FlightPlan;
 import com.naver.idealproduction.song.domain.overlay.SimData;
+import com.naver.idealproduction.song.domain.overlay.Simvar;
+import com.naver.idealproduction.song.domain.unit.Length;
+import com.naver.idealproduction.song.domain.unit.Speed;
+import com.naver.idealproduction.song.servlet.bridge.SimBridge;
 import com.naver.idealproduction.song.servlet.repository.AirlineRepository;
 import com.naver.idealproduction.song.servlet.repository.AirportRepository;
-import com.naver.idealproduction.song.domain.unit.Length;
-import com.naver.idealproduction.song.domain.overlay.Simvar;
-import com.naver.idealproduction.song.domain.unit.Speed;
 import org.springframework.stereotype.Service;
 
 import java.time.ZoneOffset;
@@ -69,6 +70,7 @@ public class SimDataService {
             distNM = Length.NAUTICAL_MILE.getDistance(lat, lon, arr.getLatitude(), arr.getLongitude());
         }
 
+        data.put(FRAME_PER_SEC, simBridge.getFPS());
         data.put(LOCAL_TIME, simBridge.getLocalTime().format(timeFormat));
         data.put(ZULU_TIME, ZonedDateTime.now(ZoneOffset.UTC).format(timeFormat));
         data.put(BLOCK_RAMP_OUT_LOCAL, (plan != null) ? plan.getBlockTimeFormatted(BLOCK_OUT, true) : null);
