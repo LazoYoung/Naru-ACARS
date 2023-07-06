@@ -43,7 +43,7 @@ public class SimTracker implements BridgeListener {
         bridgeList.forEach(SimBridge::hook);
     }
 
-    public void addProcessListener(Consumer<SimBridge> listener) {
+    public void addUpdateListener(Consumer<SimBridge> listener) {
         listeners.add(listener);
     }
 

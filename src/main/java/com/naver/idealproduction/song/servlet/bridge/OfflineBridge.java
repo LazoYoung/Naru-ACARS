@@ -9,7 +9,7 @@ import java.time.LocalTime;
 
 public class OfflineBridge extends SimBridge {
     public OfflineBridge(SimTracker tracker, AirportRepository airportRepo) {
-        super(tracker, airportRepo);
+        super("OFFLINE", tracker, airportRepo);
     }
 
     @Override

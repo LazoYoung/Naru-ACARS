@@ -45,7 +45,7 @@ public class FSUIPCBridge extends SimBridge implements IFSUIPCListener {
 
     @SuppressWarnings("unchecked")
     public FSUIPCBridge(SimTracker tracker, AirportRepository airportRepository) {
-        super(tracker, airportRepository);
+        super("FSUIPC", tracker, airportRepository);
         var aircraft = new AircraftHelper();
         var gps = new GPSHelper();
         var sim = new SimHelper();
@@ -81,14 +81,11 @@ public class FSUIPCBridge extends SimBridge implements IFSUIPCListener {
     public void hook() {
         boolean success = fsuipc.waitForConnection(FSUIPCWrapper.FSUIPCSimVersion.SIM_ANY, 5);
 
-        if (!success) {
-            logger.warning("Failed to open fsuipc connection!");
-            return;
+        if (success) {
+            fsuipc.addListener(this);
         } else {
-            logger.info("Waiting for fsuipc connection...");
+            logger.warning("Failed to open fsuipc connection!");
         }
-
-        fsuipc.addListener(this);
     }
 
     @Override
@@ -207,7 +204,7 @@ public class FSUIPCBridge extends SimBridge implements IFSUIPCListener {
 
     @Override
     public void onConnected() {
-        logger.info("Connected to fsuipc!");
+        logger.info("Connected to FSUIPC.");
         logger.info("Detected simulator: " + fsuipc.getFSVersion());
         fsuipc.processRequests(refreshRate, true);
         listener.onConnected(this);
@@ -215,7 +212,7 @@ public class FSUIPCBridge extends SimBridge implements IFSUIPCListener {
 
     @Override
     public void onDisconnected() {
-        logger.info("Disconnected from fsuipc.");
+        logger.info("Disconnected from FSUIPC.");
         listener.onDisconnected();
     }
 

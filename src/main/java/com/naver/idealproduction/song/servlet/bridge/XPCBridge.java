@@ -73,21 +73,23 @@ public class XPCBridge extends SimBridge {
 
     private final ScheduledExecutorService discoverService = Executors.newScheduledThreadPool(1);
     private final ScheduledExecutorService fetchService = Executors.newScheduledThreadPool(1);
+    private final int timeout = 2000 / refreshRate;
     private ScheduledFuture<?> discoverTask = null;
     private ScheduledFuture<?> fetchTask = null;
     private boolean isConnected = false;
     private float xpVersion = 0;
+    private int timer = 0;
     private String simulator = null;
     private float[][] data = null;
 
     public XPCBridge(SimTracker tracker, AirportRepository airportRepo) {
-        super(tracker, airportRepo);
+        super("XPlaneConnect", tracker, airportRepo);
     }
 
     @Override
     public void hook() {
         if (discoverTask != null) {
-            release();
+            stopDiscovering();
         }
 
         discoverTask = discoverService.scheduleAtFixedRate(this::discover, 0L, 2L, TimeUnit.SECONDS);
@@ -103,6 +105,8 @@ public class XPCBridge extends SimBridge {
         }
 
         isConnected = false;
+        listener.onDisconnected();
+        logger.info("Disconnected from XPlaneConnect.");
     }
 
     @Override
@@ -192,7 +196,7 @@ public class XPCBridge extends SimBridge {
 
     private void discover() {
         try (var discovery = new XPlaneConnectDiscovery()) {
-            discovery.onBeaconReceived(this::onConnected);
+            discovery.onBeaconReceived(this::fetchVersion);
 
             try {
                 discovery.start();
@@ -215,13 +219,42 @@ public class XPCBridge extends SimBridge {
         fetchTask = fetchService.scheduleAtFixedRate(() -> {
             try (XPlaneConnect connect = getConnection()) {
                 fetch(connect);
-                listener.onProcess();
             } catch (IOException e) {
-                // no response from xpc is ignored
+                countTimeout();
             } catch (Throwable t) {
                 logger.log(Level.WARNING, "Socket communication failed.", t);
             }
         }, 0L, refreshRate, TimeUnit.MILLISECONDS);
+    }
+
+    private void fetchVersion(Beacon beacon) {
+        if (isConnected) return;
+
+        try (XPlaneConnect connect = getConnection()) {
+            float fp = connect.getDREF("sim/version/xplane_internal_version") [0];
+
+            while (fp >= 1) fp /= 10;
+
+            xpVersion = Float.parseFloat(String.format("%.2f", fp * 100));
+            simulator = "X-Plane " + (int) xpVersion;
+            isConnected = true;
+
+            listener.onConnected(this);
+            stopDiscovering();
+            startFetching();
+
+            logger.info("Connected to XPlaneConnect " + beacon.getPluginVersion());
+            logger.info("Detected simulator: " + simulator);
+        } catch (Throwable e) {
+            // ignore
+        }
+    }
+
+    private void countTimeout() {
+        if (timer++ >= timeout) {
+            timer = 0;
+            release();
+        }
     }
 
     private void stopFetching() {
@@ -231,6 +264,7 @@ public class XPCBridge extends SimBridge {
 
     private void fetch(XPlaneConnect connect) throws IOException {
         data = connect.getDREFs(DataRef.getRefs(xpVersion));
+        listener.onProcess();
     }
 
     private XPlaneConnect getConnection() throws SocketException {
@@ -247,30 +281,5 @@ public class XPCBridge extends SimBridge {
 
     private float[] getFloatArray(DataRef ref) {
         return data[ref.getIndex()];
-    }
-
-    private void onConnected(Beacon beacon) {
-        if (isConnected) return;
-
-        try (XPlaneConnect connect = getConnection()) {
-            float fp = connect.getDREF("sim/version/xplane_internal_version") [0];
-
-            while (fp >= 1) fp /= 10;
-
-            xpVersion = Float.parseFloat(String.format("%.2f", fp * 100));
-            simulator = "X-Plane " + (int) xpVersion;
-            isConnected = true;
-
-            stopDiscovering();
-            startFetching();
-
-            logger.info("Connected to XPlaneConnect " + beacon.getPluginVersion());
-            logger.info("Detected simulator: " + simulator);
-            listener.onConnected(this);
-        } catch (IOException e) {
-            // no response from xpc is ignored
-        } catch (Throwable t) {
-            logger.log(Level.WARNING, "Failed to retrieve version info!", t);
-        }
     }
 }

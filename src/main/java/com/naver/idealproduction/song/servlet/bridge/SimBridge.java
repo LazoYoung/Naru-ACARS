@@ -18,11 +18,17 @@ public abstract class SimBridge {
     protected final BridgeListener listener;
     protected final int refreshRate;
     protected final AirportRepository airportRepo;
+    private final String name;
 
-    public SimBridge(SimTracker tracker, AirportRepository airportRepo) {
+    public SimBridge(String name, SimTracker tracker, AirportRepository airportRepo) {
+        this.name = name;
         this.listener = tracker;
         this.refreshRate = tracker.getRefreshRate();
         this.airportRepo = airportRepo;
+    }
+
+    public String getBridgeName() {
+        return name;
     }
 
     public Optional<Airport> getAirport(String icao) {
@@ -110,5 +116,4 @@ public abstract class SimBridge {
     public abstract int getFPS();
 
     public abstract double getEngineFuelFlow(int engine);
-
 }

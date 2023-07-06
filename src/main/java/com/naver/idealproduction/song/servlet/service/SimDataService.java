@@ -33,7 +33,7 @@ public class SimDataService {
         this.airportService = airportService;
         this.airlineRepo = airlineRepo;
         this.simTracker = simTracker;
-        simTracker.addProcessListener(this::update);
+        simTracker.addUpdateListener(this::update);
     }
 
     public Object getVariable(Simvar.Type simvar) {

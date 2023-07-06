@@ -9,7 +9,7 @@ import java.awt.*;
 
 public class SimMonitor extends SimplePanel {
     private final SimTracker simTracker;
-    private final JLabel fsuipcLabel;
+    private final JLabel bridgeLabel;
     private final JLabel simLabel;
     private final JLabel simValue;
     private final JLabel fpsLabel;
@@ -25,23 +25,24 @@ public class SimMonitor extends SimplePanel {
 
     public SimMonitor(Dashboard dashboard) {
         simTracker = dashboard.getSpringContext().getBean(SimTracker.class);
-        simTracker.addProcessListener(this::onUpdate);
+        String bridge = simTracker.getBridge().getBridgeName();
+        simTracker.addUpdateListener(this::onUpdate);
 
         var labelFont = new Font("Ubuntu Medium", Font.PLAIN, 18);
         var valueFont = new Font("Ubuntu Regular", Font.PLAIN, 16);
-        var stateFont = new Font("Ubuntu Medium", Font.PLAIN, 30);
-        fsuipcLabel = bakeLabel("FSUIPC", stateFont, Color.white);
+        var stateFont = new Font("Ubuntu Medium", Font.PLAIN, 24);
+        bridgeLabel = bakeLabel(bridge, stateFont, Color.white);
         simLabel = bakeLabel("Simulator", labelFont, Color.gray);
         simValue = bakeLabel(NOT_AVAIL, valueFont, Color.black);
         fpsLabel = bakeLabel("FPS", labelFont, Color.gray);
         fpsValue = bakeLabel(NOT_AVAIL, valueFont, Color.black);
         refreshLabel = bakeLabel("Refresh rate", labelFont, Color.gray);
         refreshValue = bakeLabel(NOT_AVAIL, valueFont, Color.black);
-        offlineLabel = bakeLabel("Offline", labelFont, Color.red);
+        offlineLabel = bakeLabel("No simulator detected.", labelFont, Color.black);
 
-        fsuipcLabel.setBackground(Color.red);
-        fsuipcLabel.setOpaque(true);
-        fsuipcLabel.setBorder(getMargin(fsuipcLabel, 10, 10, 10, 10));
+        bridgeLabel.setBackground(Color.red);
+        bridgeLabel.setOpaque(true);
+        bridgeLabel.setBorder(getMargin(bridgeLabel, 10, 10, 10, 10));
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         this.setBackground(Color.white);
         this.setPreferredSize(new Dimension(250, 0));
@@ -66,18 +67,20 @@ public class SimMonitor extends SimplePanel {
 
     private void updateContentPane(boolean draw) {
         if (isConnected) {
+            String bridgeName = simTracker.getBridge().getBridgeName();
             simValue.setText(simText);
             fpsValue.setText(fpsText);
             refreshValue.setText(refreshText);
-            fsuipcLabel.setBackground(Color.green);
+            bridgeLabel.setText(bridgeName);
+            bridgeLabel.setBackground(Color.green);
         } else {
-            fsuipcLabel.setBackground(Color.red);
+            bridgeLabel.setBackground(Color.red);
         }
 
         if (draw) {
             removeAll();
             add(Box.createRigidArea(new Dimension(0, 20)));
-            add(fsuipcLabel);
+            add(bridgeLabel);
 
             if (isConnected) {
                 add(Box.createVerticalGlue());
