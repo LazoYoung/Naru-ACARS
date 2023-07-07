@@ -69,8 +69,8 @@ public class SimOverlayNG {
 					window.showDialog(WARNING_MESSAGE, String.format("Failed to bind existing port %d.\nNew port: %d", defaultPort, finalPort));
 				}
 			});
-			simTracker.start();
-			Runtime.getRuntime().addShutdownHook(new Thread(simTracker::terminate));
+			simTracker.hookBridges();
+			Runtime.getRuntime().addShutdownHook(new Thread(() -> simTracker.getBridge().release()));
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 			exit(1);
@@ -245,7 +245,7 @@ public class SimOverlayNG {
 	public static void exit(int code) {
 		if (context != null) {
 			var simTracker = context.getBean(SimTracker.class);
-			simTracker.terminate();
+			simTracker.getBridge().release();
 
 			int exitCode = SpringApplication.exit(context, () -> 1);
 			System.exit(exitCode + code);

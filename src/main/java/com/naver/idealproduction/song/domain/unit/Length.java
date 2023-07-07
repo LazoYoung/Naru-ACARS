@@ -15,17 +15,12 @@ public enum Length {
         this.ratio = ratio;
     }
 
-    @SuppressWarnings("DuplicatedCode")
     public Double convertTo(Length unit, double value) {
-        if (this == unit) {
-            return value;
-        }
+        return getConversion(unit, value).doubleValue();
+    }
 
-        var ctx = MathContext.DECIMAL64;
-        var dividend = BigDecimal.valueOf(unit.ratio);
-        var divisor = BigDecimal.valueOf(this.ratio);
-        var bigValue = BigDecimal.valueOf(value);
-        return dividend.divide(divisor, ctx).multiply(bigValue, ctx).doubleValue();
+    public Float convertTo(Length unit, float value) {
+        return getConversion(unit, value).floatValue();
     }
 
     public double getDistance(double lat1, double lon1, double lat2, double lon2) {
@@ -38,6 +33,16 @@ public enum Length {
         var a = Math.pow(Math.sin(dLat / 2), 2) + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(dLon / 2), 2);
         var km = 2 * 6371 * Math.asin(Math.sqrt(a));
         return Length.KILOMETER.convertTo(this, km);
+    }
+
+    private BigDecimal getConversion(Length unit, double value) {
+        if (this == unit) return BigDecimal.valueOf(value);
+
+        var ctx = MathContext.DECIMAL64;
+        var dividend = BigDecimal.valueOf(this.ratio);
+        var divisor = BigDecimal.valueOf(unit.ratio);
+        var bigValue = BigDecimal.valueOf(value);
+        return dividend.divide(divisor, ctx).multiply(bigValue, ctx);
     }
 
 }

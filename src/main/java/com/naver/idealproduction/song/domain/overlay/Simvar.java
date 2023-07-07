@@ -7,6 +7,7 @@ import org.eclipse.persistence.oxm.annotations.XmlPath;
 @XmlType(name = "simvar")
 public class Simvar {
     public enum Type {
+        FRAME_PER_SEC,
         LOCAL_TIME,
         ZULU_TIME,
         BLOCK_RAMP_OUT_LOCAL,

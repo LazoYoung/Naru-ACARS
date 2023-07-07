@@ -1,96 +1,82 @@
 package com.naver.idealproduction.song.servlet.service;
 
-import com.mouseviator.fsuipc.FSUIPC;
-import com.mouseviator.fsuipc.FSUIPCWrapper;
-import com.mouseviator.fsuipc.IFSUIPCListener;
-import com.mouseviator.fsuipc.datarequest.IDataRequest;
 import com.naver.idealproduction.song.SimOverlayNG;
+import com.naver.idealproduction.song.servlet.bridge.*;
+import com.naver.idealproduction.song.servlet.repository.AirportRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 @Service
-public class SimTracker implements IFSUIPCListener {
+public class SimTracker implements BridgeListener {
 
     private static final Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
-    private final FSUIPC fsuipc = FSUIPC.getInstance();
     private final List<Consumer<SimBridge>> listeners = new ArrayList<>();
-    private final SimBridge bridge;
-    private final int refreshRate = 500;
+    private final List<SimBridge> bridgeList = new ArrayList<>();
+    private SimBridge activeBridge;
 
     @Autowired
-    public SimTracker(SimBridge bridge) {
-        this.bridge = bridge;
+    public SimTracker(AirportRepository airportRepo) {
+        var offlineBridge = new OfflineBridge(this, airportRepo);
+        var fsuipcBridge = new FSUIPCBridge(this, airportRepo);
+        var xpcBridge = new XPCBridge(this, airportRepo);
+
+        this.activeBridge = offlineBridge;
+        bridgeList.add(offlineBridge);
+        bridgeList.add(fsuipcBridge);
+        bridgeList.add(xpcBridge);
     }
 
     public int getRefreshRate() {
-        return refreshRate;
+        return 500;
     }
 
     public SimBridge getBridge() {
-        return bridge;
+        return activeBridge;
     }
 
-    public void start() {
-        Thread waiterThread = new Thread(() -> {
-            boolean success = fsuipc.waitForConnection(FSUIPCWrapper.FSUIPCSimVersion.SIM_ANY, 5);
-
-            if (!success) {
-                fsuipc.connect(FSUIPCWrapper.FSUIPCSimVersion.SIM_ANY);
-                logger.warning("Failed to open fsuipc connection!");
-            } else {
-                logger.info("Waiting for fsuipc connection...");
-            }
-        });
-
-        fsuipc.addListener(this);
-        waiterThread.start();
+    public void hookBridges() {
+        bridgeList.forEach(SimBridge::hook);
     }
 
-    public void terminate() {
-        if (fsuipc.isConnected()) {
-            fsuipc.disconnect();
-        }
-    }
-
-    public void addProcessListener(Consumer<SimBridge> listener) {
+    public void addUpdateListener(Consumer<SimBridge> listener) {
         listeners.add(listener);
     }
 
     @Override
-    public void onConnected() {
-        logger.info("Connected to fsuipc!");
-        logger.info("Detected simulator: " + fsuipc.getFSVersion());
-        fsuipc.processRequests(refreshRate, true);
-        notifyListeners();
+    public void onConnected(SimBridge newBridge) {
+        notifyProcessListeners();
+        this.activeBridge = newBridge;
+
+        for (var bridge : bridgeList) {
+            if (bridge != newBridge) {
+                bridge.release();
+            }
+        }
     }
 
     @Override
     public void onDisconnected() {
-        logger.info("Disconnected from fsuipc.");
-        notifyListeners();
-        terminate();
-        start();
+        notifyProcessListeners();
+        hookBridges();
     }
 
     @Override
-    public void onProcess(AbstractQueue<IDataRequest> arRequests) {
-        notifyListeners();
+    public void onProcess() {
+        notifyProcessListeners();
     }
 
-    private void notifyListeners() {
-        listeners.forEach(e -> e.accept(bridge));
+    private void notifyProcessListeners() {
+        listeners.forEach(e -> e.accept(activeBridge));
     }
 
     @Override
-    public void onFail(int lastResult) {
-        String msg = FSUIPC.FSUIPC_ERROR_MESSAGES.get(FSUIPCWrapper.FSUIPCResult.get(lastResult));
-        logger.warning("Fsuipc error: " + msg);
+    public void onFail(String message) {
+        logger.warning("Fsuipc error: " + message);
     }
 
 }

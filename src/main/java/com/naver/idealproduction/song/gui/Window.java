@@ -92,7 +92,7 @@ public class Window extends JFrame {
     @Override
     public void dispose() {
         super.dispose();
-        simTracker.terminate();
+        simTracker.getBridge().release();
     }
 
     private Font registerFonts(String fileName, float size) throws IOException, FontFormatException {

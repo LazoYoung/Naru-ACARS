@@ -6,10 +6,11 @@ plugins {
 }
 
 group = 'com.naver.idealproduction'
-version = '1.0.2'
+version = '1.0.3'
 sourceCompatibility = '17'
 targetCompatibility = '17'
 var fsuipc = 'lib/FSUIPC-1.0.2.jar'
+var xpc = 'lib/XPlaneConnect.jar'
 
 repositories {
 	mavenCentral()
@@ -28,8 +29,9 @@ dependencies {
 	// Burningwave Core (Let us export module packages required for JCEF)
 	implementation 'org.burningwave:core:12.62.5'
 
-	// FSUIPC
+	// Simulator bridges
 	implementation files(fsuipc)
+	implementation files(xpc)
 
 	// Mockito
 	testImplementation "org.mockito:mockito-core:3.+"
