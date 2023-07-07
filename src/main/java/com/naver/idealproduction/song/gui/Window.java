@@ -24,8 +24,10 @@ public class Window extends JFrame {
     public Window() {
         try {
             var font = registerFonts("ubuntu-regular.ttf", 15f);
+            var iconURL = getClass().getResource("/icon.png");
             registerFonts("ubuntu-medium.ttf", 15f);
             setDefaultFont(new FontUIResource(font));
+            setIconImage(new ImageIcon(iconURL).getImage());
         } catch (IOException | FontFormatException e) {
             Logger logger = Logger.getLogger(SimOverlayNG.class.getName());
             logger.warning("Failed to register custom fonts.");
