@@ -13,9 +13,9 @@ NaruACARS is a versatile app that connects to your flight simulator.
 <img width="500" alt="demo" src="demo.gif">
 
 ## Links
-- [Download](https://github.com/LazoYoung/SimOverlayNG/releases)
-- [Documentation](https://github.com/LazoYoung/SimOverlayNG/wiki)
-- [Roadmap](https://github.com/LazoYoung/SimOverlayNG/wiki/Roadmap)
+- [Download](https://github.com/LazoYoung/NaruACARS/releases)
+- [Documentation](https://github.com/LazoYoung/NaruACARS/wiki)
+- [Roadmap](https://github.com/LazoYoung/NaruACARS/wiki/Roadmap)
 
 [Java 17+](https://www.oracle.com/java/technologies/downloads/) and a simulator bridge is required to use this software.
 

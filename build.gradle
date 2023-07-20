@@ -5,7 +5,7 @@ plugins {
 	id 'io.spring.dependency-management' version '1.1.0'
 }
 
-group = 'com.naver.idealproduction'
+group = 'com.flylazo.naru_acars'
 version = '1.0.3'
 sourceCompatibility = '17'
 targetCompatibility = '17'
@@ -52,8 +52,8 @@ launch4j {
 	dontWrapJar = false
 	headerType = 'gui'
 	errTitle = 'Java not installed!'
-	windowTitle = 'SimOverlayNG'
-	mutexName = 'simoverlayng'
+	windowTitle = 'NaruACARS'
+	mutexName = 'naruacars'
 	downloadUrl = 'https://www.oracle.com/java/technologies/downloads/'
 	stayAlive = false
 	jarTask = project.tasks.bootJar

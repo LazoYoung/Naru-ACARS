@@ -10,7 +10,7 @@ javadoc/
 !**/resources/flat/**
 
 ### Runtime files ###
-SimOverlayNG/
+NaruACARS/
 *.dll
 *.log
 
