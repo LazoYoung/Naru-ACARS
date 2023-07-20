@@ -1,12 +1,16 @@
 
-<img width="500" alt="banner" src="https://github.com/LazoYoung/SimOverlayNG/assets/9482578/ba4d32e9-2412-45f6-a667-d2055a4358d4">
+<img width="403" alt="banner" src="logo.png">
 
-Art design by [@wnynya](https://github.com/wnynya)
+Logo designed by [@wnynya](https://github.com/wnynya)
 
 ## About
-SimOverlayNG generates livestream overlays for flight-sim streamers.
+NaruACARS is a versatile app that connects to your flight simulator.
 
-<img width="700" alt="demo" src="https://github.com/LazoYoung/SimOverlayNG/blob/main/demo.gif">
+## Features
+- ACARS reporting system for virtual airliners
+- Live overlay generator (HTML based)
+
+<img width="500" alt="demo" src="demo.gif">
 
 ## Links
 - [Download](https://github.com/LazoYoung/SimOverlayNG/releases)
@@ -16,7 +20,7 @@ SimOverlayNG generates livestream overlays for flight-sim streamers.
 [Java 17+](https://www.oracle.com/java/technologies/downloads/) and a simulator bridge is required to use this software.
 
 ## Legal notice
-SimOverlayNG &#169; 2023 LazoYoung, All rights reserved.
+NaruACARS &#169; 2023 LazoYoung, All rights reserved.
 
 This application is proudly powered by these amazing works...!
 
