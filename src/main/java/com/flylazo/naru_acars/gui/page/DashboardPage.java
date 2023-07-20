@@ -10,6 +10,7 @@ import javax.swing.*;
 public class DashboardPage extends JSplitPane {
     public DashboardPage(Window window) {
         super(HORIZONTAL_SPLIT);
+
         var simulatorBoard = new SimulatorBoard(window);
         var dispatcher = new Dispatcher(window);
         var simvarMonitor = new SimvarMonitor(window);
@@ -21,6 +22,6 @@ public class DashboardPage extends JSplitPane {
         setLeftComponent(simulatorBoard);
         setRightComponent(rightPanel);
         setDividerSize(0);
-        setResizeWeight(0.0);
+        setResizeWeight(0);
     }
 }

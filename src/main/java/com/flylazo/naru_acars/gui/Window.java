@@ -1,6 +1,7 @@
 package com.flylazo.naru_acars.gui;
 
 import com.flylazo.naru_acars.NaruACARS;
+import com.flylazo.naru_acars.gui.page.ACARS_Page;
 import com.flylazo.naru_acars.gui.page.ConsolePage;
 import com.flylazo.naru_acars.gui.page.DashboardPage;
 import com.flylazo.naru_acars.gui.page.OverlaysPage;
@@ -50,8 +51,10 @@ public class Window extends JFrame {
         this.contentPane = new JTabbedPane();
         this.context = context;
         var dashboardPage = new DashboardPage(this);
+        var acarsPage = new ACARS_Page(this);
         var overlayPage = new OverlaysPage(this);
         contentPane.addTab("Dashboard", dashboardPage);
+        contentPane.addTab("ACARS", acarsPage);
         contentPane.addTab("Overlays", overlayPage);
         contentPane.addTab("Console", consolePage);
 

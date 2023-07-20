@@ -49,7 +49,7 @@ public class SimTracker implements BridgeListener {
 
     @Override
     public void onConnected(SimBridge newBridge) {
-        notifyProcessListeners();
+        notifyUpdate();
         this.activeBridge = newBridge;
 
         for (var bridge : bridgeList) {
@@ -61,16 +61,16 @@ public class SimTracker implements BridgeListener {
 
     @Override
     public void onDisconnected() {
-        notifyProcessListeners();
+        notifyUpdate();
         hookBridges();
     }
 
     @Override
     public void onProcess() {
-        notifyProcessListeners();
+        notifyUpdate();
     }
 
-    private void notifyProcessListeners() {
+    private void notifyUpdate() {
         listeners.forEach(e -> e.accept(activeBridge));
     }
 
