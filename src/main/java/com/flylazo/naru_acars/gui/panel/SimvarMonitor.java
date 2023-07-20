@@ -1,8 +1,8 @@
-package com.flylazo.naru_acars.gui.subpanel;
+package com.flylazo.naru_acars.gui.panel;
 
-import com.flylazo.naru_acars.domain.overlay.Simvar;
-import com.flylazo.naru_acars.gui.Dashboard;
 import com.flylazo.naru_acars.NaruACARS;
+import com.flylazo.naru_acars.domain.overlay.Simvar;
+import com.flylazo.naru_acars.gui.Window;
 import com.flylazo.naru_acars.servlet.service.SimDataService;
 
 import javax.swing.*;
@@ -14,15 +14,18 @@ import java.util.logging.Logger;
 import static java.lang.Short.MAX_VALUE;
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
 
-public class SimvarMonitor extends SimplePanel {
+public class SimvarMonitor extends PanelBase {
 
-    private final JLabel label1 = bakeLabel("N/A", Color.black);
-    private final JLabel label2 = bakeLabel("N/A", Color.black);
+    private final JLabel label1;
+    private final JLabel label2;
     private final SimDataService simDataService;
 
-    public SimvarMonitor(Dashboard dashboard) {
-        var context = dashboard.getSpringContext();
-        this.simDataService = context.getBean(SimDataService.class);
+    public SimvarMonitor(Window window) {
+        super(window);
+
+        this.label1 = window.bakeLabel("N/A", Color.black);
+        this.label2 = window.bakeLabel("N/A", Color.black);
+        this.simDataService = window.getServiceFactory().getBean(SimDataService.class);
         var items = Arrays.stream(Simvar.Type.values()).map(Simvar.Type::toString).toArray(String[]::new);
         final var comboBox1 = new JComboBox<>(items);
         final var comboBox2 = new JComboBox<>(items);

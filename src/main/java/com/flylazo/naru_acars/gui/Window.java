@@ -1,12 +1,18 @@
 package com.flylazo.naru_acars.gui;
 
 import com.flylazo.naru_acars.NaruACARS;
-import com.flylazo.naru_acars.servlet.service.OverlayService;
+import com.flylazo.naru_acars.gui.page.ConsolePage;
+import com.flylazo.naru_acars.gui.page.DashboardPage;
+import com.flylazo.naru_acars.gui.page.OverlaysPage;
 import com.flylazo.naru_acars.servlet.service.SimTracker;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.FontUIResource;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -20,6 +26,7 @@ import static javax.swing.JOptionPane.*;
 public class Window extends JFrame {
     private SimTracker simTracker;
     private JTabbedPane contentPane;
+    private ConfigurableApplicationContext context;
 
     public Window() {
         try {
@@ -35,17 +42,18 @@ public class Window extends JFrame {
     }
 
     public void start(
-            Console console,
+            ConsolePage consolePage,
             SimTracker simTracker,
             ConfigurableApplicationContext context
     ) {
         this.simTracker = simTracker;
-        contentPane = new JTabbedPane();
-        var dashboard = new Dashboard(context);
-        var overlayPanel = new Overlays(this, context.getBean(OverlayService.class));
-        contentPane.addTab("Dashboard", dashboard);
-        contentPane.addTab("Overlays", overlayPanel);
-        contentPane.addTab("Console", console);
+        this.contentPane = new JTabbedPane();
+        this.context = context;
+        var dashboardPage = new DashboardPage(this);
+        var overlayPage = new OverlaysPage(this);
+        contentPane.addTab("Dashboard", dashboardPage);
+        contentPane.addTab("Overlays", overlayPage);
+        contentPane.addTab("Console", consolePage);
 
         final var window = this;
         addWindowListener(new WindowAdapter() {
@@ -65,7 +73,7 @@ public class Window extends JFrame {
         setResizable(false);
         setPreferredSize(new Dimension(800, 500));
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        setTitle("NaruACARS");
+        setTitle("Naru ACARS");
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
@@ -85,6 +93,35 @@ public class Window extends JFrame {
             case ERROR_MESSAGE -> title = "Error";
         }
         JOptionPane.showMessageDialog(this, message, title, type);
+    }
+
+    public BeanFactory getServiceFactory() {
+        if (context == null) {
+            throw new IllegalStateException("Window has not started.");
+        }
+
+        return context.getBeanFactory();
+    }
+
+    public CompoundBorder getMargin(JComponent comp, int top, int left, int bottom, int right) {
+        Border border = comp.getBorder();
+        Border margin = new EmptyBorder(top, left, bottom, right);
+        return new CompoundBorder(border, margin);
+    }
+
+    public JLabel bakeLabel(String text, Font font, Color color) {
+        var label = new JLabel(text, JLabel.CENTER);
+
+        if (font != null) {
+            label.setFont(font);
+        }
+        label.setAlignmentX(CENTER_ALIGNMENT);
+        label.setForeground(color);
+        return label;
+    }
+
+    public JLabel bakeLabel(String text, Color color) {
+        return this.bakeLabel(text, null, color);
     }
 
     public JTabbedPane getContentTab() {

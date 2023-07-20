@@ -1,7 +1,8 @@
-package com.flylazo.naru_acars.gui;
+package com.flylazo.naru_acars.gui.page;
 
 import com.flylazo.naru_acars.domain.overlay.Overlay;
 import com.flylazo.naru_acars.NaruACARS;
+import com.flylazo.naru_acars.gui.Window;
 import com.flylazo.naru_acars.servlet.service.OverlayService;
 import jakarta.annotation.Nullable;
 import me.friwi.jcefmaven.CefAppBuilder;
@@ -25,21 +26,21 @@ import static java.util.logging.Level.*;
 import static javax.swing.BoxLayout.Y_AXIS;
 import static org.burningwave.core.assembler.StaticComponentContainer.Modules;
 
-public class Overlays extends JPanel {
+public class OverlaysPage extends JPanel {
     private final Logger logger = Logger.getLogger(NaruACARS.class.getName());
     private final String validURL = NaruACARS.getWebURL("/overlay").toString();
     private final String invalidURL = NaruACARS.getWebURL("/404").toString();
     private final Window window;
-    private final OverlayService repository;
+    private final OverlayService service;
     private final JComboBox<String> selector;
     private final JPanel overlayPane;
     private CefApp cefApp;
     private CefBrowser browser = null;
 
-    public Overlays(Window window, OverlayService repository) {
+    public OverlaysPage(Window window) {
         this.window = window;
-        this.repository = repository;
-        var items = repository.getOverlays()
+        this.service = window.getServiceFactory().getBean(OverlayService.class);
+        var items = service.getOverlays()
                 .stream()
                 .map(Overlay::getName)
                 .toArray(String[]::new);
@@ -62,7 +63,7 @@ public class Overlays extends JPanel {
                         .addComponent(useBtn))
                 .addGap(10);
 
-        repository.get(true).ifPresent(overlay -> selector.setSelectedItem(overlay.getName()));
+        service.get(true).ifPresent(overlay -> selector.setSelectedItem(overlay.getName()));
         selector.setMinimumSize(new Dimension(150, 25));
         selector.setMaximumSize(new Dimension(150, 25));
         selector.addActionListener(this::onComboSelect);
@@ -185,14 +186,14 @@ public class Overlays extends JPanel {
     private void onComboSelect(ActionEvent event) {
         var comboBox = (JComboBox<String>) event.getSource();
         var overlayName = (String) comboBox.getSelectedItem();
-        var overlay = repository.getOverlays().stream()
+        var overlay = service.getOverlays().stream()
                 .filter(e -> e.getName().equals(overlayName))
                 .findAny();
 
         if (browser == null) {
             window.showDialog(JOptionPane.INFORMATION_MESSAGE, "Viewer is still loading...");
         } else if (overlay.isPresent()) {
-            repository.select(overlay.get().getId());
+            service.select(overlay.get().getId());
             updateBrowser(validURL);
         } else {
             updateBrowser(invalidURL);

@@ -1,13 +1,13 @@
-package com.flylazo.naru_acars.gui.subpanel;
+package com.flylazo.naru_acars.gui.panel;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.flylazo.naru_acars.NaruACARS;
 import com.flylazo.naru_acars.domain.Airport;
 import com.flylazo.naru_acars.domain.FlightPlan;
 import com.flylazo.naru_acars.domain.Properties;
-import com.flylazo.naru_acars.gui.Dashboard;
+import com.flylazo.naru_acars.gui.Window;
 import com.flylazo.naru_acars.gui.component.TextInput;
-import com.flylazo.naru_acars.NaruACARS;
 import com.flylazo.naru_acars.servlet.bridge.SimBridge;
 import com.flylazo.naru_acars.servlet.repository.AircraftRepository;
 import com.flylazo.naru_acars.servlet.service.SimDataService;
@@ -38,7 +38,7 @@ import static javax.swing.GroupLayout.PREFERRED_SIZE;
 import static javax.swing.LayoutStyle.ComponentPlacement.RELATED;
 import static javax.swing.LayoutStyle.ComponentPlacement.UNRELATED;
 
-public class Dispatcher extends SimplePanel {
+public class Dispatcher extends PanelBase {
     private final Logger logger = Logger.getLogger(NaruACARS.class.getName());
     private final String NOT_FOUND = "Not found";
     private final String FORM_EMPTY = "Please fill out the form";
@@ -56,23 +56,25 @@ public class Dispatcher extends SimplePanel {
     private final JButton submitBtn;
     private FlightPlan plan = null;
 
-    public Dispatcher(Dashboard dashboard) {
-        this.simTracker = dashboard.getSpringContext().getBean(SimTracker.class);
-        this.aircraftRepo = dashboard.getSpringContext().getBean(AircraftRepository.class);
-        this.simDataService = dashboard.getSpringContext().getBean(SimDataService.class);
+    public Dispatcher(Window window) {
+        super(window);
+
+        this.simTracker = window.getServiceFactory().getBean(SimTracker.class);
+        this.aircraftRepo = window.getServiceFactory().getBean(AircraftRepository.class);
+        this.simDataService = window.getServiceFactory().getBean(SimDataService.class);
         var formPane = new JPanel();
         var formLayout = new GroupLayout(formPane);
         var boldFont = new Font("Ubuntu Medium", Font.PLAIN, 15);
-        var csLabel = bakeLabel("Callsign", boldFont, Color.black);
-        var acfLabel = bakeLabel("Aircraft", boldFont, Color.black);
-        var depLabel = bakeLabel("Departure", boldFont, Color.black);
-        var arrLabel = bakeLabel("Arrival", boldFont, Color.black);
+        var csLabel = window.bakeLabel("Callsign", boldFont, Color.black);
+        var acfLabel = window.bakeLabel("Aircraft", boldFont, Color.black);
+        var depLabel = window.bakeLabel("Departure", boldFont, Color.black);
+        var arrLabel = window.bakeLabel("Arrival", boldFont, Color.black);
         csInput = new TextInput(6, true);
         acfInput = new TextInput(6, true);
         depInput = new TextInput("ICAO", 6, true);
         arrInput = new TextInput("ICAO", 6, true);
-        depHint = bakeLabel(NOT_FOUND, Color.yellow);
-        arrHint = bakeLabel(NOT_FOUND, Color.yellow);
+        depHint = window.bakeLabel(NOT_FOUND, Color.yellow);
+        arrHint = window.bakeLabel(NOT_FOUND, Color.yellow);
         DocumentListener docListener = new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -137,8 +139,8 @@ public class Dispatcher extends SimplePanel {
         arrInput.getDocument().addDocumentListener(docListener);
         depHint.setOpaque(true);
         arrHint.setOpaque(true);
-        depHint.setBorder(getMargin(depHint, 0, 10, 0, 10));
-        arrHint.setBorder(getMargin(arrHint, 0, 10, 0, 10));
+        depHint.setBorder(window.getMargin(depHint, 0, 10, 0, 10));
+        arrHint.setBorder(window.getMargin(arrHint, 0, 10, 0, 10));
         depHint.setBackground(Color.darkGray);
         arrHint.setBackground(Color.darkGray);
         simbriefBtn.addMouseListener(new MouseAdapter() {

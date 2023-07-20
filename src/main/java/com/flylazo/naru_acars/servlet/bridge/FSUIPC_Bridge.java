@@ -16,10 +16,13 @@ import com.mouseviator.fsuipc.helpers.aircraft.GearHelper;
 import com.mouseviator.fsuipc.helpers.avionics.GPSHelper;
 import com.flylazo.naru_acars.servlet.repository.AirportRepository;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.time.LocalTime;
 import java.util.AbstractQueue;
+import java.util.logging.Level;
 
-public class FSUIPCBridge extends SimBridge implements IFSUIPCListener {
+public class FSUIPC_Bridge extends SimBridge implements IFSUIPCListener {
     private final FSUIPC fsuipc = FSUIPC.getInstance();
     private final IDataRequest<Float> fps;
     private final DoubleRequest altitude;
@@ -44,7 +47,7 @@ public class FSUIPCBridge extends SimBridge implements IFSUIPCListener {
     private final DoubleRequest pistonEng4FF;
 
     @SuppressWarnings("unchecked")
-    public FSUIPCBridge(SimTracker tracker, AirportRepository airportRepository) {
+    public FSUIPC_Bridge(SimTracker tracker, AirportRepository airportRepository) {
         super("FSUIPC", tracker, airportRepository);
         var aircraft = new AircraftHelper();
         var gps = new GPSHelper();
@@ -83,6 +86,7 @@ public class FSUIPCBridge extends SimBridge implements IFSUIPCListener {
 
         if (success) {
             fsuipc.addListener(this);
+            logger.info("Waiting for FSUIPC connection...");
         } else {
             logger.warning("Failed to open fsuipc connection!");
         }
@@ -90,7 +94,19 @@ public class FSUIPCBridge extends SimBridge implements IFSUIPCListener {
 
     @Override
     public void release() {
-        fsuipc.disconnect();
+        if (isConnected()) {
+            fsuipc.disconnect();
+        } else {
+            try {
+                Method m = fsuipc.getClass().getDeclaredMethod("cancelWaitForConnectionTask");
+                m.setAccessible(true);
+                m.invoke(fsuipc);
+            } catch (NoSuchMethodException e) {
+                logger.log(Level.SEVERE, "Failed to reflect method.", e);
+            } catch (InvocationTargetException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override

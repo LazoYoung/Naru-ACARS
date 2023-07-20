@@ -22,8 +22,8 @@ public class SimTracker implements BridgeListener {
     @Autowired
     public SimTracker(AirportRepository airportRepo) {
         var offlineBridge = new OfflineBridge(this, airportRepo);
-        var fsuipcBridge = new FSUIPCBridge(this, airportRepo);
-        var xpcBridge = new XPCBridge(this, airportRepo);
+        var fsuipcBridge = new FSUIPC_Bridge(this, airportRepo);
+        var xpcBridge = new XPC_Bridge(this, airportRepo);
 
         this.activeBridge = offlineBridge;
         bridgeList.add(offlineBridge);

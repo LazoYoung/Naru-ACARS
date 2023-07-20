@@ -1,7 +1,7 @@
 package com.flylazo.naru_acars;
 
 import com.flylazo.naru_acars.domain.Properties;
-import com.flylazo.naru_acars.gui.Console;
+import com.flylazo.naru_acars.gui.page.ConsolePage;
 import com.flylazo.naru_acars.gui.Window;
 import com.mouseviator.fsuipc.FSUIPC;
 import com.flylazo.naru_acars.servlet.service.SimTracker;
@@ -40,7 +40,7 @@ public class NaruACARS {
 
 	public static void main(String[] args) {
 		window = new Window();
-		var console = new Console(logger, window);
+		var console = new ConsolePage(logger, window);
 		var builder = new SpringApplicationBuilder(NaruACARS.class);
 		var props = new HashMap<String, Object>();
 		var port = getAvailablePort();

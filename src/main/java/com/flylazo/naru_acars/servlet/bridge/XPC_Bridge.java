@@ -17,7 +17,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-public class XPCBridge extends SimBridge {
+public class XPC_Bridge extends SimBridge {
     enum DataRef {
         ELEVATION(0, "sim/flightmodel/position/elevation"),
         MAG_PSI(1, "sim/flightmodel/position/mag_psi"),
@@ -80,7 +80,7 @@ public class XPCBridge extends SimBridge {
     private String simulator = null;
     private float[][] data = null;
 
-    public XPCBridge(SimTracker tracker, AirportRepository airportRepo) {
+    public XPC_Bridge(SimTracker tracker, AirportRepository airportRepo) {
         super("XPlaneConnect", tracker, airportRepo);
     }
 
@@ -91,6 +91,7 @@ public class XPCBridge extends SimBridge {
         }
 
         discoverTask = discoverService.scheduleAtFixedRate(this::discover, 0L, 2L, TimeUnit.SECONDS);
+        logger.info("Waiting for XPlaneConnect connection...");
     }
 
     @Override
@@ -244,7 +245,7 @@ public class XPCBridge extends SimBridge {
             logger.info("Connected to XPlaneConnect " + beacon.getPluginVersion());
             logger.info("Detected simulator: " + simulator);
         } catch (Throwable e) {
-            // ignore
+           e.printStackTrace();
         }
     }
 

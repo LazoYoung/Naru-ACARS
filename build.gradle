@@ -52,7 +52,7 @@ launch4j {
 	dontWrapJar = false
 	headerType = 'gui'
 	errTitle = 'Java not installed!'
-	windowTitle = 'NaruACARS'
+	windowTitle = 'Naru ACARS'
 	mutexName = 'naruacars'
 	downloadUrl = 'https://www.oracle.com/java/technologies/downloads/'
 	stayAlive = false

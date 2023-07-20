@@ -1,5 +1,6 @@
-package com.flylazo.naru_acars.gui;
+package com.flylazo.naru_acars.gui.page;
 
+import com.flylazo.naru_acars.gui.Window;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
@@ -12,13 +13,13 @@ import java.util.logging.*;
 import static java.util.logging.Level.SEVERE;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 
-public class Console extends JPanel {
+public class ConsolePage extends JPanel {
 
     private static class LogHandler extends Handler {
         private final Window window;
         private final JTextArea textArea;
 
-        private LogHandler(Window window, JTextArea textArea) {
+        private LogHandler(com.flylazo.naru_acars.gui.Window window, JTextArea textArea) {
             this.window = window;
             this.textArea = textArea;
         }
@@ -76,7 +77,7 @@ public class Console extends JPanel {
         }
     }
 
-    public Console(Logger logger, Window window) {
+    public ConsolePage(Logger logger, Window window) {
         var layout = new GridLayout(1, 1);
         var textArea = new JTextArea();
         var handler = new LogHandler(window, textArea);
