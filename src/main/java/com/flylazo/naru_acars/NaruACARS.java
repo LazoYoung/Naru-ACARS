@@ -31,7 +31,7 @@ import static javax.swing.JOptionPane.*;
 
 @SpringBootApplication
 public class NaruACARS {
-	private static final Logger logger = Logger.getLogger(NaruACARS.class.getName());
+	public static final Logger logger = Logger.getLogger(NaruACARS.class.getName());
 	private static final String hostAddress = "localhost";
 	private static final String portKey = "server.port";
 	private static final String directory = "NaruACARS";

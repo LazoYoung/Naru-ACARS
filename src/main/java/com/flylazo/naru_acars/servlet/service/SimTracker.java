@@ -31,6 +31,9 @@ public class SimTracker implements BridgeListener {
         bridgeList.add(xpcBridge);
     }
 
+    /**
+     * @return tracking frequency in milliseconds
+     */
     public int getRefreshRate() {
         return 500;
     }

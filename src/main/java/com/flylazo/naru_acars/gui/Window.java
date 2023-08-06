@@ -3,7 +3,7 @@ package com.flylazo.naru_acars.gui;
 import com.flylazo.naru_acars.NaruACARS;
 import com.flylazo.naru_acars.gui.page.ACARS_Page;
 import com.flylazo.naru_acars.gui.page.ConsolePage;
-import com.flylazo.naru_acars.gui.page.DashboardPage;
+import com.flylazo.naru_acars.gui.page.DispatchPage;
 import com.flylazo.naru_acars.gui.page.OverlaysPage;
 import com.flylazo.naru_acars.servlet.service.SimTracker;
 import org.springframework.beans.factory.BeanFactory;
@@ -15,11 +15,13 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.plaf.FontUIResource;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import static java.awt.Font.TRUETYPE_FONT;
 import static javax.swing.JOptionPane.*;
@@ -50,10 +52,10 @@ public class Window extends JFrame {
         this.simTracker = simTracker;
         this.contentPane = new JTabbedPane();
         this.context = context;
-        var dashboardPage = new DashboardPage(this);
+        var dispatchPage = new DispatchPage(this);
         var acarsPage = new ACARS_Page(this);
         var overlayPage = new OverlaysPage(this);
-        contentPane.addTab("Dashboard", dashboardPage);
+        contentPane.addTab("Dispatch", dispatchPage);
         contentPane.addTab("ACARS", acarsPage);
         contentPane.addTab("Overlays", overlayPage);
         contentPane.addTab("Console", consolePage);
@@ -129,6 +131,21 @@ public class Window extends JFrame {
 
     public JTabbedPane getContentTab() {
         return contentPane;
+    }
+
+    public void setDocumentFilter(Document doc, String regex, boolean uppercase) {
+        var filter = new DocumentFilter() {
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+                if (Pattern.compile(regex).matcher(text).find()) {
+                    super.insertString(fb, offset, null, attrs);
+                } else {
+                    super.insertString(fb, offset, uppercase ? text.toUpperCase() : text, attrs);
+                }
+            }
+        };
+        var document = (AbstractDocument) doc;
+        document.setDocumentFilter(filter);
     }
 
     @Override

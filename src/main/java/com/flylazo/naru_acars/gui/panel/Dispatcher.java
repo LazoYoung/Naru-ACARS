@@ -3,20 +3,17 @@ package com.flylazo.naru_acars.gui.panel;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flylazo.naru_acars.NaruACARS;
-import com.flylazo.naru_acars.domain.Airport;
 import com.flylazo.naru_acars.domain.FlightPlan;
 import com.flylazo.naru_acars.domain.Properties;
 import com.flylazo.naru_acars.gui.Window;
-import com.flylazo.naru_acars.gui.component.TextInput;
-import com.flylazo.naru_acars.servlet.bridge.SimBridge;
+import com.flylazo.naru_acars.gui.component.FlightInput;
+import com.flylazo.naru_acars.gui.component.Header;
+import com.flylazo.naru_acars.gui.component.RouteInput;
 import com.flylazo.naru_acars.servlet.repository.AircraftRepository;
 import com.flylazo.naru_acars.servlet.service.SimDataService;
-import com.flylazo.naru_acars.servlet.service.SimTracker;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -27,122 +24,41 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static javax.swing.GroupLayout.Alignment.BASELINE;
-import static javax.swing.GroupLayout.Alignment.LEADING;
-import static javax.swing.GroupLayout.DEFAULT_SIZE;
-import static javax.swing.GroupLayout.PREFERRED_SIZE;
-import static javax.swing.LayoutStyle.ComponentPlacement.RELATED;
 import static javax.swing.LayoutStyle.ComponentPlacement.UNRELATED;
 
 public class Dispatcher extends PanelBase {
     private final Logger logger = Logger.getLogger(NaruACARS.class.getName());
-    private final String NOT_FOUND = "Not found";
     private final String FORM_EMPTY = "Please fill out the form";
-    private final SimTracker simTracker;
     private final SimDataService simDataService;
     private final AircraftRepository aircraftRepo;
-    private final JTextField csInput;
-    private final JTextField acfInput;
-    private final TextInput depInput;
-    private final TextInput arrInput;
-    private final JLabel depHint;
-    private final JLabel arrHint;
+    private final FlightInput flightInput;
+    private final RouteInput routeInput;
     private final JLabel actionLabel;
     private final JButton simbriefBtn;
     private final JButton submitBtn;
     private FlightPlan plan = null;
 
-    public Dispatcher(Window window) {
+    public Dispatcher(Window window, int margin) {
         super(window);
 
-        this.simTracker = window.getServiceFactory().getBean(SimTracker.class);
         this.aircraftRepo = window.getServiceFactory().getBean(AircraftRepository.class);
         this.simDataService = window.getServiceFactory().getBean(SimDataService.class);
-        var formPane = new JPanel();
-        var formLayout = new GroupLayout(formPane);
-        var boldFont = new Font("Ubuntu Medium", Font.PLAIN, 15);
-        var csLabel = window.bakeLabel("Callsign", boldFont, Color.black);
-        var acfLabel = window.bakeLabel("Aircraft", boldFont, Color.black);
-        var depLabel = window.bakeLabel("Departure", boldFont, Color.black);
-        var arrLabel = window.bakeLabel("Arrival", boldFont, Color.black);
-        csInput = new TextInput(6, true);
-        acfInput = new TextInput(6, true);
-        depInput = new TextInput("ICAO", 6, true);
-        arrInput = new TextInput("ICAO", 6, true);
-        depHint = window.bakeLabel(NOT_FOUND, Color.yellow);
-        arrHint = window.bakeLabel(NOT_FOUND, Color.yellow);
-        DocumentListener docListener = new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                validateInput();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                validateInput();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                validateInput();
-            }
-        };
-        var hGroup = formLayout.createSequentialGroup()
-                .addContainerGap(20, 20)
-                .addGroup(formLayout.createParallelGroup(LEADING, false)
-                        .addComponent(csLabel, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
-                        .addComponent(csInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
-                        .addComponent(acfLabel, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
-                        .addComponent(acfInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE))
-                .addPreferredGap(UNRELATED)
-                .addGroup(formLayout.createParallelGroup(LEADING, false)
-                        .addComponent(depLabel, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
-                        .addComponent(depInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
-                        .addComponent(arrLabel, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
-                        .addComponent(arrInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE))
-                .addPreferredGap(RELATED)
-                .addGroup(formLayout.createParallelGroup(LEADING, true)
-                        .addComponent(depHint, PREFERRED_SIZE, PREFERRED_SIZE, Short.MAX_VALUE)
-                        .addComponent(arrHint, PREFERRED_SIZE, PREFERRED_SIZE, Short.MAX_VALUE))
-                .addContainerGap(20, 20);
-        var vGroup = formLayout.createSequentialGroup()
-                .addContainerGap(20, 20)
-                .addGroup(formLayout.createParallelGroup(BASELINE)
-                        .addComponent(csLabel)
-                        .addComponent(depLabel))
-                .addGroup(formLayout.createParallelGroup(BASELINE, false)
-                        .addComponent(csInput)
-                        .addComponent(depInput)
-                        .addComponent(depHint))
-                .addGap(10)
-                .addGroup(formLayout.createParallelGroup(BASELINE, false)
-                        .addComponent(acfLabel)
-                        .addComponent(arrLabel))
-                .addGroup(formLayout.createParallelGroup(BASELINE, false)
-                        .addComponent(acfInput)
-                        .addComponent(arrInput)
-                        .addComponent(arrHint))
-                .addContainerGap(20, 20);
+        var labelFont = new Font("Ubuntu Regular", Font.BOLD, 15);
+        this.flightInput = new FlightInput(window, labelFont);
+        this.routeInput = new RouteInput(window, labelFont);
+        var layout = new GroupLayout(this);
+        var noteFont = new Font("Ubuntu Regular", Font.PLAIN, 13);
+        var btnFont = new Font("Ubuntu Medium", Font.PLAIN, 15);
+        var noteLabel = window.bakeLabel("* Optional fields", noteFont, Color.black);
         var actionPane = new JPanel();
         actionLabel = new JLabel();
         simbriefBtn = new JButton("Simbrief");
         submitBtn = new JButton("SUBMIT");
 
         // Flight Dispatcher
-        csInput.setForeground(Color.black);
-        acfInput.setForeground(Color.black);
-        depInput.getDocument().addDocumentListener(docListener);
-        arrInput.getDocument().addDocumentListener(docListener);
-        depHint.setOpaque(true);
-        arrHint.setOpaque(true);
-        depHint.setBorder(window.getMargin(depHint, 0, 10, 0, 10));
-        arrHint.setBorder(window.getMargin(arrHint, 0, 10, 0, 10));
-        depHint.setBackground(Color.darkGray);
-        arrHint.setBackground(Color.darkGray);
         simbriefBtn.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -150,7 +66,7 @@ public class Dispatcher extends PanelBase {
             }
         });
         simbriefBtn.setToolTipText("Import your Simbrief flight plan.");
-        simbriefBtn.setFont(boldFont);
+        simbriefBtn.setFont(btnFont);
         submitBtn.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -161,7 +77,11 @@ public class Dispatcher extends PanelBase {
         });
         submitBtn.setToolTipText(FORM_EMPTY);
         submitBtn.setEnabled(false);
-        submitBtn.setFont(boldFont);
+        submitBtn.setFont(btnFont);
+        routeInput.addValidationListener(valid -> {
+            submitBtn.setEnabled(valid);
+            submitBtn.setToolTipText(valid ? "Submit your flight plan" : FORM_EMPTY);
+        });
         actionPane.setLayout(new BoxLayout(actionPane, BoxLayout.X_AXIS));
         actionPane.add(Box.createHorizontalGlue());
         actionPane.add(actionLabel);
@@ -169,38 +89,38 @@ public class Dispatcher extends PanelBase {
         actionPane.add(simbriefBtn);
         actionPane.add(Box.createHorizontalStrut(10));
         actionPane.add(submitBtn);
-        actionPane.add(Box.createHorizontalStrut(20));
-        formLayout.setHorizontalGroup(hGroup);
-        formLayout.setVerticalGroup(vGroup);
-        formLayout.linkSize(SwingConstants.VERTICAL, depInput, depHint);
-        formLayout.linkSize(SwingConstants.VERTICAL, arrInput, arrHint);
-        formPane.setLayout(formLayout);
-        this.setBorder(BorderFactory.createTitledBorder("Flight Dispatcher"));
-        this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        this.add(formPane);
-        this.add(Box.createVerticalStrut(10));
-        this.add(actionPane);
-        this.add(Box.createVerticalStrut(20));
-    }
 
-    private void validateInput() {
-        var dep = Optional.ofNullable(depInput.getText()).orElse("");
-        var arr = Optional.ofNullable(arrInput.getText()).orElse("");
-        var depHintSize = depHint.getSize();
-        var arrHintSize = arrHint.getSize();
-        SimBridge simBridge = simTracker.getBridge();
-        Optional<Airport> departure = simBridge.getAirport(dep);
-        Optional<Airport> arrival = simBridge.getAirport(arr);
-        boolean valid = departure.isPresent() && arrival.isPresent();
-
-        depHint.setText(departure.map(Airport::getName).orElse(NOT_FOUND));
-        arrHint.setText(arrival.map(Airport::getName).orElse(NOT_FOUND));
-        depHint.setPreferredSize(depHintSize);
-        arrHint.setPreferredSize(arrHintSize);
-        depHint.setForeground(departure.isEmpty() ? Color.yellow : Color.green);
-        arrHint.setForeground(arrival.isEmpty() ? Color.yellow : Color.green);
-        submitBtn.setEnabled(valid);
-        submitBtn.setToolTipText(valid ? "Submit your flight plan" : FORM_EMPTY);
+        var titleFont = new Font("Ubuntu Medium", Font.PLAIN, 16);
+        var header = new Header(titleFont, "Flight Dispatcher");
+        var glue = Box.createVerticalGlue();
+        var hGroup = layout.createSequentialGroup()
+                .addContainerGap(margin, margin)
+                .addGroup(layout.createParallelGroup()
+                        .addComponent(header)
+                        .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup()
+                                        .addComponent(flightInput)
+                                        .addComponent(glue)
+                                        .addComponent(noteLabel))
+                                .addPreferredGap(UNRELATED)
+                                .addComponent(routeInput))
+                        .addComponent(actionPane))
+                .addContainerGap(margin, margin);
+        var vGroup = layout.createSequentialGroup()
+                .addContainerGap(margin, margin)
+                .addComponent(header)
+                .addGroup(layout.createParallelGroup()
+                        .addGroup(layout.createSequentialGroup()
+                                .addComponent(flightInput)
+                                .addComponent(glue)
+                                .addComponent(noteLabel))
+                        .addComponent(routeInput))
+                .addPreferredGap(UNRELATED)
+                .addComponent(actionPane)
+                .addContainerGap(margin, margin);
+        layout.setHorizontalGroup(hGroup);
+        layout.setVerticalGroup(vGroup);
+        this.setLayout(layout);
     }
 
     private void importSimbrief() {
@@ -262,14 +182,16 @@ public class Dispatcher extends PanelBase {
 
                     this.plan = plan;
                     var acf = plan.getAircraft();
-                    csInput.setText(plan.getCallsign());
-                    acfInput.setText((acf != null) ? acf.getIcaoCode() : "");
-                    depInput.setText(plan.getDepartureCode());
-                    arrInput.setText(plan.getArrivalCode());
+                    flightInput.setCallsign(plan.getCallsign());
+                    flightInput.setAircraft((acf != null) ? acf.getIcaoCode() : "");
+                    routeInput.setDeparture(plan.getDepartureCode());
+                    routeInput.setArrival(plan.getArrivalCode());
+                    // todo
+                    // routeInput.setAlternate(plan.getAlternateCode());
                     actionLabel.setForeground(Color.blue);
                     actionLabel.setText("Fetch complete!");
                     simbriefBtn.setEnabled(true);
-                    validateInput();
+                    routeInput.validateAirport();
                 }));
     }
 
@@ -278,11 +200,12 @@ public class Dispatcher extends PanelBase {
             plan = new FlightPlan();
         }
 
-        var acf = acfInput.getText();
-        plan.setCallsign(csInput.getText());
+        var acf = flightInput.getAircraft();
+        plan.setCallsign(flightInput.getCallsign());
         plan.setAircraft((acf != null) ? aircraftRepo.get(acf) : null);
-        plan.setDepartureCode(depInput.getText());
-        plan.setArrivalCode(arrInput.getText());
+        plan.setDepartureCode(routeInput.getDeparture());
+        plan.setArrivalCode(routeInput.getArrival());
+        // todo set alternate code
         FlightPlan.submit(plan);
         simDataService.requestUpdate();
         actionLabel.setText("Plan sent!");

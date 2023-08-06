@@ -180,7 +180,24 @@ public class FSUIPC_Bridge extends SimBridge implements IFSUIPCListener {
 
     @Override
     public String getSimulator() {
-        return fsuipc.getFSVersion();
+        var version = FSUIPCWrapper.FSUIPCSimVersion.get(FSUIPCWrapper.getFSVersion());
+
+        return switch (version) {
+            case SIM_ANY -> "Unknown";
+            case SIM_FS98 -> "FS 98";
+            case SIM_FS2K -> "FS 2000";
+            case SIM_CFS2 -> "Combat FS 2";
+            case SIM_CFS1 -> "Combat FS 1";
+            case SIM_FLY -> "Fly!";
+            case SIM_FS2K2 -> "FS 2002";
+            case SIM_FS2K4 -> "FS 2004";
+            case SIM_FSX -> "FSX";
+            case SIM_ESP -> "ESP";
+            case SIM_P3D -> "Prepar3D";
+            case SIM_FSX64 -> "FSX (64-bit)";
+            case SIM_P3D64 -> "Prepar3D (64-bit)";
+            case SIM_MSFS -> "MSFS";
+        };
     }
 
     @Override

@@ -19,7 +19,7 @@ public class ConsolePage extends JPanel {
         private final Window window;
         private final JTextArea textArea;
 
-        private LogHandler(com.flylazo.naru_acars.gui.Window window, JTextArea textArea) {
+        private LogHandler(Window window, JTextArea textArea) {
             this.window = window;
             this.textArea = textArea;
         }
