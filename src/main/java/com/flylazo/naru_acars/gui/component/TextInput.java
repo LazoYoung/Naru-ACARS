@@ -8,6 +8,7 @@ import javax.swing.text.DocumentFilter;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.util.regex.Pattern;
 
 public class TextInput extends JTextField implements FocusListener {
 
@@ -31,19 +32,18 @@ public class TextInput extends JTextField implements FocusListener {
 
     public TextInput(int column, boolean uppercase) {
         this(null, column, uppercase);
+        this.setForeground(Color.black);
     }
 
     private DocumentFilter getFilter() {
         return new DocumentFilter() {
             @Override
-            public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr)
-                    throws BadLocationException {
-                super.insertString(fb, offset, string.toUpperCase(), attr);
-            }
-
-            @Override
             public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
-                super.replace(fb, offset, length, text.toUpperCase(), attrs);
+                if (Pattern.compile("([^A-Za-z0-9])").matcher(text).find()) {
+                    super.replace(fb, offset, length, null, attrs);
+                } else {
+                    super.replace(fb, offset, length, text.toUpperCase(), attrs);
+                }
             }
         };
     }
