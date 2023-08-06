@@ -3,11 +3,12 @@ package com.flylazo.naru_acars.gui.component;
 import java.awt.*;
 
 public class ConnectHeader extends Header {
-    private final Font font = new Font("Ubuntu Medium", Font.PLAIN, 15);
+    private final Font font;
     private ConnectStatus status = ConnectStatus.OFFLINE;
 
-    public ConnectHeader(Font font, String title) {
-        super(font, title);
+    public ConnectHeader(Font titleFont, Font badgeFont, String title) {
+        super(titleFont, title);
+        this.font = badgeFont;
     }
 
     public void setStatus(ConnectStatus status) {
