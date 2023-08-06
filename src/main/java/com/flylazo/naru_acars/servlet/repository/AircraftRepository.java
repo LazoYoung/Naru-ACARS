@@ -1,6 +1,7 @@
 package com.flylazo.naru_acars.servlet.repository;
 
 import com.flylazo.naru_acars.domain.Aircraft;
+import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -12,6 +13,7 @@ public class AircraftRepository extends CSV<Aircraft> {
         super("planes.dat", COL_ICAO);
     }
 
+    @Nullable
     public Aircraft get(String icao) {
         return super.get(icao);
     }

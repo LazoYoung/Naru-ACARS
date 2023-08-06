@@ -5,10 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import jakarta.annotation.Nullable;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -27,7 +24,10 @@ public class FlightPlan {
     private Aircraft aircraft;
     private String departureCode;
     private String arrivalCode;
+    private String alternateCode;
     private String route;
+    private String remarks;
+    private Duration blockTime;
     private Instant blockOut;
     private Instant blockOff;
     private Instant blockOn;
@@ -46,36 +46,46 @@ public class FlightPlan {
         instance = newPlan;
     }
 
+    // --- JSON setters --- //
+
     @JsonSetter("aircraft")
     public void setAircraft(Aircraft aircraft) {
         this.aircraft = aircraft;
     }
 
     @JsonProperty("origin")
-    public void setDepartureCode(Map<String, Object> origin) {
-        this.departureCode = (String) origin.get("icao_code");
+    public void setDepartureCode(Map<String, Object> map) {
+        this.departureCode = (String) map.get("icao_code");
     }
 
     @JsonProperty("destination")
-    public void setArrivalCode(Map<String, Object> dest) {
-        this.arrivalCode = (String) dest.get("icao_code");
+    public void setArrivalCode(Map<String, Object> map) {
+        this.arrivalCode = (String) map.get("icao_code");
+    }
+
+    @JsonProperty("alternate")
+    public void setAlternateCode(Map<String, Object> map) {
+        this.alternateCode = (String) map.get("icao_code");
     }
 
     @JsonProperty("general")
-    public void setGeneral(Map<String, Object> general) {
-        this.route = (String) general.get("route");
-        this.airline = (String) general.get("icao_airline");
-        this.callsign = (String) general.get("icao_airline") + general.get("flight_number");
+    public void setGeneral(Map<String, Object> map) {
+        this.route = (String) map.get("route");
+        this.remarks = (String) map.get("dx_rmk");
+        this.airline = (String) map.get("icao_airline");
+        this.callsign = (String) map.get("icao_airline") + map.get("flight_number");
     }
 
     @JsonProperty("times")
-    public void setBlockTime(Map<String, Object> times) {
-        int out = Integer.parseInt((String) times.get("sched_out"));
-        int off = Integer.parseInt((String) times.get("sched_off"));
-        int on = Integer.parseInt((String) times.get("sched_on"));
-        int in = Integer.parseInt((String) times.get("sched_in"));
-        int orig = Integer.parseInt((String) times.get("orig_timezone"));
-        int dest = Integer.parseInt((String) times.get("dest_timezone"));
+    public void setTimes(Map<String, Object> map) {
+        int out = Integer.parseInt((String) map.get("sched_out"));
+        int off = Integer.parseInt((String) map.get("sched_off"));
+        int on = Integer.parseInt((String) map.get("sched_on"));
+        int in = Integer.parseInt((String) map.get("sched_in"));
+        int block = Integer.parseInt((String) map.get("sched_block"));
+        int orig = Integer.parseInt((String) map.get("orig_timezone"));
+        int dest = Integer.parseInt((String) map.get("dest_timezone"));
+        this.blockTime = Duration.ofSeconds(block);
         this.blockOut = Instant.ofEpochSecond(out);
         this.blockOff = Instant.ofEpochSecond(off);
         this.blockOn = Instant.ofEpochSecond(on);
@@ -83,6 +93,8 @@ public class FlightPlan {
         this.origZone = ZoneOffset.ofHours(orig);
         this.destZone = ZoneOffset.ofHours(dest);
     }
+
+    // --- Native setters --- //
 
     public void setCallsign(String callsign) {
         this.callsign = callsign;
@@ -102,6 +114,22 @@ public class FlightPlan {
 
     public void setArrivalCode(String code) {
         this.arrivalCode = code;
+    }
+
+    public void setAlternateCode(String code) {
+        this.alternateCode = code;
+    }
+
+    public void setBlockTime(Duration time) {
+        this.blockTime = time;
+    }
+
+    public void setRoute(String route) {
+        this.route = route;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
     }
 
     public String getAirline() {
@@ -125,12 +153,24 @@ public class FlightPlan {
         return (arrivalCode != null) ? arrivalCode : "";
     }
 
+    public String getAlternateCode() {
+        return (alternateCode != null) ? alternateCode : "";
+    }
+
     public String getRoute() {
         return (route != null) ? route : "";
     }
 
+    public String getRemarks() {
+        return (remarks != null) ? remarks : "";
+    }
+
+    public Duration getBlockTime() {
+        return this.blockTime;
+    }
+
     @Nullable
-    public ZonedDateTime getBlockTime(int type, boolean local) {
+    public ZonedDateTime getTime(int type, boolean local) {
         if (blockOut == null || blockOff == null || blockOn == null || blockIn == null) {
             return null;
         }
@@ -144,8 +184,8 @@ public class FlightPlan {
     }
 
     @Nullable
-    public String getBlockTimeFormatted(int type, boolean local) {
-        var dateTime = getBlockTime(type, local);
+    public String getTimeSchedule(int type, boolean local) {
+        var dateTime = getTime(type, local);
 
         if (dateTime != null) {
             return dateTime.format(DateTimeFormatter.ofPattern("HH:mm"));

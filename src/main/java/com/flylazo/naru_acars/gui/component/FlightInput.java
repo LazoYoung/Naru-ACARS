@@ -1,31 +1,40 @@
 package com.flylazo.naru_acars.gui.component;
 
+import com.flylazo.naru_acars.domain.Aircraft;
 import com.flylazo.naru_acars.gui.Window;
+import com.flylazo.naru_acars.servlet.repository.AircraftRepository;
+import jakarta.annotation.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.time.Duration;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static javax.swing.GroupLayout.DEFAULT_SIZE;
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
-import static javax.swing.LayoutStyle.ComponentPlacement.RELATED;
 
 public class FlightInput extends JPanel {
+    private final AircraftRepository aircraftRepo;
     private final JTextField csInput;
     private final JTextField acfInput;
-    private final JTextField cruiseInput;
     private final JTextField fltTimeInput;
+    private final Window window;
 
     public FlightInput(Window window, Font labelFont) {
-        var lightFont = new Font("Ubuntu Regular", Font.PLAIN, 15);
         var csLabel = window.bakeLabel("Callsign", labelFont, Color.black);
         var acfLabel = window.bakeLabel("Aircraft", labelFont, Color.black);
-        var cruiseLabel = window.bakeLabel("Cruise altitude", labelFont, Color.black);
-        var feetLabel = window.bakeLabel("ft", lightFont, Color.black);
         var fltTimeLabel = window.bakeLabel("Flight time", labelFont, Color.black);
+        this.window = window;
+        aircraftRepo = window.getServiceFactory().getBean(AircraftRepository.class);
         csInput = new TextInput(7, true);
         acfInput = new TextInput(7, true);
-        cruiseInput = new TextInput(6, false);
         fltTimeInput = new TextInput("hh:mm", 7, false);
+        csInput.getDocument().addDocumentListener(getValidator());
+        acfInput.getDocument().addDocumentListener(getValidator());
+        fltTimeInput.getDocument().addDocumentListener(getValidator());
 
         var layout = new GroupLayout(this);
         var hGroup = layout.createParallelGroup()
@@ -33,10 +42,6 @@ public class FlightInput extends JPanel {
                 .addComponent(csInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
                 .addComponent(acfLabel)
                 .addComponent(acfInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
-                .addComponent(cruiseLabel)
-                .addGroup(layout.createSequentialGroup()
-                        .addComponent(cruiseInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
-                        .addComponent(feetLabel))
                 .addComponent(fltTimeLabel)
                 .addComponent(fltTimeInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE);
         var vGroup = layout.createSequentialGroup()
@@ -45,11 +50,6 @@ public class FlightInput extends JPanel {
                 .addGap(10)
                 .addComponent(acfLabel)
                 .addComponent(acfInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
-                .addGap(10)
-                .addComponent(cruiseLabel)
-                .addGroup(layout.createParallelGroup()
-                        .addComponent(cruiseInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
-                        .addComponent(feetLabel))
                 .addGap(10)
                 .addComponent(fltTimeLabel)
                 .addComponent(fltTimeInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE);
@@ -63,16 +63,21 @@ public class FlightInput extends JPanel {
         return csInput.getText();
     }
 
-    public String getAircraft() {
-        return acfInput.getText();
+    @Nullable
+    public Aircraft getAircraft() {
+        return aircraftRepo.get(acfInput.getText());
     }
 
-    public String getCruiseAltitude() {
-        return cruiseInput.getText();
-    }
+    @Nullable
+    public Duration getFlightTime() {
+        Matcher m = Pattern.compile("(?:([0-1]?[0-9]|2[0-3]):)?([0-5][0-9])")
+                .matcher(fltTimeInput.getText());
 
-    public String getFlightTime() {
-        return fltTimeInput.getText();
+        if (!m.matches()) return null;
+
+        int hour = m.start(1) == -1 ? 0 : Integer.parseInt(m.group(1));
+        int min = m.start(2) == -1 ? 0 : Integer.parseInt(m.group(2));
+        return Duration.ofMinutes(hour * 60L + min);
     }
 
     public void setCallsign(String text) {
@@ -83,12 +88,52 @@ public class FlightInput extends JPanel {
         acfInput.setText(text);
     }
 
-    public void setCruiseAltitude(String text) {
-        cruiseInput.setText(text);
-    }
-
     public void setFlightTime(String text) {
         fltTimeInput.setText(text);
+    }
+
+    public boolean validateForm() {
+        boolean valid = true;
+
+        if (csInput.getText().isBlank()) {
+            csInput.setBorder(window.getAmberBorder());
+            valid = false;
+        } else {
+            csInput.setBorder(window.getDefaultBorder(csInput));
+        }
+
+        if (getAircraft() == null) {
+            acfInput.setBorder(window.getAmberBorder());
+            valid = false;
+        } else {
+            acfInput.setBorder(window.getDefaultBorder(acfInput));
+        }
+
+        if (getFlightTime() == null) {
+            fltTimeInput.setBorder(window.getAmberBorder());
+            valid = false;
+        } else {
+            fltTimeInput.setBorder(window.getDefaultBorder(fltTimeInput));
+        }
+
+        return valid;
+    }
+
+    private DocumentListener getValidator() {
+        return new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                validateForm();
+            }
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                validateForm();
+            }
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                validateForm();
+            }
+        };
     }
 
 }

@@ -9,10 +9,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import static javax.swing.GroupLayout.DEFAULT_SIZE;
 import static javax.swing.GroupLayout.PREFERRED_SIZE;
@@ -22,13 +19,11 @@ import static javax.swing.SwingConstants.VERTICAL;
 
 public class RouteInput extends JPanel {
     private final String NOT_FOUND = "Not found";
+    private final Window window;
     private final SimTracker simTracker;
-    private final List<Consumer<Boolean>> listeners = new ArrayList<>();
     private final TextInput depInput;
     private final TextInput arrInput;
     private final TextInput altInput;
-    private final JScrollPane rtePane;
-    private final JScrollPane rmkPane;
     private final JTextArea rteInput;
     private final JTextArea rmkInput;
     private final JLabel depHint;
@@ -36,7 +31,6 @@ public class RouteInput extends JPanel {
     private final JLabel altHint;
 
     public RouteInput(Window window, Font labelFont) {
-        this.simTracker = window.getServiceFactory().getBean(SimTracker.class);
         var depLabel = window.bakeLabel("Departure airport", labelFont, Color.black);
         var arrLabel = window.bakeLabel("Arrival airport", labelFont, Color.black);
         var altLabel = window.bakeLabel("Alternate airport*", labelFont, Color.black);
@@ -45,20 +39,23 @@ public class RouteInput extends JPanel {
         var altArrow = window.bakeLabel(">", labelFont, Color.black);
         var rteLabel = window.bakeLabel("Route", labelFont, Color.black);
         var rmkLabel = window.bakeLabel("Remarks*", labelFont, Color.black);
-        var airportValidator = getAirportValidator();
+        var validator = getValidator();
+        this.window = window;
+        this.simTracker = window.getServiceFactory().getBean(SimTracker.class);
         depInput = new TextInput("ICAO", 4, true);
         arrInput = new TextInput("ICAO", 4, true);
         altInput = new TextInput("ICAO", 4, true);
         rteInput = new JTextArea(3, 20);
         rmkInput = new JTextArea(3, 20);
-        rtePane = new JScrollPane(rteInput);
-        rmkPane = new JScrollPane(rmkInput);
+        var rtePane = new JScrollPane(rteInput);
+        var rmkPane = new JScrollPane(rmkInput);
         depHint = window.bakeLabel(NOT_FOUND, Color.yellow);
         arrHint = window.bakeLabel(NOT_FOUND, Color.yellow);
         altHint = window.bakeLabel(NOT_FOUND, Color.yellow);
-        depInput.getDocument().addDocumentListener(airportValidator);
-        arrInput.getDocument().addDocumentListener(airportValidator);
-        altInput.getDocument().addDocumentListener(airportValidator);
+        depInput.getDocument().addDocumentListener(validator);
+        arrInput.getDocument().addDocumentListener(validator);
+        altInput.getDocument().addDocumentListener(validator);
+        rteInput.getDocument().addDocumentListener(validator);
         depHint.setOpaque(true);
         arrHint.setOpaque(true);
         altHint.setOpaque(true);
@@ -137,10 +134,6 @@ public class RouteInput extends JPanel {
         this.setLayout(layout);
     }
 
-    public void addValidationListener(Consumer<Boolean> callback) {
-        listeners.add(callback);
-    }
-
     public String getDeparture() {
         return depInput.getText();
     }
@@ -173,42 +166,72 @@ public class RouteInput extends JPanel {
         altInput.setText(icao);
     }
 
-    public void validateAirport() {
+    public void setRoute(String route) {
+        rteInput.setText(route);
+    }
+
+    public void setRemarks(String remarks) {
+        rmkInput.setText(remarks);
+    }
+
+    public boolean validateForm() {
+        boolean valid = true;
         var dep = Optional.ofNullable(depInput.getText()).orElse("");
         var arr = Optional.ofNullable(arrInput.getText()).orElse("");
         var alt = Optional.ofNullable(altInput.getText()).orElse("");
         SimBridge simBridge = simTracker.getBridge();
-        Optional<Airport> departure = simBridge.getAirport(dep);
-        Optional<Airport> arrival = simBridge.getAirport(arr);
-        Optional<Airport> alternate = simBridge.getAirport(alt);
-        boolean valid = departure.isPresent() && arrival.isPresent();
-
-        depHint.setText(departure.map(Airport::getName).orElse(NOT_FOUND));
-        arrHint.setText(arrival.map(Airport::getName).orElse(NOT_FOUND));
-        altHint.setText(alternate.map(Airport::getName).orElse(NOT_FOUND));
+        Optional<String> departure = simBridge.getAirport(dep).map(Airport::getName);
+        Optional<String> arrival = simBridge.getAirport(arr).map(Airport::getName);
+        Optional<String> alternate = simBridge.getAirport(alt).map(Airport::getName);
+        depHint.setText(departure.orElse(NOT_FOUND));
+        arrHint.setText(arrival.orElse(NOT_FOUND));
+        altHint.setText(alternate.orElse(NOT_FOUND));
         depHint.setPreferredSize(depHint.getSize());
         arrHint.setPreferredSize(arrHint.getSize());
         altHint.setPreferredSize(altHint.getSize());
         depHint.setForeground(departure.isEmpty() ? Color.yellow : Color.green);
         arrHint.setForeground(arrival.isEmpty() ? Color.yellow : Color.green);
         altHint.setForeground(alternate.isEmpty() ? Color.yellow : Color.green);
-        listeners.forEach(c -> c.accept(valid));
+
+        if (departure.isEmpty()) {
+            depInput.setBorder(window.getAmberBorder());
+            valid = false;
+        } else {
+            depInput.setBorder(window.getDefaultBorder(depInput));
+        }
+
+        if (arrival.isEmpty()) {
+            arrInput.setBorder(window.getAmberBorder());
+            valid = false;
+        } else {
+            arrInput.setBorder(window.getDefaultBorder(arrInput));
+        }
+
+        if (getRoute().isBlank()) {
+            rteInput.setBorder(window.getAmberBorder());
+            valid = false;
+        } else {
+            rteInput.setBorder(window.getDefaultBorder(rteInput));
+        }
+
+        return valid;
     }
 
-    private DocumentListener getAirportValidator() {
+    private DocumentListener getValidator() {
         return new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                validateAirport();
+                validateForm();
             }
             @Override
             public void removeUpdate(DocumentEvent e) {
-                validateAirport();
+                validateForm();
             }
             @Override
             public void changedUpdate(DocumentEvent e) {
-                validateAirport();
+                validateForm();
             }
         };
     }
+
 }

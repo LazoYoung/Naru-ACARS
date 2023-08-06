@@ -9,7 +9,6 @@ import com.flylazo.naru_acars.gui.Window;
 import com.flylazo.naru_acars.gui.component.FlightInput;
 import com.flylazo.naru_acars.gui.component.Header;
 import com.flylazo.naru_acars.gui.component.RouteInput;
-import com.flylazo.naru_acars.servlet.repository.AircraftRepository;
 import com.flylazo.naru_acars.servlet.service.SimDataService;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -24,6 +23,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,20 +32,16 @@ import static javax.swing.LayoutStyle.ComponentPlacement.UNRELATED;
 
 public class Dispatcher extends PanelBase {
     private final Logger logger = Logger.getLogger(NaruACARS.class.getName());
-    private final String FORM_EMPTY = "Please fill out the form";
     private final SimDataService simDataService;
-    private final AircraftRepository aircraftRepo;
     private final FlightInput flightInput;
     private final RouteInput routeInput;
     private final JLabel actionLabel;
     private final JButton simbriefBtn;
-    private final JButton submitBtn;
     private FlightPlan plan = null;
 
     public Dispatcher(Window window, int margin) {
         super(window);
 
-        this.aircraftRepo = window.getServiceFactory().getBean(AircraftRepository.class);
         this.simDataService = window.getServiceFactory().getBean(SimDataService.class);
         var labelFont = new Font("Ubuntu Regular", Font.BOLD, 15);
         this.flightInput = new FlightInput(window, labelFont);
@@ -54,9 +51,9 @@ public class Dispatcher extends PanelBase {
         var btnFont = new Font("Ubuntu Medium", Font.PLAIN, 15);
         var noteLabel = window.bakeLabel("* Optional fields", noteFont, Color.black);
         var actionPane = new JPanel();
+        var submitBtn = new JButton("SUBMIT");
         actionLabel = new JLabel();
         simbriefBtn = new JButton("Simbrief");
-        submitBtn = new JButton("SUBMIT");
 
         // Flight Dispatcher
         simbriefBtn.addMouseListener(new MouseAdapter() {
@@ -75,13 +72,8 @@ public class Dispatcher extends PanelBase {
                 }
             }
         });
-        submitBtn.setToolTipText(FORM_EMPTY);
-        submitBtn.setEnabled(false);
         submitBtn.setFont(btnFont);
-        routeInput.addValidationListener(valid -> {
-            submitBtn.setEnabled(valid);
-            submitBtn.setToolTipText(valid ? "Submit your flight plan" : FORM_EMPTY);
-        });
+        submitBtn.setToolTipText("Submit your flight plan");
         actionPane.setLayout(new BoxLayout(actionPane, BoxLayout.X_AXIS));
         actionPane.add(Box.createHorizontalGlue());
         actionPane.add(actionLabel);
@@ -150,14 +142,13 @@ public class Dispatcher extends PanelBase {
         client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
                 .exceptionally(t -> {
                     if (ExceptionUtils.indexOfType(t, HttpTimeoutException.class) > -1) {
-                        actionLabel.setText("Connection timeout.");
+                        this.sendActionMessage("Connection timeout.", Color.red);
                     } else if (ExceptionUtils.indexOfType(t, ConnectException.class) > -1) {
-                        actionLabel.setText("Connection refused.");
+                        this.sendActionMessage("Connection refused.", Color.red);
                     } else {
-                        actionLabel.setText("Failed to fetch.");
+                        this.sendActionMessage("Process fail.", Color.red);
                         logger.log(Level.SEVERE, "Failed to fetch simbrief OFP.", t);
                     }
-                    actionLabel.setForeground(Color.red);
                     simbriefBtn.setEnabled(true);
                     return null;
                 })
@@ -170,8 +161,7 @@ public class Dispatcher extends PanelBase {
                         return new ObjectMapper().readValue(response.body(), FlightPlan.class);
                     } catch (JsonProcessingException e) {
                         logger.log(Level.SEVERE, "Failed to parse json.", e);
-                        actionLabel.setText(null);
-                        simbriefBtn.setEnabled(true);
+
                         return null;
                     }
                 })
@@ -182,32 +172,51 @@ public class Dispatcher extends PanelBase {
 
                     this.plan = plan;
                     var acf = plan.getAircraft();
+                    var t = plan.getBlockTime().toMinutes();
                     flightInput.setCallsign(plan.getCallsign());
                     flightInput.setAircraft((acf != null) ? acf.getIcaoCode() : "");
+                    flightInput.setFlightTime(String.format("%d:%02d", t / 60, t % 60));
                     routeInput.setDeparture(plan.getDepartureCode());
                     routeInput.setArrival(plan.getArrivalCode());
-                    // todo
-                    // routeInput.setAlternate(plan.getAlternateCode());
-                    actionLabel.setForeground(Color.blue);
-                    actionLabel.setText("Fetch complete!");
+                    routeInput.setAlternate(plan.getAlternateCode());
+                    routeInput.setRoute(plan.getRoute());
+                    routeInput.setRemarks(plan.getRemarks());
+                    this.sendActionMessage("Fetch complete.", Color.blue);
                     simbriefBtn.setEnabled(true);
-                    routeInput.validateAirport();
+                    routeInput.validateForm();
                 }));
     }
 
     private void submitFlightPlan() {
+        if (!flightInput.validateForm() || !routeInput.validateForm()) {
+            this.sendActionMessage("Please fill out the form", Color.red);
+            return;
+        }
+
         if (plan == null) {
             plan = new FlightPlan();
         }
 
-        var acf = flightInput.getAircraft();
         plan.setCallsign(flightInput.getCallsign());
-        plan.setAircraft((acf != null) ? aircraftRepo.get(acf) : null);
+        plan.setAircraft(flightInput.getAircraft());
+        plan.setBlockTime(flightInput.getFlightTime());
         plan.setDepartureCode(routeInput.getDeparture());
         plan.setArrivalCode(routeInput.getArrival());
-        // todo set alternate code
+        plan.setAlternateCode(routeInput.getAlternate());
+        plan.setRoute(routeInput.getRoute());
+        plan.setRemarks(routeInput.getRemarks());
         FlightPlan.submit(plan);
         simDataService.requestUpdate();
-        actionLabel.setText("Plan sent!");
+        this.sendActionMessage("Plan sent!", Color.blue);
+    }
+
+    private void sendActionMessage(String text, Color color) {
+        actionLabel.setForeground(color);
+        actionLabel.setText(text);
+
+        var service = Executors.newSingleThreadScheduledExecutor();
+        service.schedule(() -> {
+            SwingUtilities.invokeLater(() -> actionLabel.setText(null));
+        }, 3, TimeUnit.SECONDS);
     }
 }

@@ -133,6 +133,22 @@ public class Window extends JFrame {
         return contentPane;
     }
 
+    public Border getAmberBorder() {
+        return BorderFactory.createLineBorder(Color.red, 1);
+    }
+
+    public Border getDefaultBorder(JComponent component) {
+        String type = component.getClass().getSimpleName();
+
+        if (type.equals("TextInput")) {
+            type = "TextField";
+        } else if (type.startsWith("J")) {
+            type = type.substring(1);
+        }
+
+        return UIManager.getLookAndFeel().getDefaults().getBorder(type + ".border");
+    }
+
     public void setDocumentFilter(Document doc, String regex, boolean uppercase) {
         var filter = new DocumentFilter() {
             @Override

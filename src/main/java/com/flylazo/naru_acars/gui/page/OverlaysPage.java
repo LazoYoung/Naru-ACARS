@@ -44,7 +44,6 @@ public class OverlaysPage extends JPanel {
                 .stream()
                 .map(Overlay::getName)
                 .toArray(String[]::new);
-        // todo use combobox model to display names
         selector = new JComboBox<>(items);
         overlayPane = new JPanel(new GridLayout(1, 1));
         var useBtn = new JButton("Use overlay");
