@@ -16,15 +16,4 @@ public class Helper {
                 .toString();
     }
 
-    /**
-     * @param instant1 {@link DateTimeFormatter#ISO_INSTANT}
-     * @param instant2 {@link DateTimeFormatter#ISO_INSTANT}
-     * @return absolute duration between two instants
-     */
-    public static Duration getDuration(String instant1, String instant2) {
-        Instant p1 = Instant.parse(instant1);
-        Instant p2 = Instant.parse(instant2);
-        return Duration.between(p1, p2).abs();
-    }
-
 }

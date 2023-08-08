@@ -26,12 +26,4 @@ class HelperTest {
             assertTrue(isAlphaNumeric);
         }
     }
-
-    @Test
-    void getDuration() {
-        String time1 = "2023-07-30T04:50:00Z";
-        String time2 = "2023-07-30T06:00:00Z";
-        Duration duration = Helper.getDuration(time1, time2);
-        assertEquals(duration.toMinutes(), 70);
-    }
 }
