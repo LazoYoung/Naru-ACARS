@@ -65,7 +65,7 @@ public class FlightInput extends JPanel {
 
     @Nullable
     public Aircraft getAircraft() {
-        return aircraftRepo.get(acfInput.getText());
+        return aircraftRepo.find(acfInput.getText()).orElse(null);
     }
 
     @Nullable

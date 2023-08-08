@@ -9,6 +9,7 @@ import com.flylazo.naru_acars.servlet.repository.AirportRepository;
 import com.flylazo.naru_acars.servlet.service.SimTracker;
 
 import java.time.LocalTime;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -48,7 +49,7 @@ public abstract class SimBridge {
             var dep = airportRepo.find(depCode);
             var arr = airportRepo.find(arrCode);
 
-            if (dep.isEmpty() || arr.isEmpty() || depCode.equals(arrCode)) {
+            if (dep.isEmpty() || arr.isEmpty() || Objects.equals(depCode, arrCode)) {
                 return "ON GROUND";
             }
 

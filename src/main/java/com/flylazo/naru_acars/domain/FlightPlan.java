@@ -132,12 +132,22 @@ public class FlightPlan {
         this.remarks = remarks;
     }
 
-    public String getAirline() {
-        return (airline != null) ? airline : "";
+    public void setBlockOff(Instant blockOff) {
+        this.blockOff = blockOff;
     }
 
+    public void setBlockOn(Instant blockOn) {
+        this.blockOn = blockOn;
+    }
+
+    @Nullable
+    public String getAirline() {
+        return airline;
+    }
+
+    @Nullable
     public String getCallsign() {
-        return (callsign != null) ? callsign : "";
+        return callsign;
     }
 
     @Nullable
@@ -145,28 +155,44 @@ public class FlightPlan {
         return aircraft;
     }
 
+    @Nullable
     public String getDepartureCode() {
-        return (departureCode != null) ? departureCode : "";
+        return departureCode;
     }
 
+    @Nullable
     public String getArrivalCode() {
-        return (arrivalCode != null) ? arrivalCode : "";
+        return arrivalCode;
     }
 
+    @Nullable
     public String getAlternateCode() {
-        return (alternateCode != null) ? alternateCode : "";
+        return alternateCode;
     }
 
+    @Nullable
     public String getRoute() {
-        return (route != null) ? route : "";
+        return route;
     }
 
+    @Nullable
     public String getRemarks() {
-        return (remarks != null) ? remarks : "";
+        return remarks;
     }
 
+    @Nullable
     public Duration getBlockTime() {
         return this.blockTime;
+    }
+
+    @Nullable
+    public Instant getBlockOff() {
+        return this.blockOff;
+    }
+
+    @Nullable
+    public Instant getBlockOn() {
+        return this.blockOn;
     }
 
     @Nullable
