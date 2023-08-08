@@ -172,10 +172,13 @@ public class Dispatcher extends PanelBase {
 
                     this.plan = plan;
                     var acf = plan.getAircraft();
-                    var t = plan.getBlockTime().toMinutes();
+                    var bt = plan.getBlockTime();
+                    var t = (bt != null) ? bt.toMinutes() : 0;
+                    var flightTime = (t > 0) ? String.format("%d:%02d", t / 60, t % 60) : null;
+                    var aircraft = (acf != null) ? acf.getIcaoCode() : null;
                     flightInput.setCallsign(plan.getCallsign());
-                    flightInput.setAircraft((acf != null) ? acf.getIcaoCode() : "");
-                    flightInput.setFlightTime(String.format("%d:%02d", t / 60, t % 60));
+                    flightInput.setAircraft(aircraft);
+                    flightInput.setFlightTime(flightTime);
                     routeInput.setDeparture(plan.getDepartureCode());
                     routeInput.setArrival(plan.getArrivalCode());
                     routeInput.setAlternate(plan.getAlternateCode());

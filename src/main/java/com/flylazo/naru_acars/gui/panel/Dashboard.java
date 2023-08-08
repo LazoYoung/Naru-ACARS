@@ -63,7 +63,8 @@ public class Dashboard extends PanelBase {
         layout.setHorizontalGroup(hGroup);
         layout.setVerticalGroup(vGroup);
         this.simTracker.addUpdateListener(this::onSimulatorUpdate);
-        this.acarsService.addUpdateListener(this::onAcarsUpdate);
+        // todo adapt to final socket api
+//        this.acarsService.observeUpdate(this::onAcarsUpdate);
         this.setLayout(layout);
         this.setBackground(Color.white);
         this.setPreferredSize(new Dimension(250, 0));

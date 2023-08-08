@@ -18,6 +18,7 @@ public class Properties {
     private int port = 8080;
     private String simbriefName = "";
     private String overlay = null;
+    private String acarsAPI = null;
 
     static {
         try {
@@ -67,6 +68,11 @@ public class Properties {
         return overlay;
     }
 
+    @JsonGetter("acars-api")
+    public String getAcarsAPI() {
+        return acarsAPI;
+    }
+
     @JsonSetter("port")
     public void setPort(int port) {
         if (port < 0 || port > 65535) {
@@ -83,5 +89,10 @@ public class Properties {
     @JsonSetter("overlay")
     public void setOverlay(String overlay) {
         this.overlay = overlay;
+    }
+
+    @JsonSetter("acars-api")
+    public void setAcarsAPI(String key) {
+        this.acarsAPI = key;
     }
 }

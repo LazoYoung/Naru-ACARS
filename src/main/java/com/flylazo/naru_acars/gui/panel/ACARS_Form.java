@@ -3,14 +3,18 @@ package com.flylazo.naru_acars.gui.panel;
 import com.flylazo.naru_acars.domain.acars.VirtualAirline;
 import com.flylazo.naru_acars.gui.Window;
 import com.flylazo.naru_acars.gui.component.TextInput;
+import com.flylazo.naru_acars.servlet.service.ACARS_Service;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 
 import static javax.swing.GroupLayout.Alignment.LEADING;
-import static javax.swing.LayoutStyle.ComponentPlacement.UNRELATED;
 
 public class ACARS_Form extends PanelBase {
+    private final ACARS_Service service;
+    private final JButton connectBtn;
+
     public ACARS_Form(Window window) {
         super(window);
 
@@ -23,9 +27,11 @@ public class ACARS_Form extends PanelBase {
         var apiLabel = window.bakeLabel("API key", boldFont, Color.black);
         var vaCombo = new JComboBox<>(VirtualAirline.values());
         var apiInput = new TextInput("Paste the key of your VA account", 30, false);
-        var connectButton = new JButton("Connect");
-        var hGlue = Box.createHorizontalGlue();
+        this.service = window.getServiceFactory().getBean(ACARS_Service.class);
+        this.connectBtn = new JButton("Connect");
+        this.connectBtn.addActionListener(this::onClickConnect);
 
+        var hGlue = Box.createHorizontalGlue();
         hGroup.addContainerGap(20, 20)
                 .addGroup(formLayout.createParallelGroup(LEADING, false)
                         .addComponent(vaLabel)
@@ -34,7 +40,7 @@ public class ACARS_Form extends PanelBase {
                         .addComponent(apiInput)
                         .addGroup(formLayout.createSequentialGroup()
                                 .addComponent(hGlue)
-                                .addComponent(connectButton)
+                                .addComponent(this.connectBtn)
                         )
                 )
                 .addContainerGap(20, 20);
@@ -48,7 +54,7 @@ public class ACARS_Form extends PanelBase {
                         .addGap(40)
                         .addGroup(formLayout.createParallelGroup(LEADING, false)
                                 .addComponent(hGlue)
-                                .addComponent(connectButton)
+                                .addComponent(this.connectBtn)
                         )
                 )
                 .addContainerGap(20, 20);
@@ -57,5 +63,9 @@ public class ACARS_Form extends PanelBase {
         form.setLayout(formLayout);
         this.add(form);
         this.setBorder(BorderFactory.createTitledBorder("Datalink form"));
+    }
+
+    private void onClickConnect(ActionEvent event) {
+        // todo method stub
     }
 }
