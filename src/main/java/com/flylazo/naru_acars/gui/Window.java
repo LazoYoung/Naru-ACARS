@@ -85,7 +85,7 @@ public class Window extends JFrame {
     }
 
     /**
-     * @param type Magic value: JOptionPane.XXX
+     * @param type Magic value: JOptionPane.XXX_MESSAGE
      * @param message Message to display
      */
     public void showDialog(int type, String message) {

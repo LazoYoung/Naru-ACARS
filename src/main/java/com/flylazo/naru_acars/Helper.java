@@ -1,5 +1,6 @@
 package com.flylazo.naru_acars;
 
+import java.util.Objects;
 import java.util.Random;
 
 public class Helper {
@@ -11,6 +12,16 @@ public class Helper {
                 .limit(length)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
+    }
+
+    public static Throwable getRootCause(Throwable throwable) {
+        Objects.requireNonNull(throwable);
+        Throwable root = throwable;
+
+        while (root.getCause() != null && root.getCause() != root) {
+            root = root.getCause();
+        }
+        return root;
     }
 
 }

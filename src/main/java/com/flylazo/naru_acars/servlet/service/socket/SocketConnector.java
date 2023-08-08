@@ -1,31 +1,39 @@
 package com.flylazo.naru_acars.servlet.service.socket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.flylazo.naru_acars.Helper;
 import com.flylazo.naru_acars.NaruACARS;
+import com.flylazo.naru_acars.domain.acars.VirtualAirline;
 import com.flylazo.naru_acars.domain.acars.request.AuthBulk;
 import com.flylazo.naru_acars.domain.acars.request.Request;
 import com.flylazo.naru_acars.domain.acars.response.Response;
 import com.flylazo.naru_acars.domain.acars.response.Status;
 
-import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
+import java.nio.channels.ClosedChannelException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SocketConnector {
-    private final Logger logger = NaruACARS.logger;
-    private final List<Consumer<SocketContext>> successObs = new ArrayList<>();
-    private final List<Consumer<SocketError>> errorObs = new ArrayList<>();
-    private final URI uri;
+    private final Logger logger;
+    private final SocketListener listener;
+    private final List<Consumer<SocketContext>> successObs;
+    private final List<Consumer<SocketError>> errorObs;
+    private final VirtualAirline server;
     private String apiKey;
 
-    public SocketConnector(URI uri) {
-        this.uri = uri;
+    public SocketConnector(VirtualAirline server, SocketListener listener) {
+        this.logger = NaruACARS.logger;
+        this.listener = listener;
+        this.successObs = new ArrayList<>();
+        this.errorObs = new ArrayList<>();
+        this.server = server;
     }
 
     public SocketConnector withAPIKey(String apiKey) {
@@ -44,13 +52,12 @@ public class SocketConnector {
     }
 
     public void connect() {
-        final var listener = new SocketListener();
         HttpClient.newHttpClient()
                 .newWebSocketBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
-                .buildAsync(this.uri, listener)
+                .buildAsync(this.server.getUri(), listener)
                 .exceptionallyAsync(this::handleException)
-                .thenApplyAsync(socket -> new SocketContext(socket, listener))
+                .thenApplyAsync(socket -> new SocketContext(this.server, socket, listener))
                 .thenAcceptAsync(this::authenticate);
     }
 
@@ -66,18 +73,20 @@ public class SocketConnector {
         } catch (JsonProcessingException e) {
             context.terminate();
             notifyError(SocketError.FATAL_ERROR);
-            this.logger.severe("Exception while handling socket communication");
-            this.logger.severe(e.getMessage());
+            this.logger.log(Level.SEVERE, "Exception while handling socket communication", e);
         }
     }
 
     private WebSocket handleException(Throwable t) {
-        if (t instanceof TimeoutException) {
-            notifyError(SocketError.TIMEOUT);
+        var cause = Helper.getRootCause(t);
+
+        if (cause instanceof TimeoutException) {
+            notifyError(SocketError.OFFLINE);
+        } else if (cause instanceof ClosedChannelException) {
+            notifyError(SocketError.OFFLINE);
         } else {
             notifyError(SocketError.FATAL_ERROR);
-            this.logger.severe("Exception while handling socket communication");
-            this.logger.severe(t.getMessage());
+            this.logger.log(Level.SEVERE, "Exception while handling socket communication", t);
         }
         return null;
     }
@@ -89,7 +98,7 @@ public class SocketConnector {
             this.successObs.forEach(obs -> obs.accept(context));
         } else {
             SocketError error = switch (status) {
-                case TIMEOUT -> SocketError.TIMEOUT;
+                case TIMEOUT -> SocketError.OFFLINE;
                 case FORBIDDEN -> SocketError.API_KEY_IN_USE;
                 case NOT_FOUND -> SocketError.API_KEY_INVALID;
                 default -> SocketError.FATAL_ERROR;

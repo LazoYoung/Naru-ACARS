@@ -3,30 +3,43 @@ package com.flylazo.naru_acars.servlet.service;
 import com.flylazo.naru_acars.domain.acars.VirtualAirline;
 import com.flylazo.naru_acars.servlet.service.socket.SocketConnector;
 import com.flylazo.naru_acars.servlet.service.socket.SocketContext;
+import com.flylazo.naru_acars.servlet.service.socket.SocketListener;
 import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ACARS_Service {
+    private final SocketListener listener;
     private SocketContext context;
-    private String server = null;
+
+    public ACARS_Service() {
+        this.listener = new SocketListener();
+    }
 
     public boolean isConnected() {
-        return this.context.isOpen();
+        return (this.context != null) && this.context.isOpen();
     }
 
     @Nullable
-    public String getServer() {
-        return this.server;
+    public String getServerName() {
+        return (this.context != null) ? this.context.getServer().toString() : null;
     }
 
     public SocketConnector getConnector(VirtualAirline airline) {
-        if (this.context != null) {
+        if (isConnected()) {
             throw new IllegalStateException("Connection is already established!");
         }
 
-        return new SocketConnector(airline.getUri())
+        if (this.context != null) {
+            this.context.terminate();
+        }
+
+        return new SocketConnector(airline, this.listener)
                 .whenSuccess(this::updateContext);
+    }
+
+    public SocketListener getListener() {
+        return listener;
     }
 
     public SocketContext getContext() {

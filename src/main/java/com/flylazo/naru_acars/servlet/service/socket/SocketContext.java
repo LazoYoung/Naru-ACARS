@@ -1,5 +1,7 @@
 package com.flylazo.naru_acars.servlet.service.socket;
 
+import com.flylazo.naru_acars.domain.acars.VirtualAirline;
+
 import java.net.http.WebSocket;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,12 +12,14 @@ import java.util.List;
  */
 public class SocketContext {
     private final List<Runnable> observerList;
+    private final VirtualAirline server;
     private final SocketListener listener;
     private final WebSocket socket;
     private int ident = 1;
 
-    public SocketContext(WebSocket socket, SocketListener listener) {
+    public SocketContext(VirtualAirline server, WebSocket socket, SocketListener listener) {
         this.observerList = new ArrayList<>();
+        this.server = server;
         this.socket = socket;
         this.listener = listener;
     }
@@ -30,6 +34,10 @@ public class SocketContext {
 
     public WebSocket getWebSocket() {
         return socket;
+    }
+
+    public VirtualAirline getServer() {
+        return server;
     }
 
     public void terminate() {
