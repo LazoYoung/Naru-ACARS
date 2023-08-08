@@ -35,7 +35,7 @@ public class FlightPlan {
     private ZoneId origZone;
     private ZoneId destZone;
 
-    public static FlightPlan getInstance() {
+    public static FlightPlan getDispatched() {
         if (instance == null) {
             instance = new FlightPlan();
         }

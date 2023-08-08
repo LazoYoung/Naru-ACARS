@@ -102,7 +102,7 @@ public class Window extends JFrame {
 
     public BeanFactory getServiceFactory() {
         if (context == null) {
-            throw new IllegalStateException("Window has not started.");
+            throw new IllegalStateException("Application has not started.");
         }
 
         return context.getBeanFactory();

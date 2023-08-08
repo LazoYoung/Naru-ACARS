@@ -32,11 +32,11 @@ public abstract class SimBridge {
     }
 
     public Optional<Airport> getAirport(String icao) {
-        return Optional.ofNullable(airportRepo.get(icao));
+        return airportRepo.find(icao);
     }
 
     public String getFlightPhase() {
-        var plan = FlightPlan.getInstance();
+        var plan = FlightPlan.getDispatched();
 
         if (plan == null || !isConnected()) {
             return null;
@@ -45,10 +45,10 @@ public abstract class SimBridge {
         if (isOnGround()) {
             var depCode = plan.getDepartureCode();
             var arrCode = plan.getArrivalCode();
-            var dep = airportRepo.get(depCode);
-            var arr = airportRepo.get(arrCode);
+            var dep = airportRepo.find(depCode);
+            var arr = airportRepo.find(arrCode);
 
-            if (dep == null || arr == null || depCode.equals(arrCode)) {
+            if (dep.isEmpty() || arr.isEmpty() || depCode.equals(arrCode)) {
                 return "ON GROUND";
             }
 
@@ -57,8 +57,8 @@ public abstract class SimBridge {
                 return "AT GATE";
             }
 
-            var depLat = dep.getLatitude();
-            var depLon = dep.getLongitude();
+            var depLat = dep.get().getLatitude();
+            var depLon = dep.get().getLongitude();
             var lat = getLatitude();
             var lon = getLongitude();
             var distance = Length.KILOMETER.getDistance(depLat, depLon, lat, lon);

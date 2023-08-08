@@ -1,5 +1,8 @@
 package com.flylazo.naru_acars.servlet.service;
 
+import com.flylazo.naru_acars.domain.Aircraft;
+import com.flylazo.naru_acars.domain.Airline;
+import com.flylazo.naru_acars.domain.Airport;
 import com.flylazo.naru_acars.domain.FlightPlan;
 import com.flylazo.naru_acars.domain.overlay.SimData;
 import com.flylazo.naru_acars.domain.overlay.Simvar;
@@ -15,6 +18,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import static com.flylazo.naru_acars.domain.overlay.Simvar.Type.*;
 
 @Service
 public class SimDataService {
@@ -51,69 +57,70 @@ public class SimDataService {
 
     private void update(SimBridge simBridge) {
         var timeFormat = DateTimeFormatter.ofPattern("HH:mm");
-        var plan = FlightPlan.getInstance();
-        var dep = (plan != null) ? airportService.get(plan.getDepartureCode()) : null;
-        var arr = (plan != null) ? airportService.get(plan.getArrivalCode()) : null;
-        var airline = (plan != null) ? airlineRepo.get(plan.getAirline()) : null;
-        var acf = (plan != null) ? plan.getAircraft() : null;
+        var plan = FlightPlan.getDispatched();
+        Optional<Airport> dep = (plan != null) ? airportService.find(plan.getDepartureCode()) : Optional.empty();
+        Optional<Airport> arr = (plan != null) ? airportService.find(plan.getArrivalCode()) : Optional.empty();
+        Optional<Airline> airline = (plan != null) ? airlineRepo.find(plan.getAirline()) : Optional.empty();
+        Optional<Aircraft> acf = (plan != null) ? Optional.ofNullable(plan.getAircraft()) : Optional.empty();
         var lat = simBridge.getLatitude();
         var lon = simBridge.getLongitude();
         boolean isOnline = (Math.abs(lat) > 0.05 || Math.abs(lon) > 0.05);
         double distKM = -1;
         double distNM = -1;
 
-        if (isOnline && arr != null) {
-            distKM = Length.KILOMETER.getDistance(lat, lon, arr.getLatitude(), arr.getLongitude());
-            distNM = Length.NAUTICAL_MILE.getDistance(lat, lon, arr.getLatitude(), arr.getLongitude());
+        if (isOnline && arr.isPresent()) {
+            var apt = arr.get();
+            distKM = Length.KILOMETER.getDistance(lat, lon, apt.getLatitude(), apt.getLongitude());
+            distNM = Length.NAUTICAL_MILE.getDistance(lat, lon, apt.getLatitude(), apt.getLongitude());
         }
 
-        data.put(Simvar.Type.FRAME_PER_SEC, simBridge.getFPS());
-        data.put(Simvar.Type.LOCAL_TIME, simBridge.getLocalTime().format(timeFormat));
-        data.put(Simvar.Type.ZULU_TIME, ZonedDateTime.now(ZoneOffset.UTC).format(timeFormat));
-        data.put(Simvar.Type.BLOCK_RAMP_OUT_LOCAL, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_OUT, true) : null);
-        data.put(Simvar.Type.BLOCK_RAMP_OUT_ZULU, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_OUT, false) : null);
-        data.put(Simvar.Type.BLOCK_TAKE_OFF_LOCAL, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_OFF, true) : null);
-        data.put(Simvar.Type.BLOCK_TAKE_OFF_ZULU, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_OFF, false) : null);
-        data.put(Simvar.Type.BLOCK_TOUCH_DOWN_LOCAL, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_ON, true) : null);
-        data.put(Simvar.Type.BLOCK_TOUCH_DOWN_ZULU, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_ON, false) : null);
-        data.put(Simvar.Type.BLOCK_RAMP_IN_LOCAL, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_IN, true) : null);
-        data.put(Simvar.Type.BLOCK_RAMP_IN_ZULU, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_IN, false) : null);
-        data.put(Simvar.Type.ROUTE, (plan != null) ? plan.getRoute() : null);
-        data.put(Simvar.Type.DTG_KM, (distKM >= 0) ? distKM : null);
-        data.put(Simvar.Type.DTG_NM, (distNM >= 0) ? distNM : null);
-        data.put(Simvar.Type.DEPARTURE_ICAO, (dep != null) ? dep.getIcao() : null);
-        data.put(Simvar.Type.DEPARTURE_IATA, (dep != null) ? dep.getIata() : null);
-        data.put(Simvar.Type.DEPARTURE_NAME, (dep != null) ? dep.getName() : null);
-        data.put(Simvar.Type.DEPARTURE_CITY, (dep != null) ? dep.getCity() : null);
-        data.put(Simvar.Type.ARRIVAL_ICAO, (arr != null) ? arr.getIcao() : null);
-        data.put(Simvar.Type.ARRIVAL_IATA, (arr != null) ? arr.getIata() : null);
-        data.put(Simvar.Type.ARRIVAL_NAME, (arr != null) ? arr.getName() : null);
-        data.put(Simvar.Type.ARRIVAL_CITY, (arr != null) ? arr.getCity() : null);
-        data.put(Simvar.Type.AIRLINE_ICAO, (airline != null) ? airline.getIcao() : null);
-        data.put(Simvar.Type.AIRLINE_IATA, (airline != null) ? airline.getIata() : null);
-        data.put(Simvar.Type.AIRLINE_NAME, (airline != null) ? airline.getName() : null);
-        data.put(Simvar.Type.AIRLINE_CALLSIGN, (airline != null) ? airline.getCallsign() : null);
-        data.put(Simvar.Type.AIRCRAFT_ICAO, (acf != null) ? acf.getIcaoCode() : null);
-        data.put(Simvar.Type.AIRCRAFT_NAME, (acf != null) ? acf.getName() : null);
-        data.put(Simvar.Type.LATITUDE, simBridge.getLatitude());
-        data.put(Simvar.Type.LONGITUDE, simBridge.getLongitude());
-        data.put(Simvar.Type.ALTITUDE_FEET, simBridge.getAltitude(Length.FEET));
-        data.put(Simvar.Type.ALTITUDE_METER, simBridge.getAltitude(Length.METER));
-        data.put(Simvar.Type.HEADING_MAG, simBridge.getHeading(true));
-        data.put(Simvar.Type.HEADING_TRUE, simBridge.getHeading(false));
-        data.put(Simvar.Type.AIRSPEED_KNOT, simBridge.getAirspeed(Speed.KNOT));
-        data.put(Simvar.Type.AIRSPEED_KPH, simBridge.getAirspeed(Speed.KILOMETER_PER_HOUR));
-        data.put(Simvar.Type.AIRSPEED_MPH, simBridge.getAirspeed(Speed.MILE_PER_HOUR));
-        data.put(Simvar.Type.GROUND_SPEED_KNOT, simBridge.getGroundSpeed(Speed.KNOT));
-        data.put(Simvar.Type.GROUND_SPEED_KPH, simBridge.getGroundSpeed(Speed.KILOMETER_PER_HOUR));
-        data.put(Simvar.Type.GROUND_SPEED_MPH, simBridge.getGroundSpeed(Speed.MILE_PER_HOUR));
-        data.put(Simvar.Type.VERTICAL_SPEED, simBridge.getVerticalSpeed(Speed.FEET_PER_MIN));
-        data.put(Simvar.Type.ENGINE1_FUEL_FLOW, simBridge.getEngineFuelFlow(1));
-        data.put(Simvar.Type.ENGINE2_FUEL_FLOW, simBridge.getEngineFuelFlow(2));
-        data.put(Simvar.Type.ENGINE3_FUEL_FLOW, simBridge.getEngineFuelFlow(3));
-        data.put(Simvar.Type.ENGINE4_FUEL_FLOW, simBridge.getEngineFuelFlow(4));
-        data.put(Simvar.Type.CALLSIGN, (plan != null) ? plan.getCallsign() : null);
-        data.put(Simvar.Type.PHASE, isOnline ? getFlightPhase() : null);
+        data.put(FRAME_PER_SEC, simBridge.getFPS());
+        data.put(LOCAL_TIME, simBridge.getLocalTime().format(timeFormat));
+        data.put(ZULU_TIME, ZonedDateTime.now(ZoneOffset.UTC).format(timeFormat));
+        data.put(BLOCK_RAMP_OUT_LOCAL, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_OUT, true) : null);
+        data.put(BLOCK_RAMP_OUT_ZULU, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_OUT, false) : null);
+        data.put(BLOCK_TAKE_OFF_LOCAL, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_OFF, true) : null);
+        data.put(BLOCK_TAKE_OFF_ZULU, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_OFF, false) : null);
+        data.put(BLOCK_TOUCH_DOWN_LOCAL, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_ON, true) : null);
+        data.put(BLOCK_TOUCH_DOWN_ZULU, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_ON, false) : null);
+        data.put(BLOCK_RAMP_IN_LOCAL, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_IN, true) : null);
+        data.put(BLOCK_RAMP_IN_ZULU, (plan != null) ? plan.getTimeSchedule(FlightPlan.BLOCK_IN, false) : null);
+        data.put(ROUTE, (plan != null) ? plan.getRoute() : null);
+        data.put(DTG_KM, (distKM >= 0) ? distKM : null);
+        data.put(DTG_NM, (distNM >= 0) ? distNM : null);
+        data.put(DEPARTURE_ICAO, dep.map(Airport::getIcao).orElse(null));
+        data.put(DEPARTURE_IATA, dep.map(Airport::getIata).orElse(null));
+        data.put(DEPARTURE_NAME, dep.map(Airport::getName).orElse(null));
+        data.put(DEPARTURE_CITY, dep.map(Airport::getCity).orElse(null));
+        data.put(ARRIVAL_ICAO, arr.map(Airport::getIcao).orElse(null));
+        data.put(ARRIVAL_IATA, arr.map(Airport::getIata).orElse(null));
+        data.put(ARRIVAL_NAME, arr.map(Airport::getName).orElse(null));
+        data.put(ARRIVAL_CITY, arr.map(Airport::getCity).orElse(null));
+        data.put(AIRLINE_ICAO, airline.map(Airline::getIcao).orElse(null));
+        data.put(AIRLINE_IATA, airline.map(Airline::getIata).orElse(null));
+        data.put(AIRLINE_NAME, airline.map(Airline::getName).orElse(null));
+        data.put(AIRLINE_CALLSIGN, airline.map(Airline::getCallsign).orElse(null));
+        data.put(AIRCRAFT_ICAO, acf.map(Aircraft::getIcaoCode).orElse(null));
+        data.put(AIRCRAFT_NAME, acf.map(Aircraft::getName).orElse(null));
+        data.put(LATITUDE, simBridge.getLatitude());
+        data.put(LONGITUDE, simBridge.getLongitude());
+        data.put(ALTITUDE_FEET, simBridge.getAltitude(Length.FEET));
+        data.put(ALTITUDE_METER, simBridge.getAltitude(Length.METER));
+        data.put(HEADING_MAG, simBridge.getHeading(true));
+        data.put(HEADING_TRUE, simBridge.getHeading(false));
+        data.put(AIRSPEED_KNOT, simBridge.getAirspeed(Speed.KNOT));
+        data.put(AIRSPEED_KPH, simBridge.getAirspeed(Speed.KILOMETER_PER_HOUR));
+        data.put(AIRSPEED_MPH, simBridge.getAirspeed(Speed.MILE_PER_HOUR));
+        data.put(GROUND_SPEED_KNOT, simBridge.getGroundSpeed(Speed.KNOT));
+        data.put(GROUND_SPEED_KPH, simBridge.getGroundSpeed(Speed.KILOMETER_PER_HOUR));
+        data.put(GROUND_SPEED_MPH, simBridge.getGroundSpeed(Speed.MILE_PER_HOUR));
+        data.put(VERTICAL_SPEED, simBridge.getVerticalSpeed(Speed.FEET_PER_MIN));
+        data.put(ENGINE1_FUEL_FLOW, simBridge.getEngineFuelFlow(1));
+        data.put(ENGINE2_FUEL_FLOW, simBridge.getEngineFuelFlow(2));
+        data.put(ENGINE3_FUEL_FLOW, simBridge.getEngineFuelFlow(3));
+        data.put(ENGINE4_FUEL_FLOW, simBridge.getEngineFuelFlow(4));
+        data.put(CALLSIGN, (plan != null) ? plan.getCallsign() : null);
+        data.put(PHASE, isOnline ? getFlightPhase() : null);
 
         notifyListeners();
     }

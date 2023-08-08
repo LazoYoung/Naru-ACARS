@@ -1,7 +1,10 @@
 package com.flylazo.naru_acars.servlet.repository;
 
 import com.flylazo.naru_acars.domain.Airline;
+import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 public class AirlineRepository extends CSV<Airline> {
@@ -14,8 +17,17 @@ public class AirlineRepository extends CSV<Airline> {
         super("airlines.dat", COL_ICAO, 1);
     }
 
+    /**
+     * @deprecated replaced with {@link AirlineRepository#find(String)}
+     */
+    @Nullable
+    @Deprecated
     public Airline get(String icao) {
         return super.get(icao);
+    }
+
+    public Optional<Airline> find(String icao) {
+        return Optional.ofNullable(super.get(icao));
     }
 
     @Override
