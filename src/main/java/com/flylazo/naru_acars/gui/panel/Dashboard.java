@@ -62,9 +62,11 @@ public class Dashboard extends PanelBase {
         vGroup.addContainerGap(margin, margin);
         layout.setHorizontalGroup(hGroup);
         layout.setVerticalGroup(vGroup);
+
+        this.acarsService.getListener().observeOpen(this::onSocketOpen);
+        this.acarsService.getListener().observeClose(this::onSocketClose);
+        this.acarsService.getListener().observeError(this::onSocketError);
         this.simTracker.addUpdateListener(this::onSimulatorUpdate);
-        // todo adapt to final socket api
-//        this.acarsService.observeUpdate(this::onAcarsUpdate);
         this.setLayout(layout);
         this.setBackground(Color.white);
         this.setPreferredSize(new Dimension(250, 0));
@@ -98,21 +100,28 @@ public class Dashboard extends PanelBase {
         });
     }
 
-    private void onAcarsUpdate() {
-        final boolean connected = this.acarsService.isConnected();
-        final String server = this.acarsService.getServer();
+    private void onSocketOpen() {
+        final String server = this.acarsService.getServerName();
         final String phase = this.simTracker.getBridge().getFlightPhase();
 
         SwingUtilities.invokeLater(() -> {
-            if (connected) {
-                this.acarsHeader.setStatus(ConnectStatus.ONLINE);
-                this.serverValue.setText(server);
-                this.phaseValue.setText(phase);
-            } else {
-                this.acarsHeader.setStatus(ConnectStatus.OFFLINE);
-                this.serverValue.setText(NOT_AVAIL);
-                this.phaseValue.setText(NOT_AVAIL);
-            }
+            this.acarsHeader.setStatus(ConnectStatus.ONLINE);
+            this.serverValue.setText(server);
+            this.phaseValue.setText(phase);
+        });
+    }
+
+    private void onSocketClose() {
+        SwingUtilities.invokeLater(() -> {
+            this.acarsHeader.setStatus(ConnectStatus.OFFLINE);
+            this.serverValue.setText(NOT_AVAIL);
+            this.phaseValue.setText(NOT_AVAIL);
+        });
+    }
+
+    private void onSocketError(Throwable t) {
+        SwingUtilities.invokeLater(() -> {
+            this.window.showDialog(JOptionPane.ERROR_MESSAGE, t.getMessage());
         });
     }
 
