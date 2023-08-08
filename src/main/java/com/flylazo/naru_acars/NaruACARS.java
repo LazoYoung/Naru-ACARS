@@ -5,6 +5,7 @@ import com.flylazo.naru_acars.gui.page.ConsolePage;
 import com.flylazo.naru_acars.gui.Window;
 import com.mouseviator.fsuipc.FSUIPC;
 import com.flylazo.naru_acars.servlet.service.SimTracker;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -115,6 +116,14 @@ public class NaruACARS {
 
 	public static ClassPathResource getFlatResource(String fileName) {
 		return new ClassPathResource("flat/" + fileName);
+	}
+
+	public static BeanFactory getServiceFactory() {
+		if (context == null) {
+			throw new IllegalStateException("Application has not started.");
+		}
+
+		return context.getBeanFactory();
 	}
 
 	private static void loadLibraries() {

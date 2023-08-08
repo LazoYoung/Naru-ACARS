@@ -44,6 +44,9 @@ dependencies {
 	implementation 'org.eclipse.persistence:org.eclipse.persistence.moxy:4.0.0'
 	implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0'
 	implementation 'jakarta.activation:jakarta.activation-api:2.1.1'
+
+	// Jackson Javascript Mapper API
+	implementation 'com.fasterxml.jackson.core:jackson-core:2.14.2'
 }
 
 launch4j {
