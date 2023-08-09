@@ -13,7 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.nio.channels.ClosedChannelException;
 import java.time.Duration;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
@@ -31,8 +31,8 @@ public class SocketConnector {
     public SocketConnector(VirtualAirline server, SocketListener listener) {
         this.logger = NaruACARS.logger;
         this.listener = listener;
-        this.successObs = new ArrayList<>();
-        this.errorObs = new ArrayList<>();
+        this.successObs = new LinkedList<>();
+        this.errorObs = new LinkedList<>();
         this.server = server;
     }
 
@@ -96,6 +96,7 @@ public class SocketConnector {
 
         if (status == Status.SUCCESS) {
             this.successObs.forEach(obs -> obs.accept(context));
+            this.listener.notifyEstablish();
         } else {
             SocketError error = switch (status) {
                 case TIMEOUT -> SocketError.OFFLINE;

@@ -63,7 +63,7 @@ public class Dashboard extends PanelBase {
         layout.setHorizontalGroup(hGroup);
         layout.setVerticalGroup(vGroup);
 
-        this.acarsService.getListener().observeOpen(this::onSocketOpen);
+        this.acarsService.getListener().observeEstablish(this::onSocketEstablish);
         this.acarsService.getListener().observeClose(this::onSocketClose);
         this.simTracker.addUpdateListener(this::onSimulatorUpdate);
         this.setLayout(layout);
@@ -99,7 +99,7 @@ public class Dashboard extends PanelBase {
         });
     }
 
-    private void onSocketOpen() {
+    private void onSocketEstablish() {
         final String server = this.acarsService.getServerName();
         final String phase = this.simTracker.getBridge().getFlightPhase();
 

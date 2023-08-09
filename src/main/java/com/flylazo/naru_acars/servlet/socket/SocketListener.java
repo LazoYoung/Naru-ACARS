@@ -11,10 +11,7 @@ import com.flylazo.naru_acars.domain.acars.response.Status;
 
 import java.io.IOException;
 import java.net.http.WebSocket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -26,6 +23,7 @@ public class SocketListener implements WebSocket.Listener {
     private final Map<String, Request> reqMap;
     private final Map<String, Consumer<Response>> reqObs;
     private final List<Runnable> openObs;
+    private final List<Runnable> estObs;
     private final List<Runnable> closeObs;
     private final List<Consumer<Throwable>> errorObs;
     private StringBuilder builder;
@@ -34,9 +32,10 @@ public class SocketListener implements WebSocket.Listener {
         this.logger = NaruACARS.logger;
         this.reqMap = new HashMap<>();
         this.reqObs = new HashMap<>();
-        this.openObs = new ArrayList<>();
-        this.closeObs = new ArrayList<>();
-        this.errorObs = new ArrayList<>();
+        this.openObs = new LinkedList<>();
+        this.estObs = new LinkedList<>();
+        this.closeObs = new LinkedList<>();
+        this.errorObs = new LinkedList<>();
         this.builder = new StringBuilder();
     }
 
@@ -47,6 +46,10 @@ public class SocketListener implements WebSocket.Listener {
 
     public void observeOpen(Runnable callback) {
         this.openObs.add(callback);
+    }
+
+    public void observeEstablish(Runnable callback) {
+        this.estObs.add(callback);
     }
 
     public void observeClose(Runnable callback) {
@@ -98,6 +101,10 @@ public class SocketListener implements WebSocket.Listener {
             socket.request(1);
         }
         return null;
+    }
+
+    protected void notifyEstablish() {
+        this.estObs.forEach(Runnable::run);
     }
 
     private void notifyError(Throwable t) {
