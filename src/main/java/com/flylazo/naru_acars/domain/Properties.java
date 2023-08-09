@@ -16,7 +16,7 @@ public class Properties {
     private static final Properties defaultProps = new Properties();
     private static File file = null;
     private int port = 8080;
-    private String simbriefName = "";
+    private String simbriefId = "";
     private String overlay = null;
     private String acarsAPI = null;
 
@@ -58,9 +58,9 @@ public class Properties {
         return port;
     }
 
-    @JsonGetter("simbrief-name")
-    public String getSimbriefName() {
-        return simbriefName;
+    @JsonGetter("simbrief-id")
+    public String getSimbriefId() {
+        return simbriefId;
     }
 
     @JsonGetter("overlay")
@@ -81,9 +81,9 @@ public class Properties {
         this.port = port;
     }
 
-    @JsonSetter("simbrief-name")
-    public void setSimbriefName(String simbriefName) {
-        this.simbriefName = simbriefName;
+    @JsonSetter("simbrief-id")
+    public void setSimbriefId(String simbriefId) {
+        this.simbriefId = simbriefId;
     }
 
     @JsonSetter("overlay")

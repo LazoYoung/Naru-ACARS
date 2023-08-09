@@ -121,25 +121,34 @@ public class Dispatcher extends PanelBase {
 
     private void importSimbrief() {
         final var props = Properties.read();
-        var name = props.getSimbriefName();
+        var username = props.getSimbriefId();
+        String uri;
 
-        if (name == null || name.isBlank()) {
+        if (username == null || username.isBlank()) {
             SwingUtilities.invokeLater(() -> {
-                String input = JOptionPane.showInputDialog("Please specify your Simbrief name.");
-                props.setSimbriefName(input);
+                String input = JOptionPane.showInputDialog("Your Simbrief name or id...");
+                props.setSimbriefId(input);
                 props.save();
             });
             return;
+        }
+
+        try {
+            int id = Integer.parseInt(username);
+            var endpoint = "https://www.simbrief.com/api/xml.fetcher.php?userid=%d&json=1";
+            uri = String.format(endpoint, id);
+        } catch (NumberFormatException e) {
+            var endpoint = "https://www.simbrief.com/api/xml.fetcher.php?username=%s&json=1";
+            uri = String.format(endpoint, username);
         }
 
         simbriefBtn.setEnabled(false);
         actionLabel.setForeground(Color.black);
         this.sendActionMessage("Loading...", Color.black);
 
-        var endpoint = "https://www.simbrief.com/api/xml.fetcher.php?username=%s&json=1";
         var client = HttpClient.newHttpClient();
         var request = HttpRequest.newBuilder()
-                .uri(URI.create(String.format(endpoint, name)))
+                .uri(URI.create(uri))
                 .timeout(Duration.ofSeconds(7))
                 .build();
 
