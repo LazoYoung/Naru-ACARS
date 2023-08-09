@@ -41,7 +41,7 @@ public class SocketContext {
     }
 
     public void terminate() {
-        this.socket.abort();
+        this.socket.sendClose(WebSocket.NORMAL_CLOSURE, "closing datalink");
     }
 
     public SocketMessage buildMessage() {
