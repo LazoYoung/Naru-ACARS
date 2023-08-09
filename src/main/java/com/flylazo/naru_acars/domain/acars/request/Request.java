@@ -16,6 +16,11 @@ public class Request {
         this.intent = intent;
     }
 
+    public Request withIntent(String intent) {
+        setIntent(intent);
+        return this;
+    }
+
     public String getIdent() {
         return ident;
     }
@@ -30,6 +35,11 @@ public class Request {
 
     public void setBulk(Bulk bulk) {
         this.bulk = bulk;
+    }
+
+    public Request withBulk(Bulk bulk) {
+        setBulk(bulk);
+        return this;
     }
 
     public String serialize() throws JsonProcessingException {

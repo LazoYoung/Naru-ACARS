@@ -3,8 +3,6 @@ package com.flylazo.naru_acars.gui.panel;
 import com.flylazo.naru_acars.gui.Window;
 
 import javax.swing.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 public class PanelBase extends JPanel {
     protected final Window window;
@@ -13,14 +11,11 @@ public class PanelBase extends JPanel {
         this.window = window;
     }
 
-    protected void setButtonAction(JButton button, Runnable callback) {
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (e.getComponent().isEnabled()) {
-                    callback.run();
-                }
-            }
-        });
+    protected void setButtonListener(JButton button, Runnable callback) {
+        for (var listener : button.getActionListeners()) {
+            button.removeActionListener(listener);
+        }
+
+        button.addActionListener(e -> callback.run());
     }
 }

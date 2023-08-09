@@ -11,7 +11,10 @@ import com.flylazo.naru_acars.domain.acars.response.Status;
 
 import java.io.IOException;
 import java.net.http.WebSocket;
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -22,26 +25,29 @@ public class SocketListener implements WebSocket.Listener {
     private final Logger logger;
     private final Map<String, Request> reqMap;
     private final Map<String, Consumer<Response>> reqObs;
+    private final Map<String, Consumer<ErrorResponse>> errorObs;
     private final List<Runnable> openObs;
     private final List<Runnable> estObs;
     private final List<Runnable> closeObs;
-    private final List<Consumer<Throwable>> errorObs;
+    private final List<Consumer<Throwable>> socketErrorObs;
     private StringBuilder builder;
 
     public SocketListener() {
         this.logger = NaruACARS.logger;
         this.reqMap = new HashMap<>();
         this.reqObs = new HashMap<>();
+        this.errorObs = new HashMap<>();
         this.openObs = new LinkedList<>();
         this.estObs = new LinkedList<>();
         this.closeObs = new LinkedList<>();
-        this.errorObs = new LinkedList<>();
+        this.socketErrorObs = new LinkedList<>();
         this.builder = new StringBuilder();
     }
 
-    public void observeMessage(Request request, Consumer<Response> callback) {
+    public void observeMessage(Request request, Consumer<Response> reqObs, Consumer<ErrorResponse> errorObs) {
         this.reqMap.put(request.getIdent(), request);
-        this.reqObs.put(request.getIdent(), callback);
+        this.reqObs.put(request.getIdent(), reqObs);
+        this.errorObs.put(request.getIdent(), errorObs);
     }
 
     public void observeOpen(Runnable callback) {
@@ -56,8 +62,8 @@ public class SocketListener implements WebSocket.Listener {
         this.closeObs.add(callback);
     }
 
-    public void observeError(Consumer<Throwable> callback) {
-        this.errorObs.add(callback);
+    public void observeSocketError(Consumer<Throwable> callback) {
+        this.socketErrorObs.add(callback);
     }
 
     @Override
@@ -77,7 +83,7 @@ public class SocketListener implements WebSocket.Listener {
     @Override
     public void onError(WebSocket socket, Throwable error) {
         Throwable t = Helper.getRootCause(error);
-        notifyError(t);
+        notifySocketError(t);
         socket.abort();
         notifyClose();
         this.logger.log(Level.SEVERE, "Socket error received!", t);
@@ -94,7 +100,7 @@ public class SocketListener implements WebSocket.Listener {
 
         try {
             processText();
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to process socket message!", e);
         } finally {
             this.builder = new StringBuilder();
@@ -107,8 +113,8 @@ public class SocketListener implements WebSocket.Listener {
         this.estObs.forEach(Runnable::run);
     }
 
-    private void notifyError(Throwable t) {
-        this.errorObs.forEach(c -> c.accept(t));
+    private void notifySocketError(Throwable t) {
+        this.socketErrorObs.forEach(c -> c.accept(t));
     }
 
     private void notifyOpen() {
@@ -127,43 +133,56 @@ public class SocketListener implements WebSocket.Listener {
 
         if (intent.equals("response")) {
             Request request = this.reqMap.get(ident);
-            if (request != null) {
-                processResponse(json, request);
-            }
-        }
 
+            if (request == null) {
+                throw new RuntimeException("Request observer is lost.");
+            }
+            if (response.getStatus() == Status.SUCCESS) {
+                processResponse(json, request);
+            } else {
+                processErrorResponse(json, ident);
+            }
+            this.reqMap.remove(ident);
+            this.reqObs.remove(ident);
+            this.errorObs.remove(ident);
+        }
         logger.info(String.format("Received message: %s", json));
     }
 
     private void processResponse(String json, Request request) throws IOException {
         String intent = request.getIntent();
         String ident = request.getIdent();
-        var observer = this.reqObs.get(ident);
         Response response = Response.get(json);
 
-        if (response.getStatus() != Status.SUCCESS) {
-            response = getErrorResponse(json);
-        } else if (intent.equals("fetch")) {
-            response = getFetchResponse(json, (FetchBulk) request.getBulk());
+        if (intent.equals("fetch")) {
+            response = processFetchResponse(json, (FetchBulk) request.getBulk());
         }
 
-        if (observer != null) {
-            observer.accept(response);
-            this.reqObs.remove(intent);
-        }
+        notifyRequester(response, ident);
     }
 
-    private ErrorResponse getErrorResponse(String json) throws IOException {
-        return ErrorResponse.deserialize(json);
-    }
-
-    private BookingResponse getFetchResponse(String json, FetchBulk bulk) throws IOException {
+    private Response processFetchResponse(String json, FetchBulk bulk) throws IOException {
         String type = bulk.type;
 
         if (type.equals("booking")) {
             return BookingResponse.deserialize(json);
         } else {
             throw new IOException("Unexpected fetch type: " + type);
+        }
+    }
+
+    private void processErrorResponse(String json, String ident) throws IOException {
+        ErrorResponse response = ErrorResponse.deserialize(json);
+        var observer = this.errorObs.get(ident);
+        if (observer != null) {
+            observer.accept(response);
+        }
+    }
+
+    private void notifyRequester(Response response, String ident) {
+        var observer = this.reqObs.get(ident);
+        if (observer != null) {
+            observer.accept(response);
         }
     }
 

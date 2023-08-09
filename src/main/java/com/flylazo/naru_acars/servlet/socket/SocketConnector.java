@@ -6,8 +6,7 @@ import com.flylazo.naru_acars.NaruACARS;
 import com.flylazo.naru_acars.domain.acars.VirtualAirline;
 import com.flylazo.naru_acars.domain.acars.request.AuthBulk;
 import com.flylazo.naru_acars.domain.acars.request.Request;
-import com.flylazo.naru_acars.domain.acars.response.Response;
-import com.flylazo.naru_acars.domain.acars.response.Status;
+import com.flylazo.naru_acars.domain.acars.response.ErrorResponse;
 
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
@@ -63,12 +62,13 @@ public class SocketConnector {
 
     private void authenticate(SocketContext context) {
         Request request = new Request();
+        var message = new SocketMessage<>(context);
         request.setIntent("auth");
         request.setBulk(new AuthBulk(this.apiKey));
 
         try {
-            context.buildMessage()
-                    .withObserver(r -> handleAuthResponse(r, context))
+            message.fetchResponse(r -> onAuthenticated(context))
+                    .whenError(this::handleAuthError)
                     .send(request);
         } catch (JsonProcessingException e) {
             context.terminate();
@@ -91,21 +91,20 @@ public class SocketConnector {
         return null;
     }
 
-    private void handleAuthResponse(Response response, SocketContext context) {
-        var status = response.getStatus();
+    private void onAuthenticated(SocketContext context) {
+        this.successObs.forEach(obs -> obs.accept(context));
+        this.listener.notifyEstablish();
+    }
 
-        if (status == Status.SUCCESS) {
-            this.successObs.forEach(obs -> obs.accept(context));
-            this.listener.notifyEstablish();
-        } else {
-            SocketError error = switch (status) {
-                case TIMEOUT -> SocketError.OFFLINE;
-                case FORBIDDEN -> SocketError.API_KEY_IN_USE;
-                case NOT_FOUND -> SocketError.API_KEY_INVALID;
-                default -> SocketError.FATAL_ERROR;
-            };
-            this.errorObs.forEach(obs -> obs.accept(error));
-        }
+    private void handleAuthError(ErrorResponse response) {
+        var status = response.getStatus();
+        SocketError error = switch (status) {
+            case TIMEOUT -> SocketError.OFFLINE;
+            case FORBIDDEN -> SocketError.API_KEY_IN_USE;
+            case NOT_FOUND -> SocketError.API_KEY_INVALID;
+            default -> SocketError.FATAL_ERROR;
+        };
+        this.errorObs.forEach(obs -> obs.accept(error));
     }
 
     private void notifyError(SocketError error) {

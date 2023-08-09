@@ -5,6 +5,7 @@ import com.flylazo.naru_acars.domain.acars.VirtualAirline;
 import com.flylazo.naru_acars.gui.Window;
 import com.flylazo.naru_acars.gui.component.TextInput;
 import com.flylazo.naru_acars.servlet.service.ACARS_Service;
+import com.flylazo.naru_acars.servlet.socket.SocketContext;
 import com.flylazo.naru_acars.servlet.socket.SocketError;
 
 import javax.swing.*;
@@ -20,14 +21,12 @@ public class ACARS_Form extends PanelBase {
     private final ACARS_Service service;
     private final JComboBox<VirtualAirline> serverCombo;
     private final TextInput apiInput;
+    private final JButton connectBtn;
+    private final String CONNECT = "Connect";
 
     public ACARS_Form(Window window) {
         super(window);
 
-        this.logger = NaruACARS.logger;
-        this.apiInput = new TextInput("Paste the key of your VA account", 30, false);
-        this.serverCombo = new JComboBox<>(VirtualAirline.values());
-        this.service = window.getServiceFactory().getBean(ACARS_Service.class);
         var form = new JPanel();
         var formLayout = new GroupLayout(form);
         var hGroup = formLayout.createSequentialGroup();
@@ -35,9 +34,15 @@ public class ACARS_Form extends PanelBase {
         var boldFont = new Font("Ubuntu Medium", Font.PLAIN, 15);
         var vaLabel = window.bakeLabel("Virtual airline", boldFont, Color.black);
         var apiLabel = window.bakeLabel("API key", boldFont, Color.black);
-        var connectBtn = new JButton("Connect");
-
-        setButtonAction(connectBtn, this::connectServer);
+        var btnFont = new Font("Ubuntu Medium", Font.PLAIN, 15);
+        this.logger = NaruACARS.logger;
+        this.apiInput = new TextInput("Paste the key of your VA account", 30, false);
+        this.serverCombo = new JComboBox<>(VirtualAirline.values());
+        this.service = window.getServiceFactory().getBean(ACARS_Service.class);
+        this.connectBtn = new JButton(CONNECT);
+        this.connectBtn.setFont(btnFont);
+        this.service.getListener().observeClose(this::onClose);
+        super.setButtonListener(this.connectBtn, this::connectServer);
 
         var hGlue = Box.createHorizontalGlue();
         hGroup.addContainerGap(20, 20)
@@ -89,11 +94,27 @@ public class ACARS_Form extends PanelBase {
         try {
             this.service.getConnector(airline)
                     .withAPIKey(this.apiInput.getText())
+                    .whenSuccess(this::onConnected)
                     .whenError(this::alertError)
                     .connect();
         } catch (Throwable t) {
             this.logger.log(Level.SEVERE, "Failed to connect!", t);
         }
+    }
+
+    private void disconnectServer() {
+        this.service.getContext().terminate();
+        this.window.showDialog(INFORMATION_MESSAGE, "Disconnected from server.");
+    }
+
+    private void onConnected(SocketContext context) {
+        this.connectBtn.setText("Disconnect");
+        super.setButtonListener(this.connectBtn, this::disconnectServer);
+    }
+
+    private void onClose() {
+        this.connectBtn.setText(CONNECT);
+        super.setButtonListener(this.connectBtn, this::connectServer);
     }
 
     private void alertError(SocketError error) {

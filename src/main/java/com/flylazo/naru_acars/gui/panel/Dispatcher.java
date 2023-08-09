@@ -5,11 +5,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flylazo.naru_acars.NaruACARS;
 import com.flylazo.naru_acars.domain.FlightPlan;
 import com.flylazo.naru_acars.domain.Properties;
+import com.flylazo.naru_acars.domain.acars.request.FetchBulk;
+import com.flylazo.naru_acars.domain.acars.request.Request;
+import com.flylazo.naru_acars.domain.acars.response.BookingResponse;
+import com.flylazo.naru_acars.domain.acars.response.ErrorResponse;
 import com.flylazo.naru_acars.gui.Window;
 import com.flylazo.naru_acars.gui.component.FlightInput;
 import com.flylazo.naru_acars.gui.component.Header;
 import com.flylazo.naru_acars.gui.component.RouteInput;
+import com.flylazo.naru_acars.servlet.service.ACARS_Service;
 import com.flylazo.naru_acars.servlet.service.SimDataService;
+import com.flylazo.naru_acars.servlet.socket.SocketMessage;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
@@ -22,26 +28,31 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.LayoutStyle.ComponentPlacement.UNRELATED;
 
 public class Dispatcher extends PanelBase {
     private final Logger logger = Logger.getLogger(NaruACARS.class.getName());
+    private final ACARS_Service acarsService;
     private final SimDataService simDataService;
     private final FlightInput flightInput;
     private final RouteInput routeInput;
     private final JLabel actionLabel;
     private final JButton simbriefBtn;
     private final JButton bookingBtn;
+    private ScheduledFuture<?> actionTask;
     private FlightPlan plan = null;
 
     public Dispatcher(Window window, int margin) {
         super(window);
 
         var labelFont = new Font("Ubuntu Regular", Font.BOLD, 15);
+        this.acarsService = window.getServiceFactory().getBean(ACARS_Service.class);
         this.simDataService = window.getServiceFactory().getBean(SimDataService.class);
         this.flightInput = new FlightInput(window, labelFont);
         this.routeInput = new RouteInput(window, labelFont);
@@ -56,18 +67,22 @@ public class Dispatcher extends PanelBase {
         var submitBtn = new JButton("SUBMIT");
 
         // Flight Dispatcher
-        setButtonAction(this.simbriefBtn, this::importSimbrief);
-        setButtonAction(this.bookingBtn, this::importBooking);
-        setButtonAction(submitBtn, this::submitFlightPlan);
-        this.simbriefBtn.setToolTipText("Import your Simbrief flight plan.");
-        this.simbriefBtn.setFont(btnFont);
-        submitBtn.setFont(btnFont);
+        super.setButtonListener(this.simbriefBtn, this::importSimbrief);
+        super.setButtonListener(this.bookingBtn, this::importBooking);
+        super.setButtonListener(submitBtn, this::submitFlightPlan);
+        this.simbriefBtn.setToolTipText("Import from Simbrief.");
+        this.bookingBtn.setToolTipText("Import from ACARS booking.");
         submitBtn.setToolTipText("Submit your flight plan");
+        this.simbriefBtn.setFont(btnFont);
+        this.bookingBtn.setFont(btnFont);
+        submitBtn.setFont(btnFont);
         actionPane.setLayout(new BoxLayout(actionPane, BoxLayout.X_AXIS));
         actionPane.add(Box.createHorizontalGlue());
         actionPane.add(actionLabel);
         actionPane.add(Box.createHorizontalStrut(20));
-        actionPane.add(simbriefBtn);
+        actionPane.add(this.bookingBtn);
+        actionPane.add(Box.createHorizontalStrut(10));
+        actionPane.add(this.simbriefBtn);
         actionPane.add(Box.createHorizontalStrut(10));
         actionPane.add(submitBtn);
 
@@ -119,7 +134,7 @@ public class Dispatcher extends PanelBase {
 
         simbriefBtn.setEnabled(false);
         actionLabel.setForeground(Color.black);
-        actionLabel.setText("Loading...");
+        this.sendActionMessage("Loading...", Color.black);
 
         var endpoint = "https://www.simbrief.com/api/xml.fetcher.php?username=%s&json=1";
         var client = HttpClient.newHttpClient();
@@ -149,38 +164,73 @@ public class Dispatcher extends PanelBase {
                     try {
                         return new ObjectMapper().readValue(response.body(), FlightPlan.class);
                     } catch (JsonProcessingException ex) {
-                        logger.log(Level.SEVERE, "Failed to parse json.", ex);
-
+                        this.logger.log(Level.SEVERE, "Failed to parse json.", ex);
                         return null;
                     }
                 })
                 .thenAccept(plan -> SwingUtilities.invokeLater(() -> {
-                    if (plan == null) {
-                        return;
+                    if (plan != null) {
+                        fillForm(plan);
+                        this.simbriefBtn.setEnabled(true);
                     }
-
-                    this.plan = plan;
-                    var acf = plan.getAircraft();
-                    var bt = plan.getBlockTime();
-                    var t = (bt != null) ? bt.toMinutes() : 0;
-                    var flightTime = (t > 0) ? String.format("%d:%02d", t / 60, t % 60) : null;
-                    var aircraft = (acf != null) ? acf.getIcaoCode() : null;
-                    flightInput.setCallsign(plan.getCallsign());
-                    flightInput.setAircraft(aircraft);
-                    flightInput.setFlightTime(flightTime);
-                    routeInput.setDeparture(plan.getDepartureCode());
-                    routeInput.setArrival(plan.getArrivalCode());
-                    routeInput.setAlternate(plan.getAlternateCode());
-                    routeInput.setRoute(plan.getRoute());
-                    routeInput.setRemarks(plan.getRemarks());
-                    this.sendActionMessage("Fetch complete.", Color.blue);
-                    simbriefBtn.setEnabled(true);
-                    routeInput.validateForm();
                 }));
     }
 
     private void importBooking() {
-        // todo method stub
+        if (!this.acarsService.isConnected()) {
+            this.window.showDialog(ERROR_MESSAGE, "ACARS is offline.");
+            return;
+        }
+
+        var context = this.acarsService.getContext();
+        var message = new SocketMessage<BookingResponse>(context);
+        var request = new Request()
+                .withIntent("fetch")
+                .withBulk(new FetchBulk("booking"));
+        this.bookingBtn.setEnabled(false);
+        this.sendActionMessage("Loading...", Color.black);
+
+        try {
+            message.fetchResponse(this::getBookingResponse)
+                    .whenError(this::handleBookingError)
+                    .send(request);
+        } catch (JsonProcessingException e) {
+            this.logger.log(Level.SEVERE, "Socket error!", e);
+        }
+    }
+
+    private void getBookingResponse(BookingResponse response) {
+        SwingUtilities.invokeLater(() -> {
+            fillForm(response.getFlightPlan());
+            this.bookingBtn.setEnabled(true);
+            this.sendActionMessage("Fetch complete.", Color.blue);
+        });
+    }
+
+    private void handleBookingError(ErrorResponse response) {
+        this.window.showDialog(ERROR_MESSAGE, response.toString());
+        this.bookingBtn.setEnabled(true);
+        this.clearActionMessage();
+    }
+
+    private void fillForm(FlightPlan plan) {
+        this.plan = plan;
+        var acf = plan.getAircraft();
+        var bt = plan.getBlockTime();
+        var t = (bt != null) ? bt.toMinutes() : 0;
+        var flightTime = (t > 0) ? String.format("%d:%02d", t / 60, t % 60) : null;
+        var aircraft = (acf != null) ? acf.getIcaoCode() : null;
+        flightInput.setCallsign(plan.getCallsign());
+        flightInput.setAircraft(aircraft);
+        flightInput.setFlightTime(flightTime);
+        flightInput.validateForm();
+        routeInput.setDeparture(plan.getDepartureCode());
+        routeInput.setArrival(plan.getArrivalCode());
+        routeInput.setAlternate(plan.getAlternateCode());
+        routeInput.setRoute(plan.getRoute());
+        routeInput.setRemarks(plan.getRemarks());
+        routeInput.validateForm();
+        this.sendActionMessage("Fetch complete.", Color.blue);
     }
 
     private void submitFlightPlan() {
@@ -189,30 +239,40 @@ public class Dispatcher extends PanelBase {
             return;
         }
 
-        if (plan == null) {
-            plan = new FlightPlan();
+        if (this.plan == null) {
+            this.plan = new FlightPlan();
         }
 
-        plan.setCallsign(flightInput.getCallsign());
-        plan.setAircraft(flightInput.getAircraft());
-        plan.setBlockTime(flightInput.getFlightTime());
-        plan.setDepartureCode(routeInput.getDeparture());
-        plan.setArrivalCode(routeInput.getArrival());
-        plan.setAlternateCode(routeInput.getAlternate());
-        plan.setRoute(routeInput.getRoute());
-        plan.setRemarks(routeInput.getRemarks());
-        FlightPlan.submit(plan);
-        simDataService.requestUpdate();
+        this.plan.setCallsign(flightInput.getCallsign());
+        this.plan.setAircraft(flightInput.getAircraft());
+        this.plan.setBlockTime(flightInput.getFlightTime());
+        this.plan.setDepartureCode(routeInput.getDeparture());
+        this.plan.setArrivalCode(routeInput.getArrival());
+        this.plan.setAlternateCode(routeInput.getAlternate());
+        this.plan.setRoute(routeInput.getRoute());
+        this.plan.setRemarks(routeInput.getRemarks());
+        FlightPlan.submit(this.plan);
+        this.simDataService.requestUpdate();
         this.sendActionMessage("Plan sent!", Color.blue);
     }
 
     private void sendActionMessage(String text, Color color) {
-        actionLabel.setForeground(color);
-        actionLabel.setText(text);
+        if (this.actionTask != null) {
+            this.actionTask.cancel(true);
+        }
 
-        var service = Executors.newSingleThreadScheduledExecutor();
-        service.schedule(() -> {
+        this.actionLabel.setForeground(color);
+        this.actionLabel.setText(text);
+        this.actionTask = Executors.newSingleThreadScheduledExecutor().schedule(() -> {
             SwingUtilities.invokeLater(() -> actionLabel.setText(null));
+            this.actionTask = null;
         }, 3, TimeUnit.SECONDS);
+    }
+
+    private void clearActionMessage() {
+        if (this.actionTask != null) {
+            this.actionTask.cancel(false);
+        }
+        this.actionLabel.setText(null);
     }
 }
