@@ -116,15 +116,18 @@ public class SocketListener implements WebSocket.Listener {
 
         if (intent.equals("response")) {
             Request request = this.reqMap.get(ident);
-            processResponse(json, request);
-        } else {
-            logger.warning("Received message with bad intent: " + intent);
+            if (request != null) {
+                processResponse(json, request);
+            }
         }
+
+        logger.info(String.format("Received message: %s", json));
     }
 
     private void processResponse(String json, Request request) throws IOException {
         String intent = request.getIntent();
-        var observer = this.reqObs.get(intent);
+        String ident = request.getIdent();
+        var observer = this.reqObs.get(ident);
         Response response = Response.get(json);
 
         if (response.getStatus() != Status.SUCCESS) {
