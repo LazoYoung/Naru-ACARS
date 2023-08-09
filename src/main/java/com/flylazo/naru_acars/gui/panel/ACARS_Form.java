@@ -9,7 +9,6 @@ import com.flylazo.naru_acars.servlet.socket.SocketError;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,7 +36,8 @@ public class ACARS_Form extends PanelBase {
         var vaLabel = window.bakeLabel("Virtual airline", boldFont, Color.black);
         var apiLabel = window.bakeLabel("API key", boldFont, Color.black);
         var connectBtn = new JButton("Connect");
-        connectBtn.addActionListener(this::onClickConnect);
+
+        setButtonAction(connectBtn, this::connectServer);
 
         var hGlue = Box.createHorizontalGlue();
         hGroup.addContainerGap(20, 20)
@@ -73,7 +73,7 @@ public class ACARS_Form extends PanelBase {
         this.setBorder(BorderFactory.createTitledBorder("Datalink form"));
     }
 
-    private void onClickConnect(ActionEvent event) {
+    private void connectServer() {
         var airline = (VirtualAirline) this.serverCombo.getSelectedItem();
 
         if (airline == null) {

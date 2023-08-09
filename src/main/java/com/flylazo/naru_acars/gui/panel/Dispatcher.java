@@ -14,8 +14,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -37,41 +35,32 @@ public class Dispatcher extends PanelBase {
     private final RouteInput routeInput;
     private final JLabel actionLabel;
     private final JButton simbriefBtn;
+    private final JButton bookingBtn;
     private FlightPlan plan = null;
 
     public Dispatcher(Window window, int margin) {
         super(window);
 
-        this.simDataService = window.getServiceFactory().getBean(SimDataService.class);
         var labelFont = new Font("Ubuntu Regular", Font.BOLD, 15);
+        this.simDataService = window.getServiceFactory().getBean(SimDataService.class);
         this.flightInput = new FlightInput(window, labelFont);
         this.routeInput = new RouteInput(window, labelFont);
+        this.actionLabel = new JLabel();
+        this.simbriefBtn = new JButton("Simbrief");
+        this.bookingBtn = new JButton("Booking");
         var layout = new GroupLayout(this);
         var noteFont = new Font("Ubuntu Regular", Font.PLAIN, 13);
         var btnFont = new Font("Ubuntu Medium", Font.PLAIN, 15);
         var noteLabel = window.bakeLabel("* Optional fields", noteFont, Color.black);
         var actionPane = new JPanel();
         var submitBtn = new JButton("SUBMIT");
-        actionLabel = new JLabel();
-        simbriefBtn = new JButton("Simbrief");
 
         // Flight Dispatcher
-        simbriefBtn.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                importSimbrief();
-            }
-        });
-        simbriefBtn.setToolTipText("Import your Simbrief flight plan.");
-        simbriefBtn.setFont(btnFont);
-        submitBtn.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (e.getComponent().isEnabled()) {
-                    submitFlightPlan();
-                }
-            }
-        });
+        setButtonAction(this.simbriefBtn, this::importSimbrief);
+        setButtonAction(this.bookingBtn, this::importBooking);
+        setButtonAction(submitBtn, this::submitFlightPlan);
+        this.simbriefBtn.setToolTipText("Import your Simbrief flight plan.");
+        this.simbriefBtn.setFont(btnFont);
         submitBtn.setFont(btnFont);
         submitBtn.setToolTipText("Submit your flight plan");
         actionPane.setLayout(new BoxLayout(actionPane, BoxLayout.X_AXIS));
@@ -159,8 +148,8 @@ public class Dispatcher extends PanelBase {
 
                     try {
                         return new ObjectMapper().readValue(response.body(), FlightPlan.class);
-                    } catch (JsonProcessingException e) {
-                        logger.log(Level.SEVERE, "Failed to parse json.", e);
+                    } catch (JsonProcessingException ex) {
+                        logger.log(Level.SEVERE, "Failed to parse json.", ex);
 
                         return null;
                     }
@@ -188,6 +177,10 @@ public class Dispatcher extends PanelBase {
                     simbriefBtn.setEnabled(true);
                     routeInput.validateForm();
                 }));
+    }
+
+    private void importBooking() {
+        // todo method stub
     }
 
     private void submitFlightPlan() {
