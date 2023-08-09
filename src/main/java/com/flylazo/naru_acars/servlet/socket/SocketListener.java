@@ -1,5 +1,6 @@
 package com.flylazo.naru_acars.servlet.socket;
 
+import com.flylazo.naru_acars.Helper;
 import com.flylazo.naru_acars.NaruACARS;
 import com.flylazo.naru_acars.domain.acars.request.FetchBulk;
 import com.flylazo.naru_acars.domain.acars.request.Request;
@@ -71,9 +72,12 @@ public class SocketListener implements WebSocket.Listener {
     }
 
     @Override
-    public void onError(WebSocket webSocket, Throwable error) {
-        notifyError(error);
-        this.logger.log(Level.SEVERE, "Socket error received!", error);
+    public void onError(WebSocket socket, Throwable error) {
+        Throwable t = Helper.getRootCause(error);
+        notifyError(t);
+        socket.abort();
+        notifyClose();
+        this.logger.log(Level.SEVERE, "Socket error received!", t);
     }
 
     @Override
