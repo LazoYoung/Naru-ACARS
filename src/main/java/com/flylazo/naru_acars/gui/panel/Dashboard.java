@@ -65,7 +65,6 @@ public class Dashboard extends PanelBase {
 
         this.acarsService.getListener().observeOpen(this::onSocketOpen);
         this.acarsService.getListener().observeClose(this::onSocketClose);
-        this.acarsService.getListener().observeError(this::onSocketError);
         this.simTracker.addUpdateListener(this::onSimulatorUpdate);
         this.setLayout(layout);
         this.setBackground(Color.white);
@@ -106,6 +105,7 @@ public class Dashboard extends PanelBase {
 
         SwingUtilities.invokeLater(() -> {
             this.acarsHeader.setStatus(ConnectStatus.ONLINE);
+            this.acarsHeader.repaint();
             this.serverValue.setText(server);
             this.phaseValue.setText(phase);
         });
@@ -114,14 +114,9 @@ public class Dashboard extends PanelBase {
     private void onSocketClose() {
         SwingUtilities.invokeLater(() -> {
             this.acarsHeader.setStatus(ConnectStatus.OFFLINE);
+            this.acarsHeader.repaint();
             this.serverValue.setText(NOT_AVAIL);
             this.phaseValue.setText(NOT_AVAIL);
-        });
-    }
-
-    private void onSocketError(Throwable t) {
-        SwingUtilities.invokeLater(() -> {
-            this.window.showDialog(JOptionPane.ERROR_MESSAGE, t.getMessage());
         });
     }
 

@@ -7,7 +7,9 @@ import javax.swing.*;
 import javax.swing.text.DefaultCaret;
 import java.awt.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.logging.*;
 
 import static java.util.logging.Level.SEVERE;
@@ -18,10 +20,12 @@ public class ConsolePage extends JPanel {
     private static class LogHandler extends Handler {
         private final Window window;
         private final JTextArea textArea;
+        private final ZoneId zoneId;
 
         private LogHandler(Window window, JTextArea textArea) {
             this.window = window;
             this.textArea = textArea;
+            this.zoneId = ZoneId.systemDefault();
         }
 
         @Override
@@ -30,9 +34,16 @@ public class ConsolePage extends JPanel {
                 return;
             }
 
+            var time = record.getInstant()
+                    .atZone(zoneId)
+                    .truncatedTo(ChronoUnit.MILLIS)
+                    .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+            var level = record.getLevel();
+            var source = record.getSourceClassName();
+            System.out.printf("%s  %s - %s : %s%n", time, level.getName(), source, record.getMessage());
+
             try {
                 String msg = getFormatter().format(record) + '\n';
-                Level level = record.getLevel();
                 textArea.insert(msg, textArea.getCaretPosition());
 
                 if (level.equals(SEVERE)) {
@@ -86,11 +97,22 @@ public class ConsolePage extends JPanel {
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         caret.setBlinkRate(200);
         handler.setFormatter(new LogFormatter());
-        handler.setLevel(Level.INFO);
-        logger.addHandler(handler);
         textArea.setEditable(false);
+        this.replaceLogHandler(logger, handler);
         this.setLayout(layout);
         this.setBorder(BorderFactory.createTitledBorder("Console"));
         this.add(new JScrollPane(textArea));
+    }
+
+    private void replaceLogHandler(Logger logger, Handler newHandler) {
+        logger.setLevel(Level.ALL);
+
+        for (var handler : logger.getHandlers()) {
+            logger.removeHandler(handler);
+        }
+
+        logger.setUseParentHandlers(false);
+        logger.addHandler(newHandler);
+        newHandler.setLevel(Level.ALL);
     }
 }
