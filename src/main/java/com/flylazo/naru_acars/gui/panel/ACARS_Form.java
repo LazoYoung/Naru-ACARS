@@ -4,7 +4,7 @@ import com.flylazo.naru_acars.domain.acars.VirtualAirline;
 import com.flylazo.naru_acars.gui.Window;
 import com.flylazo.naru_acars.gui.component.TextInput;
 import com.flylazo.naru_acars.servlet.service.ACARS_Service;
-import com.flylazo.naru_acars.servlet.service.socket.SocketError;
+import com.flylazo.naru_acars.servlet.socket.SocketError;
 
 import javax.swing.*;
 import java.awt.*;

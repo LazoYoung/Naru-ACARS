@@ -1,4 +1,4 @@
-package com.flylazo.naru_acars.servlet.service.socket;
+package com.flylazo.naru_acars.servlet.socket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.flylazo.naru_acars.NaruACARS;

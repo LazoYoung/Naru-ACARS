@@ -1,4 +1,4 @@
-package com.flylazo.naru_acars.servlet.service.socket;
+package com.flylazo.naru_acars.servlet.socket;
 
 public enum SocketError {
     OFFLINE,

@@ -1,9 +1,9 @@
 package com.flylazo.naru_acars.servlet.service;
 
 import com.flylazo.naru_acars.domain.acars.VirtualAirline;
-import com.flylazo.naru_acars.servlet.service.socket.SocketConnector;
-import com.flylazo.naru_acars.servlet.service.socket.SocketContext;
-import com.flylazo.naru_acars.servlet.service.socket.SocketListener;
+import com.flylazo.naru_acars.servlet.socket.SocketConnector;
+import com.flylazo.naru_acars.servlet.socket.SocketContext;
+import com.flylazo.naru_acars.servlet.socket.SocketListener;
 import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Service;
 
