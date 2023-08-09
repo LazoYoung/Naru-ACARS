@@ -40,14 +40,19 @@ public class ConsolePage extends JPanel {
                     .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
             var level = record.getLevel();
             var source = record.getSourceClassName();
+            var t = record.getThrown();
+
             System.out.printf("%s  %s - %s : %s%n", time, level.getName(), source, record.getMessage());
+
+            if (t != null) {
+                t.printStackTrace();
+            }
 
             try {
                 String msg = getFormatter().format(record) + '\n';
                 textArea.insert(msg, textArea.getCaretPosition());
 
                 if (level.equals(SEVERE)) {
-                    Throwable t = record.getThrown();
                     String rawMsg = record.getMessage();
                     if (t != null) {
                         window.showDialog(ERROR_MESSAGE, rawMsg + '\n' + t.getClass().getName());
