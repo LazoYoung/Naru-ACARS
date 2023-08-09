@@ -20,6 +20,10 @@ public class BookingResponseDeserializer extends StdDeserializer<BookingResponse
     private final AircraftRepository acfRepo;
     private final AirportRepository aptRepo;
 
+    public BookingResponseDeserializer() {
+        this(BookingResponse.class);
+    }
+
     public BookingResponseDeserializer(Class<?> vc) {
         super(vc);
 

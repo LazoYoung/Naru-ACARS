@@ -9,6 +9,11 @@ import com.flylazo.naru_acars.domain.acars.response.ErrorResponse;
 import java.io.IOException;
 
 public class ErrorResponseDeserializer extends StdDeserializer<ErrorResponse> {
+
+    public ErrorResponseDeserializer() {
+        this(ErrorResponseDeserializer.class);
+    }
+
     public ErrorResponseDeserializer(Class<?> vc) {
         super(vc);
     }
