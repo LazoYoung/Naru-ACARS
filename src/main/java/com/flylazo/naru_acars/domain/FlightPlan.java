@@ -7,7 +7,10 @@ import jakarta.annotation.Nullable;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 import static java.time.ZoneOffset.UTC;
@@ -19,6 +22,7 @@ public class FlightPlan {
     public static final int BLOCK_ON = 2;
     public static final int BLOCK_IN = 3;
     private static FlightPlan instance;
+    private static List<Consumer<FlightPlan>> obsList = new LinkedList<>();
     private String airline;
     private String callsign;
     private Aircraft aircraft;
@@ -34,6 +38,7 @@ public class FlightPlan {
     private Instant blockIn;
     private ZoneId origZone;
     private ZoneId destZone;
+    private boolean booked = false;
 
     public static FlightPlan getDispatched() {
         if (instance == null) {
@@ -42,8 +47,17 @@ public class FlightPlan {
         return instance;
     }
 
+    public static boolean isDispatched() {
+        return instance != null;
+    }
+
+    public static void observeDispatch(Consumer<FlightPlan> observer) {
+        obsList.add(observer);
+    }
+
     public static void submit(FlightPlan newPlan) {
         instance = newPlan;
+        obsList.forEach(obs -> obs.accept(newPlan));
     }
 
     // --- JSON setters --- //
@@ -140,6 +154,10 @@ public class FlightPlan {
         this.blockOn = blockOn;
     }
 
+    public void markAsBooked() {
+        this.booked = true;
+    }
+
     @Nullable
     public String getAirline() {
         return airline;
@@ -218,5 +236,9 @@ public class FlightPlan {
         } else {
             return null;
         }
+    }
+
+    public boolean isBooked() {
+        return this.booked;
     }
 }

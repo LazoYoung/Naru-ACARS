@@ -9,6 +9,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
 import java.util.Optional;
 
 import static javax.swing.GroupLayout.DEFAULT_SIZE;
@@ -42,38 +43,39 @@ public class RouteInput extends JPanel {
         var validator = getValidator();
         this.window = window;
         this.simTracker = window.getServiceFactory().getBean(SimTracker.class);
-        depInput = new TextInput("ICAO", 4, true);
-        arrInput = new TextInput("ICAO", 4, true);
-        altInput = new TextInput("ICAO", 4, true);
-        rteInput = new JTextArea(3, 20);
-        rmkInput = new JTextArea(3, 20);
-        var rtePane = new JScrollPane(rteInput);
-        var rmkPane = new JScrollPane(rmkInput);
-        depHint = window.bakeLabel(NOT_FOUND, Color.yellow);
-        arrHint = window.bakeLabel(NOT_FOUND, Color.yellow);
-        altHint = window.bakeLabel(NOT_FOUND, Color.yellow);
-        depInput.getDocument().addDocumentListener(validator);
-        arrInput.getDocument().addDocumentListener(validator);
-        altInput.getDocument().addDocumentListener(validator);
-        rteInput.getDocument().addDocumentListener(validator);
-        depHint.setOpaque(true);
-        arrHint.setOpaque(true);
-        altHint.setOpaque(true);
-        depHint.setBorder(window.getMargin(depHint, 0, 10, 0, 10));
-        arrHint.setBorder(window.getMargin(arrHint, 0, 10, 0, 10));
-        altHint.setBorder(window.getMargin(arrHint, 0, 10, 0, 10));
-        depHint.setBackground(Color.darkGray);
-        arrHint.setBackground(Color.darkGray);
-        altHint.setBackground(Color.darkGray);
-        rteInput.setLineWrap(true);
-        rmkInput.setLineWrap(true);
-        rteInput.setWrapStyleWord(true);
-        rmkInput.setWrapStyleWord(true);
+        this.depInput = new TextInput("ICAO", 4, true);
+        this.arrInput = new TextInput("ICAO", 4, true);
+        this.altInput = new TextInput("ICAO", 4, true);
+        this.rteInput = new JTextArea(3, 20);
+        this.rmkInput = new JTextArea(3, 20);
+        var rtePane = new JScrollPane(this.rteInput);
+        var rmkPane = new JScrollPane(this.rmkInput);
+        this.depHint = window.bakeLabel(NOT_FOUND, Color.yellow);
+        this.arrHint = window.bakeLabel(NOT_FOUND, Color.yellow);
+        this.altHint = window.bakeLabel(NOT_FOUND, Color.yellow);
+        this.depInput.getDocument().addDocumentListener(validator);
+        this.arrInput.getDocument().addDocumentListener(validator);
+        this.altInput.getDocument().addDocumentListener(validator);
+        this.rteInput.getDocument().addDocumentListener(validator);
+        this.depHint.setOpaque(true);
+        this.arrHint.setOpaque(true);
+        this.altHint.setOpaque(true);
+        this.depHint.setBorder(window.getMargin(this.depHint, 0, 10, 0, 10));
+        this.arrHint.setBorder(window.getMargin(this.arrHint, 0, 10, 0, 10));
+        this.altHint.setBorder(window.getMargin(this.arrHint, 0, 10, 0, 10));
+        this.depHint.setBackground(Color.darkGray);
+        this.arrHint.setBackground(Color.darkGray);
+        this.altHint.setBackground(Color.darkGray);
+        this.rteInput.setLineWrap(true);
+        this.rmkInput.setLineWrap(true);
+        this.rteInput.setWrapStyleWord(true);
+        this.rmkInput.setWrapStyleWord(true);
         rtePane.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_NEVER);
         rmkPane.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_NEVER);
         rtePane.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_NEVER);
         rmkPane.setVerticalScrollBarPolicy(VERTICAL_SCROLLBAR_NEVER);
-        window.setDocumentFilter(rteInput.getDocument(), "[^A-Za-z0-9/ ]+", true);
+        window.setDocumentFilter(this.rteInput.getDocument(), "[^A-Za-z0-9/ ]+", true);
+        this.addPropertyChangeListener("enabled", this::onEnabledPropertyChange);
 
         var layout = new GroupLayout(this);
         var hGroup = layout.createParallelGroup()
@@ -132,6 +134,15 @@ public class RouteInput extends JPanel {
         layout.linkSize(VERTICAL, arrInput, arrHint);
         layout.linkSize(VERTICAL, altInput, altHint);
         this.setLayout(layout);
+    }
+
+    private void onEnabledPropertyChange(PropertyChangeEvent event) {
+        boolean enabled = (boolean) event.getNewValue();
+        this.depInput.setEnabled(enabled);
+        this.arrInput.setEnabled(enabled);
+        this.altInput.setEnabled(enabled);
+        this.rteInput.setEnabled(enabled);
+        this.rmkInput.setEnabled(enabled);
     }
 
     public String getDeparture() {

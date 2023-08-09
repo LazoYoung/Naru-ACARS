@@ -1,7 +1,9 @@
 package com.flylazo.naru_acars.gui.panel;
 
 import com.flylazo.naru_acars.NaruACARS;
+import com.flylazo.naru_acars.domain.FlightPlan;
 import com.flylazo.naru_acars.domain.acars.VirtualAirline;
+import com.flylazo.naru_acars.domain.acars.response.BookingResponse;
 import com.flylazo.naru_acars.gui.Window;
 import com.flylazo.naru_acars.gui.component.TextInput;
 import com.flylazo.naru_acars.servlet.service.ACARS_Service;
@@ -17,12 +19,12 @@ import static javax.swing.GroupLayout.Alignment.LEADING;
 import static javax.swing.JOptionPane.*;
 
 public class ACARS_Form extends PanelBase {
+    private static final String CONNECT = "Connect";
     private final Logger logger;
     private final ACARS_Service service;
     private final JComboBox<VirtualAirline> serverCombo;
     private final TextInput apiInput;
     private final JButton connectBtn;
-    private final String CONNECT = "Connect";
 
     public ACARS_Form(Window window) {
         super(window);
@@ -110,6 +112,24 @@ public class ACARS_Form extends PanelBase {
     private void onConnected(SocketContext context) {
         this.connectBtn.setText("Disconnect");
         super.setButtonListener(this.connectBtn, this::disconnectServer);
+        this.service.fetchBooking(this::getBookingResponse, null);
+    }
+
+    private void getBookingResponse(BookingResponse response) {
+        FlightPlan plan = response.getFlightPlan();
+        plan.markAsBooked();
+
+        if (!FlightPlan.getDispatched().isBooked()) {
+            SwingUtilities.invokeLater(() -> {
+                String title = "Flight booking found";
+                String message = "Would you like to import your flightplan?";
+                int option = JOptionPane.showConfirmDialog(this.window, message, title, YES_NO_OPTION);
+
+                if (option == YES_OPTION) {
+                    FlightPlan.submit(plan);
+                }
+            });
+        }
     }
 
     private void onClose() {

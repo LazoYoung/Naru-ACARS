@@ -9,6 +9,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
 import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,35 +29,43 @@ public class FlightInput extends JPanel {
         var acfLabel = window.bakeLabel("Aircraft", labelFont, Color.black);
         var fltTimeLabel = window.bakeLabel("Flight time", labelFont, Color.black);
         this.window = window;
-        aircraftRepo = window.getServiceFactory().getBean(AircraftRepository.class);
-        csInput = new TextInput(7, true);
-        acfInput = new TextInput(7, true);
-        fltTimeInput = new TextInput("hh:mm", 7, false);
-        csInput.getDocument().addDocumentListener(getValidator());
-        acfInput.getDocument().addDocumentListener(getValidator());
-        fltTimeInput.getDocument().addDocumentListener(getValidator());
+        this.aircraftRepo = window.getServiceFactory().getBean(AircraftRepository.class);
+        this.csInput = new TextInput(7, true);
+        this.acfInput = new TextInput(7, true);
+        this.fltTimeInput = new TextInput("hh:mm", 7, false);
+        this.csInput.getDocument().addDocumentListener(getValidator());
+        this.acfInput.getDocument().addDocumentListener(getValidator());
+        this.fltTimeInput.getDocument().addDocumentListener(getValidator());
+        this.addPropertyChangeListener("enabled", this::onEnabledPropertyChange);
 
         var layout = new GroupLayout(this);
         var hGroup = layout.createParallelGroup()
                 .addComponent(csLabel)
-                .addComponent(csInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
+                .addComponent(this.csInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
                 .addComponent(acfLabel)
-                .addComponent(acfInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
+                .addComponent(this.acfInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
                 .addComponent(fltTimeLabel)
-                .addComponent(fltTimeInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE);
+                .addComponent(this.fltTimeInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE);
         var vGroup = layout.createSequentialGroup()
                 .addComponent(csLabel)
-                .addComponent(csInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
+                .addComponent(this.csInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
                 .addGap(10)
                 .addComponent(acfLabel)
-                .addComponent(acfInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
+                .addComponent(this.acfInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE)
                 .addGap(10)
                 .addComponent(fltTimeLabel)
-                .addComponent(fltTimeInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE);
+                .addComponent(this.fltTimeInput, PREFERRED_SIZE, DEFAULT_SIZE, PREFERRED_SIZE);
 
         layout.setHorizontalGroup(hGroup);
         layout.setVerticalGroup(vGroup);
         this.setLayout(layout);
+    }
+
+    private void onEnabledPropertyChange(PropertyChangeEvent event) {
+        boolean enabled = (boolean) event.getNewValue();
+        this.csInput.setEnabled(enabled);
+        this.acfInput.setEnabled(enabled);
+        this.fltTimeInput.setEnabled(enabled);
     }
 
     public String getCallsign() {
