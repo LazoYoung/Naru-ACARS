@@ -25,7 +25,7 @@ public class ACARS_Service {
         return (this.context != null) ? this.context.getServer().toString() : null;
     }
 
-    public SocketConnector getConnector(VirtualAirline airline) {
+    public SocketConnector getConnector(VirtualAirline airline) throws IllegalStateException {
         if (isConnected()) {
             throw new IllegalStateException("Connection is already established!");
         }

@@ -1,5 +1,6 @@
 package com.flylazo.naru_acars.gui.panel;
 
+import com.flylazo.naru_acars.NaruACARS;
 import com.flylazo.naru_acars.domain.acars.VirtualAirline;
 import com.flylazo.naru_acars.gui.Window;
 import com.flylazo.naru_acars.gui.component.TextInput;
@@ -9,11 +10,14 @@ import com.flylazo.naru_acars.servlet.socket.SocketError;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static javax.swing.GroupLayout.Alignment.LEADING;
 import static javax.swing.JOptionPane.*;
 
 public class ACARS_Form extends PanelBase {
+    private final Logger logger;
     private final ACARS_Service service;
     private final JComboBox<VirtualAirline> serverCombo;
     private final TextInput apiInput;
@@ -21,6 +25,7 @@ public class ACARS_Form extends PanelBase {
     public ACARS_Form(Window window) {
         super(window);
 
+        this.logger = NaruACARS.logger;
         this.apiInput = new TextInput("Paste the key of your VA account", 30, false);
         this.serverCombo = new JComboBox<>(VirtualAirline.values());
         this.service = window.getServiceFactory().getBean(ACARS_Service.class);
@@ -76,10 +81,19 @@ public class ACARS_Form extends PanelBase {
             return;
         }
 
-        this.service.getConnector(airline)
-                .withAPIKey(this.apiInput.getText())
-                .whenError(this::alertError)
-                .connect();
+        if (this.service.isConnected()) {
+            this.window.showDialog(WARNING_MESSAGE, "Already connected!");
+            return;
+        }
+
+        try {
+            this.service.getConnector(airline)
+                    .withAPIKey(this.apiInput.getText())
+                    .whenError(this::alertError)
+                    .connect();
+        } catch (Throwable t) {
+            this.logger.log(Level.SEVERE, "Failed to connect!", t);
+        }
     }
 
     private void alertError(SocketError error) {
