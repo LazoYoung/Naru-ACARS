@@ -77,7 +77,7 @@ public class ACARS_Service {
                 .withBulk(new FetchBulk("booking"));
 
         try {
-            message.fetchResponse(callback)
+            message.whenSuccess(callback)
                     .whenError(errorHandler)
                     .send(request);
         } catch (JsonProcessingException e) {

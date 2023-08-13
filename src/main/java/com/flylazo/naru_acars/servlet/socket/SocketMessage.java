@@ -37,7 +37,7 @@ public class SocketMessage<T extends Response> {
         this.socket = context.getWebSocket();
     }
 
-    public SocketMessage<T> fetchResponse(Consumer<T> callback) {
+    public SocketMessage<T> whenSuccess(Consumer<T> callback) {
         this.responseObs = callback;
         return this;
     }

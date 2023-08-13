@@ -67,7 +67,7 @@ public class SocketConnector {
         request.setBulk(new AuthBulk(this.apiKey));
 
         try {
-            message.fetchResponse(r -> onAuthenticated(context))
+            message.whenSuccess(r -> onAuthenticated(context))
                     .whenError(this::handleAuthError)
                     .send(request);
         } catch (JsonProcessingException e) {
