@@ -20,6 +20,8 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -30,9 +32,11 @@ public class Window extends JFrame {
     private SimTracker simTracker;
     private JTabbedPane contentPane;
     private ConfigurableApplicationContext context;
+    private Map<Class<?>, JComponent> pages;
 
     public Window() {
         try {
+            this.pages = new HashMap<>();
             var font = registerFonts("ubuntu-regular.ttf", 15f);
             var iconURL = getClass().getResource("/icon.png");
             registerFonts("ubuntu-medium.ttf", 15f);
@@ -55,10 +59,14 @@ public class Window extends JFrame {
         var dispatchPage = new DispatchPage(this);
         var acarsPage = new ACARS_Page(this);
         var overlayPage = new OverlaysPage(this);
-        contentPane.addTab("Dispatch", dispatchPage);
-        contentPane.addTab("ACARS", acarsPage);
-        contentPane.addTab("Overlays", overlayPage);
-        contentPane.addTab("Console", consolePage);
+        this.pages.clear();
+        this.pages.put(DispatchPage.class, dispatchPage);
+        this.pages.put(ACARS_Page.class, acarsPage);
+        this.pages.put(OverlaysPage.class, overlayPage);
+        this.contentPane.addTab("Dispatch", dispatchPage);
+        this.contentPane.addTab("ACARS", acarsPage);
+        this.contentPane.addTab("Overlays", overlayPage);
+        this.contentPane.addTab("Console", consolePage);
 
         final var window = this;
         addWindowListener(new WindowAdapter() {
@@ -82,6 +90,14 @@ public class Window extends JFrame {
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+
+    public void selectPage(Class<?> clazz) {
+        JComponent comp = this.pages.get(clazz);
+
+        if (comp != null) {
+            this.contentPane.setSelectedComponent(comp);
+        }
     }
 
     /**
