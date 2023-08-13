@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static javax.swing.JOptionPane.*;
 import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.LayoutStyle.ComponentPlacement.UNRELATED;
 
@@ -42,8 +43,7 @@ public class Dispatcher extends PanelBase {
     private final FlightInput flightInput;
     private final RouteInput routeInput;
     private final JLabel actionLabel;
-    private final JButton simbriefBtn;
-    private final JButton bookingBtn;
+    private final JButton importBtn;
     private final JButton actionBtn;
     private ScheduledFuture<?> actionTask;
 
@@ -57,8 +57,7 @@ public class Dispatcher extends PanelBase {
         this.flightInput = new FlightInput(window, labelFont);
         this.routeInput = new RouteInput(window, labelFont);
         this.actionLabel = new JLabel();
-        this.simbriefBtn = new JButton("Simbrief");
-        this.bookingBtn = new JButton("Booking");
+        this.importBtn = new JButton("Import");
         this.actionBtn = new JButton(ACTION_SUBMIT);
         var layout = new GroupLayout(this);
         var noteFont = new Font("Ubuntu Regular", Font.PLAIN, 13);
@@ -67,22 +66,16 @@ public class Dispatcher extends PanelBase {
         var actionPane = new JPanel();
 
         // Flight Dispatcher
-        super.setButtonListener(this.simbriefBtn, this::importSimbrief);
-        super.setButtonListener(this.bookingBtn, this::importBooking);
+        super.setButtonListener(this.importBtn, this::openImportPrompt);
         super.setButtonListener(this.actionBtn, this::submitFlightPlan);
-        this.simbriefBtn.setToolTipText("Import from Simbrief.");
-        this.bookingBtn.setToolTipText("Import from ACARS booking.");
         this.actionBtn.setToolTipText("Submit your flight plan");
-        this.simbriefBtn.setFont(btnFont);
-        this.bookingBtn.setFont(btnFont);
+        this.importBtn.setFont(btnFont);
         this.actionBtn.setFont(btnFont);
         actionPane.setLayout(new BoxLayout(actionPane, BoxLayout.X_AXIS));
         actionPane.add(Box.createHorizontalGlue());
         actionPane.add(this.actionLabel);
         actionPane.add(Box.createHorizontalStrut(20));
-        actionPane.add(this.bookingBtn);
-        actionPane.add(Box.createHorizontalStrut(10));
-        actionPane.add(this.simbriefBtn);
+        actionPane.add(this.importBtn);
         actionPane.add(Box.createHorizontalStrut(10));
         actionPane.add(this.actionBtn);
         FlightPlan.observeDispatch(this::onNewDispatch);
@@ -122,8 +115,7 @@ public class Dispatcher extends PanelBase {
     }
 
     private void setEditMode(boolean edit) {
-        this.bookingBtn.setEnabled(edit);
-        this.simbriefBtn.setEnabled(edit);
+        this.importBtn.setEnabled(edit);
         this.routeInput.setEnabled(edit);
         this.flightInput.setEnabled(edit);
         this.actionBtn.setText(edit ? ACTION_SUBMIT : ACTION_REVISE);
@@ -143,7 +135,7 @@ public class Dispatcher extends PanelBase {
 
         if (username == null || username.isBlank()) {
             SwingUtilities.invokeLater(() -> {
-                String input = JOptionPane.showInputDialog("Your Simbrief name or id...");
+                String input = showInputDialog("Your Simbrief name or id...");
                 props.setSimbriefId(input);
                 props.save();
             });
@@ -159,8 +151,8 @@ public class Dispatcher extends PanelBase {
             uri = String.format(endpoint, username);
         }
 
-        simbriefBtn.setEnabled(false);
-        actionLabel.setForeground(Color.black);
+        this.importBtn.setEnabled(false);
+        this.actionLabel.setForeground(Color.black);
         this.sendActionMessage("Loading...", Color.black);
 
         var client = HttpClient.newHttpClient();
@@ -177,9 +169,9 @@ public class Dispatcher extends PanelBase {
                         this.sendActionMessage("Connection refused.", Color.red);
                     } else {
                         this.sendActionMessage("Process fail.", Color.red);
-                        logger.log(Level.SEVERE, "Failed to fetch simbrief OFP.", t);
+                        this.logger.log(Level.SEVERE, "Failed to fetch simbrief OFP.", t);
                     }
-                    simbriefBtn.setEnabled(true);
+                    this.importBtn.setEnabled(true);
                     return null;
                 })
                 .thenApply(response -> {
@@ -197,21 +189,58 @@ public class Dispatcher extends PanelBase {
                 .thenAccept(flightPlan -> SwingUtilities.invokeLater(() -> {
                     if (flightPlan != null) {
                         fillForm(flightPlan);
-                        this.simbriefBtn.setEnabled(true);
+                        this.importBtn.setEnabled(true);
                         this.sendActionMessage("Fetch complete.", Color.blue);
                     }
                 }));
     }
 
     private void importBooking() {
-        this.bookingBtn.setEnabled(false);
+        this.importBtn.setEnabled(false);
         this.sendActionMessage("Loading...", Color.black);
 
         try {
             this.acarsService.fetchBooking(this::getBookingResponse, this::handleBookingError);
         } catch (IllegalStateException e) {
-            this.bookingBtn.setEnabled(true);
+            this.importBtn.setEnabled(true);
             this.window.showDialog(ERROR_MESSAGE, "ACARS is offline.");
+        }
+    }
+
+    private void openImportPrompt() {
+        var panel = new JPanel();
+        var font = new Font("Ubuntu Medium", Font.PLAIN, 16);
+        var text = new JLabel("Select the source to import from.");
+        var group = new ButtonGroup();
+        var simbriefBtn = new JRadioButton("Simbrief");
+        var bookingBtn = new JRadioButton("ACARS booking");
+        var layout = new GroupLayout(panel);
+        var hGroup = layout.createParallelGroup()
+                .addComponent(text)
+                .addComponent(simbriefBtn)
+                .addComponent(bookingBtn);
+        var vGroup = layout.createSequentialGroup()
+                .addComponent(text)
+                .addComponent(simbriefBtn)
+                .addComponent(bookingBtn);
+        layout.setHorizontalGroup(hGroup);
+        layout.setVerticalGroup(vGroup);
+        text.setFont(font);
+        group.add(simbriefBtn);
+        group.add(bookingBtn);
+        panel.add(text);
+        panel.add(simbriefBtn);
+        panel.add(bookingBtn);
+        panel.setLayout(layout);
+        simbriefBtn.setSelected(true);
+        int option = showConfirmDialog(this.window, panel, "Import flightplan", DEFAULT_OPTION, PLAIN_MESSAGE);
+
+        if (option != OK_OPTION) return;
+
+        if (simbriefBtn.isSelected()) {
+            this.importSimbrief();
+        } else if (bookingBtn.isSelected()) {
+            this.importBooking();
         }
     }
 
@@ -220,14 +249,14 @@ public class Dispatcher extends PanelBase {
             var flightPlan = response.getFlightPlan();
             flightPlan.markAsBooked();
             this.fillForm(flightPlan);
-            this.bookingBtn.setEnabled(true);
+            this.importBtn.setEnabled(true);
             this.sendActionMessage("Fetch complete.", Color.blue);
         });
     }
 
     private void handleBookingError(ErrorResponse response) {
         this.window.showDialog(ERROR_MESSAGE, response.toString());
-        this.bookingBtn.setEnabled(true);
+        this.importBtn.setEnabled(true);
         this.clearActionMessage();
     }
 

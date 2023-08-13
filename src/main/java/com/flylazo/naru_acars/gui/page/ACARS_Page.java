@@ -11,7 +11,7 @@ public class ACARS_Page extends JSplitPane {
         super(HORIZONTAL_SPLIT);
 
         var board = new Dashboard(window, 20);
-        var form = new ACARS_Form(window);
+        var form = new ACARS_Form(window, 20);
         setLeftComponent(board);
         setRightComponent(form);
         setDividerSize(0);

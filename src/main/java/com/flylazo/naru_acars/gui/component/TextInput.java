@@ -17,7 +17,10 @@ public class TextInput extends JTextField implements FocusListener {
 
     public TextInput(String hint, int column, boolean uppercase) {
         super();
-        super.setColumns(column);
+
+        if (column > 0) {
+            super.setColumns(column);
+        }
         super.setText(hint);
         this.isHint = (hint != null);
         this.hint = hint;
