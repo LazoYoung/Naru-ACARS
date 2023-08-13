@@ -153,6 +153,7 @@ public class Dispatcher extends PanelBase {
         }
 
         this.importBtn.setEnabled(false);
+        this.actionBtn.setEnabled(false);
         this.actionLabel.setForeground(Color.black);
         this.sendActionMessage("Loading...", Color.black);
 
@@ -173,6 +174,7 @@ public class Dispatcher extends PanelBase {
                         this.logger.log(Level.SEVERE, "Failed to fetch simbrief OFP.", t);
                     }
                     this.importBtn.setEnabled(true);
+                    this.actionBtn.setEnabled(true);
                     return null;
                 })
                 .thenApply(response -> {
@@ -190,20 +192,23 @@ public class Dispatcher extends PanelBase {
                 .thenAccept(flightPlan -> SwingUtilities.invokeLater(() -> {
                     if (flightPlan != null) {
                         fillForm(flightPlan);
-                        this.importBtn.setEnabled(true);
                         this.sendActionMessage("Fetch complete.", Color.blue);
                     }
+                    this.importBtn.setEnabled(true);
+                    this.actionBtn.setEnabled(true);
                 }));
     }
 
     private void importBooking() {
         this.importBtn.setEnabled(false);
+        this.actionBtn.setEnabled(false);
         this.sendActionMessage("Loading...", Color.black);
 
         try {
             this.acarsService.fetchBooking(this::getBookingResponse, this::handleBookingError);
         } catch (IllegalStateException e) {
             this.importBtn.setEnabled(true);
+            this.actionBtn.setEnabled(true);
             this.window.showDialog(ERROR_MESSAGE, "ACARS is offline.");
         }
     }
@@ -251,6 +256,7 @@ public class Dispatcher extends PanelBase {
             flightPlan.markAsBooked();
             this.fillForm(flightPlan);
             this.importBtn.setEnabled(true);
+            this.actionBtn.setEnabled(true);
             this.sendActionMessage("Fetch complete.", Color.blue);
         });
     }
@@ -258,6 +264,7 @@ public class Dispatcher extends PanelBase {
     private void handleBookingError(ErrorResponse response) {
         this.window.showDialog(ERROR_MESSAGE, response.toString());
         this.importBtn.setEnabled(true);
+        this.actionBtn.setEnabled(true);
         this.clearActionMessage();
     }
 
