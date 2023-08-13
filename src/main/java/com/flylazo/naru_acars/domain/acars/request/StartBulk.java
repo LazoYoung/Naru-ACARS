@@ -6,6 +6,7 @@ import com.flylazo.naru_acars.domain.FlightPlan;
 
 import java.time.Instant;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -16,7 +17,13 @@ public class StartBulk extends Bulk {
     @JsonProperty
     public Map<String, String> flightplan;
 
-    public void setFlightPlan(FlightPlan plan) {
+    public StartBulk(FlightPlan plan, boolean scheduled) {
+        this.flightplan = new HashMap<>();
+        this.scheduled = scheduled;
+        this.setFlightPlan(plan);
+    }
+
+    private void setFlightPlan(FlightPlan plan) {
         var aircraft = Optional.ofNullable(plan.getAircraft())
                 .map(Aircraft::getIcaoCode)
                 .orElse(null);
