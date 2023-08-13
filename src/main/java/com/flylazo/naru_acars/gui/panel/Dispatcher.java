@@ -24,6 +24,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -290,9 +291,20 @@ public class Dispatcher extends PanelBase {
         }
 
         var flightPlan = new FlightPlan();
+        var offBlock = flightPlan.getBlockOff();
+        var flightTime = flightInput.getFlightTime();
+        assert flightTime != null;
+
+        if (offBlock != null) {
+            flightPlan.setBlockOn(offBlock.plus(flightTime));
+        } else {
+            flightPlan.setBlockOff(Instant.now());
+            flightPlan.setBlockOn(Instant.now().plus(flightTime));
+        }
+
         flightPlan.setCallsign(flightInput.getCallsign());
         flightPlan.setAircraft(flightInput.getAircraft());
-        flightPlan.setBlockTime(flightInput.getFlightTime());
+        flightPlan.setBlockTime(flightTime);
         flightPlan.setDepartureCode(routeInput.getDeparture());
         flightPlan.setArrivalCode(routeInput.getArrival());
         flightPlan.setAlternateCode(routeInput.getAlternate());
