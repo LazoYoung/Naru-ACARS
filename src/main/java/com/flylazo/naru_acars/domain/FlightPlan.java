@@ -7,6 +7,7 @@ import jakarta.annotation.Nullable;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -21,8 +22,8 @@ public class FlightPlan {
     public static final int BLOCK_OFF = 1;
     public static final int BLOCK_ON = 2;
     public static final int BLOCK_IN = 3;
+    private static final List<Consumer<FlightPlan>> obsList = new LinkedList<>();
     private static FlightPlan instance;
-    private static List<Consumer<FlightPlan>> obsList = new LinkedList<>();
     private String airline;
     private String callsign;
     private Aircraft aircraft;
@@ -85,9 +86,18 @@ public class FlightPlan {
     @JsonProperty("general")
     public void setGeneral(Map<String, Object> map) {
         this.route = (String) map.get("route");
-        this.remarks = (String) map.get("dx_rmk");
         this.airline = (String) map.get("icao_airline");
         this.callsign = (String) map.get("icao_airline") + map.get("flight_number");
+        Object dx_rmk = map.get("dx_rmk");
+
+        if (dx_rmk instanceof String) {
+            this.remarks = (String) dx_rmk;
+        } else if (dx_rmk instanceof ArrayList<?> list) {
+            this.remarks = list.stream()
+                    .map(obj -> (String) obj + '\n')
+                    .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
+                    .toString();
+        }
     }
 
     @JsonProperty("times")
