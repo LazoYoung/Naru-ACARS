@@ -106,6 +106,7 @@ public class ACARS_Service {
         try {
             message.whenSuccess(r -> {
                         this.serviceType = serviceType;
+                        this.getListener().notifyEstablish();
                         callback.accept(r);
                     })
                     .whenError(errorHandler)

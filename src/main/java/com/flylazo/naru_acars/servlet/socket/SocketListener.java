@@ -109,7 +109,7 @@ public class SocketListener implements WebSocket.Listener {
         return null;
     }
 
-    protected void notifyEstablish() {
+    public void notifyEstablish() {
         this.estObs.forEach(Runnable::run);
     }
 

@@ -13,7 +13,7 @@ import java.awt.*;
 import java.util.LinkedHashMap;
 
 public class Dashboard extends PanelBase {
-
+    
     private record SimulatorDTO(String simulator, String bridge, int framerate, int refreshRate) {}
     private final SimTracker simTracker;
     private final ACARS_Service acarsService;
@@ -25,6 +25,7 @@ public class Dashboard extends PanelBase {
     private final JLabel frameValue;
     private final JLabel refreshValue;
     private final JLabel serverValue;
+    private final JLabel serviceValue;
     private final JLabel phaseValue;
 
     public Dashboard(Window window, int margin) {
@@ -40,16 +41,18 @@ public class Dashboard extends PanelBase {
         this.frameValue = new JLabel(NOT_AVAIL);
         this.refreshValue = new JLabel(NOT_AVAIL);
         this.serverValue = new JLabel(NOT_AVAIL);
+        this.serviceValue = new JLabel(NOT_AVAIL);
         this.phaseValue = new JLabel(NOT_AVAIL);
 
         var layout = new GroupLayout(this);
         var simLabelMap = new LinkedHashMap<String, JLabel>();
         var acarsLabelMap = new LinkedHashMap<String, JLabel>();
         simLabelMap.put("Simulator", this.simValue);
-        simLabelMap.put("Framerate", this.frameValue);
-        simLabelMap.put("Refresh rate", this.refreshValue);
-        acarsLabelMap.put("VA Server", this.serverValue);
-        acarsLabelMap.put("Flight phase", this.phaseValue);
+        simLabelMap.put("Frame-rate", this.frameValue);
+        simLabelMap.put("Refresh-rate", this.refreshValue);
+        acarsLabelMap.put("Airline", this.serverValue);
+        acarsLabelMap.put("Service", this.serviceValue);
+        acarsLabelMap.put("Phase", this.phaseValue);
         var pGroup = layout.createParallelGroup();
         var hGroup = layout.createSequentialGroup()
                 .addContainerGap(margin, margin)
@@ -100,13 +103,15 @@ public class Dashboard extends PanelBase {
     }
 
     private void onSocketEstablish() {
-        final String server = this.acarsService.getServerName();
-        final String phase = this.simTracker.getBridge().getFlightPhase();
+        final var server = this.acarsService.getServerName();
+        final var service = this.acarsService.getServiceName();
+        final var phase = this.simTracker.getBridge().getFlightPhase();
 
         SwingUtilities.invokeLater(() -> {
             this.acarsHeader.setStatus(ConnectStatus.ONLINE);
             this.acarsHeader.repaint();
             this.serverValue.setText(server);
+            this.serviceValue.setText(service != null ? service.text : NOT_AVAIL);
             this.phaseValue.setText(phase);
         });
     }
@@ -116,6 +121,7 @@ public class Dashboard extends PanelBase {
             this.acarsHeader.setStatus(ConnectStatus.OFFLINE);
             this.acarsHeader.repaint();
             this.serverValue.setText(NOT_AVAIL);
+            this.serviceValue.setText(NOT_AVAIL);
             this.phaseValue.setText(NOT_AVAIL);
         });
     }

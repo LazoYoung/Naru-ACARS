@@ -93,7 +93,6 @@ public class SocketConnector {
 
     private void onAuthenticated(SocketContext context) {
         this.successObs.forEach(obs -> obs.accept(context));
-        this.listener.notifyEstablish();
     }
 
     private void handleAuthError(ErrorResponse response) {
