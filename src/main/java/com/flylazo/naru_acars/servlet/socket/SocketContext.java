@@ -12,7 +12,7 @@ public class SocketContext {
     private final VirtualAirline server;
     private final SocketListener listener;
     private final WebSocket socket;
-    private int ident = 1;
+    private int ident = 0;
 
     public SocketContext(VirtualAirline server, WebSocket socket, SocketListener listener) {
         this.server = server;
@@ -42,12 +42,13 @@ public class SocketContext {
 
     @Deprecated
     public SocketMessage<? extends Response> buildMessage() {
-        String ident = String.valueOf(this.ident++);
+        String ident = String.valueOf(getNextIdent());
         return new SocketMessage<>(ident, this);
     }
 
     protected String getNextIdent() {
-        return String.valueOf(this.ident++);
+        this.ident = this.ident % Integer.MAX_VALUE + 1;
+        return String.valueOf(this.ident);
     }
 
 }
