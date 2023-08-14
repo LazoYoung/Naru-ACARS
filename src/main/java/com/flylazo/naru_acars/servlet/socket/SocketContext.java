@@ -43,7 +43,7 @@ public class SocketContext {
     @Deprecated
     public SocketMessage<? extends Response> buildMessage() {
         String ident = String.valueOf(this.ident++);
-        return new SocketMessage(ident, this);
+        return new SocketMessage<>(ident, this);
     }
 
     protected String getNextIdent() {

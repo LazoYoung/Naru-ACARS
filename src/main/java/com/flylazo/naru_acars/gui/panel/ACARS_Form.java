@@ -134,7 +134,7 @@ public class ACARS_Form extends PanelBase {
     }
 
     private void disconnectServer() {
-        this.service.getContext().terminate();
+        this.service.disconnect();
         this.window.showDialog(INFORMATION_MESSAGE, "Disconnected from server.");
     }
 
@@ -165,7 +165,7 @@ public class ACARS_Form extends PanelBase {
                     FlightPlan.submit(plan);
                     this.service.startFlight(ServiceType.SCHEDULE, this::getStartResponse, this::handleStartError);
                 } else {
-                    this.service.getContext().terminate();
+                    this.service.disconnect();
                 }
             });
         }
@@ -173,7 +173,7 @@ public class ACARS_Form extends PanelBase {
 
     private void handleBookingError(ErrorResponse response) {
         if (response.getStatus() == Status.NOT_FOUND) {
-            this.service.getContext().terminate();
+            this.service.disconnect();
             this.window.showDialog(WARNING_MESSAGE, "Booking schedule not found!");
         } else {
             this.logger.log(Level.SEVERE, response.getResponse());
@@ -185,7 +185,7 @@ public class ACARS_Form extends PanelBase {
     }
 
     private void handleStartError(ErrorResponse response) {
-        this.service.getContext().terminate();
+        this.service.disconnect();
         this.logger.log(Level.SEVERE, response.getResponse());
     }
 

@@ -6,11 +6,15 @@ import com.flylazo.naru_acars.domain.FlightPlan;
 import com.flylazo.naru_acars.domain.acars.ServiceType;
 import com.flylazo.naru_acars.domain.acars.VirtualAirline;
 import com.flylazo.naru_acars.domain.acars.request.FetchBulk;
+import com.flylazo.naru_acars.domain.acars.request.ReportBulk;
 import com.flylazo.naru_acars.domain.acars.request.Request;
 import com.flylazo.naru_acars.domain.acars.request.StartBulk;
 import com.flylazo.naru_acars.domain.acars.response.BookingResponse;
 import com.flylazo.naru_acars.domain.acars.response.ErrorResponse;
 import com.flylazo.naru_acars.domain.acars.response.Response;
+import com.flylazo.naru_acars.domain.unit.Length;
+import com.flylazo.naru_acars.domain.unit.Speed;
+import com.flylazo.naru_acars.servlet.bridge.SimBridge;
 import com.flylazo.naru_acars.servlet.socket.SocketConnector;
 import com.flylazo.naru_acars.servlet.socket.SocketContext;
 import com.flylazo.naru_acars.servlet.socket.SocketListener;
@@ -18,6 +22,9 @@ import com.flylazo.naru_acars.servlet.socket.SocketMessage;
 import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,8 +33,10 @@ import java.util.logging.Logger;
 public class ACARS_Service {
     private final SocketListener listener;
     private final Logger logger;
+    private SimBridge simBridge;
     private SocketContext context;
     private ServiceType serviceType;
+    private ScheduledFuture<?> beaconTask;
 
     public ACARS_Service() {
         this.logger = NaruACARS.logger;
@@ -53,20 +62,12 @@ public class ACARS_Service {
             throw new IllegalStateException("Connection is already established!");
         }
 
-        if (this.context != null) {
-            this.context.terminate();
-        }
-
         return new SocketConnector(airline, this.listener)
                 .whenSuccess(this::updateContext);
     }
 
     public SocketListener getListener() {
         return listener;
-    }
-
-    public SocketContext getContext() {
-        return this.context;
     }
 
     /**
@@ -104,13 +105,57 @@ public class ACARS_Service {
                 .withBulk(new StartBulk(flightPlan, scheduled));
 
         try {
-            message.whenSuccess(r -> {
+            message.whenSuccess(response -> {
                         this.serviceType = serviceType;
                         this.getListener().notifyEstablish();
-                        callback.accept(r);
+                        this.startBeacon();
+                        callback.accept(response);
                     })
                     .whenError(errorHandler)
                     .send(request);
+        } catch (JsonProcessingException e) {
+            this.logger.log(Level.SEVERE, "Socket error!", e);
+        }
+    }
+
+    public void disconnect() {
+        this.stopBeacon();
+
+        if (this.context != null) {
+            this.context.terminate();
+            this.context = null;
+        }
+    }
+
+    private void startBeacon() {
+        this.simBridge = NaruACARS.getServiceFactory()
+                .getBean(SimTracker.class)
+                .getBridge();
+        var executor = Executors.newSingleThreadScheduledExecutor();
+        this.beaconTask = executor.scheduleWithFixedDelay(this::reportStatus, 10L, 10L, TimeUnit.SECONDS);
+    }
+
+    private void stopBeacon() {
+        if (this.beaconTask != null) {
+            this.beaconTask.cancel(true);
+            this.beaconTask = null;
+        }
+    }
+
+    private void reportStatus() {
+        var message = new SocketMessage<>(this.context);
+        var bulk = new ReportBulk();
+        var request = new Request()
+                .withIntent("report")
+                .withBulk(bulk);
+        bulk.latitude = this.simBridge.getLatitude();
+        bulk.longitude = this.simBridge.getLongitude();
+        bulk.altitude = this.simBridge.getAltitude(Length.FEET);
+        bulk.ias = this.simBridge.getAirspeed(Speed.KNOT);
+        bulk.heading = this.simBridge.getHeading(false);
+
+        try {
+            message.send(request);
         } catch (JsonProcessingException e) {
             this.logger.log(Level.SEVERE, "Socket error!", e);
         }
