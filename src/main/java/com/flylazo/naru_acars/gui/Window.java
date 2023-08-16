@@ -1,10 +1,7 @@
 package com.flylazo.naru_acars.gui;
 
 import com.flylazo.naru_acars.NaruACARS;
-import com.flylazo.naru_acars.gui.page.ACARS_Page;
-import com.flylazo.naru_acars.gui.page.ConsolePage;
-import com.flylazo.naru_acars.gui.page.DispatchPage;
-import com.flylazo.naru_acars.gui.page.OverlaysPage;
+import com.flylazo.naru_acars.gui.page.*;
 import com.flylazo.naru_acars.servlet.service.SimTracker;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -59,14 +56,17 @@ public class Window extends JFrame {
         var dispatchPage = new DispatchPage(this);
         var acarsPage = new ACARS_Page(this);
         var overlayPage = new OverlaysPage(this);
+        var miscPage = new MiscPage(this);
         this.pages.clear();
         this.pages.put(DispatchPage.class, dispatchPage);
         this.pages.put(ACARS_Page.class, acarsPage);
         this.pages.put(OverlaysPage.class, overlayPage);
+        this.pages.put(MiscPage.class, miscPage);
         this.contentPane.addTab("Dispatch", dispatchPage);
         this.contentPane.addTab("ACARS", acarsPage);
         this.contentPane.addTab("Overlays", overlayPage);
         this.contentPane.addTab("Console", consolePage);
+        this.contentPane.addTab("Misc", miscPage);
 
         final var window = this;
         addWindowListener(new WindowAdapter() {
