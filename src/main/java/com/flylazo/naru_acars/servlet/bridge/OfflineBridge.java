@@ -98,11 +98,6 @@ public class OfflineBridge extends SimBridge {
     }
 
     @Override
-    public String getFlightPhase() {
-        return "N/A";
-    }
-
-    @Override
     public double getEngineFuelFlow(int engine) {
         return 0;
     }

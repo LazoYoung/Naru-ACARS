@@ -1,5 +1,6 @@
 package com.flylazo.naru_acars.gui.panel;
 
+import com.flylazo.naru_acars.domain.Phase;
 import com.flylazo.naru_acars.gui.Window;
 import com.flylazo.naru_acars.gui.component.ConnectHeader;
 import com.flylazo.naru_acars.gui.component.ConnectStatus;
@@ -68,6 +69,7 @@ public class Dashboard extends PanelBase {
 
         this.acarsService.getListener().observeEstablish(this::onSocketEstablish);
         this.acarsService.getListener().observeClose(this::onSocketClose);
+        this.simTracker.addPhaseChangeListener(this::onPhaseChange);
         this.simTracker.addUpdateListener(this::onSimulatorUpdate);
         this.setLayout(layout);
         this.setBackground(Color.white);
@@ -112,7 +114,7 @@ public class Dashboard extends PanelBase {
             this.acarsHeader.repaint();
             this.serverValue.setText(server);
             this.serviceValue.setText(service != null ? service.text : NOT_AVAIL);
-            this.phaseValue.setText(phase);
+            this.phaseValue.setText(phase.name());
         });
     }
 
@@ -124,6 +126,10 @@ public class Dashboard extends PanelBase {
             this.serviceValue.setText(NOT_AVAIL);
             this.phaseValue.setText(NOT_AVAIL);
         });
+    }
+
+    private void onPhaseChange(Phase phase) {
+        this.phaseValue.setText(phase.name());
     }
 
     /**

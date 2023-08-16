@@ -143,18 +143,18 @@ public class ACARS_Form extends PanelBase {
         super.setButtonListener(this.connectBtn, this::disconnectServer);
 
         if (this.charterCheckbox.isSelected()) {
-            this.service.startFlight(ServiceType.CHARTER, this::getStartResponse, this::handleStartError);
+            this.service.startFlight(context, ServiceType.CHARTER, this::getStartResponse, this::handleStartError);
         } else {
-            this.service.fetchBooking(this::getBookingResponse, this::handleBookingError);
+            this.service.fetchBooking(context, r -> this.getBookingResponse(context, r), this::handleBookingError);
         }
     }
 
-    private void getBookingResponse(BookingResponse response) {
+    private void getBookingResponse(SocketContext context, BookingResponse response) {
         FlightPlan plan = response.getFlightPlan();
         plan.markAsBooked();
 
         if (FlightPlan.getDispatched().isBooked()) {
-            this.service.startFlight(ServiceType.SCHEDULE, this::getStartResponse, this::handleStartError);
+            this.service.startFlight(context, ServiceType.SCHEDULE, this::getStartResponse, this::handleStartError);
         } else {
             SwingUtilities.invokeLater(() -> {
                 String title = "Flightplan mismatch";
@@ -163,7 +163,7 @@ public class ACARS_Form extends PanelBase {
 
                 if (option == YES_OPTION) {
                     FlightPlan.submit(plan);
-                    this.service.startFlight(ServiceType.SCHEDULE, this::getStartResponse, this::handleStartError);
+                    this.service.startFlight(context, ServiceType.SCHEDULE, this::getStartResponse, this::handleStartError);
                 } else {
                     this.service.disconnect();
                 }

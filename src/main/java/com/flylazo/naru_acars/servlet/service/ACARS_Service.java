@@ -3,6 +3,8 @@ package com.flylazo.naru_acars.servlet.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.flylazo.naru_acars.NaruACARS;
 import com.flylazo.naru_acars.domain.FlightPlan;
+import com.flylazo.naru_acars.domain.Phase;
+import com.flylazo.naru_acars.domain.acars.PhaseBulk;
 import com.flylazo.naru_acars.domain.acars.ServiceType;
 import com.flylazo.naru_acars.domain.acars.VirtualAirline;
 import com.flylazo.naru_acars.domain.acars.request.FetchBulk;
@@ -66,6 +68,10 @@ public class ACARS_Service {
                 .whenSuccess(this::updateContext);
     }
 
+    public SocketContext getContext() {
+        return context;
+    }
+
     public SocketListener getListener() {
         return listener;
     }
@@ -75,14 +81,9 @@ public class ACARS_Service {
      *
      * @param callback     takes {@link BookingResponse} as a successful result
      * @param errorHandler takes {@link ErrorResponse} to handle any exceptions that may arise
-     * @throws IllegalStateException thrown if socket connection is not established.
      */
-    public void fetchBooking(Consumer<BookingResponse> callback, Consumer<ErrorResponse> errorHandler) {
-        if (!this.isConnected()) {
-            throw new IllegalStateException("ACARS is offline.");
-        }
-
-        var message = new SocketMessage<BookingResponse>(this.context);
+    public void fetchBooking(SocketContext context, Consumer<BookingResponse> callback, Consumer<ErrorResponse> errorHandler) {
+        var message = new SocketMessage<BookingResponse>(context);
         var request = new Request()
                 .withIntent("fetch")
                 .withBulk(new FetchBulk("booking"));
@@ -96,9 +97,9 @@ public class ACARS_Service {
         }
     }
 
-    public void startFlight(ServiceType serviceType, Consumer<Response> callback, Consumer<ErrorResponse> errorHandler) {
+    public void startFlight(SocketContext context, ServiceType serviceType, Consumer<Response> callback, Consumer<ErrorResponse> errorHandler) {
         boolean scheduled = serviceType.equals(ServiceType.SCHEDULE);
-        var message = new SocketMessage<>(this.context);
+        var message = new SocketMessage<>(context);
         var flightPlan = FlightPlan.getDispatched();
         var request = new Request()
                 .withIntent("start")
@@ -118,27 +119,25 @@ public class ACARS_Service {
         }
     }
 
+    public void reportPhase(SocketContext context, Phase phase) {
+        var message = new SocketMessage<>(context);
+        var request = new Request()
+                .withIntent("event")
+                .withBulk(new PhaseBulk(phase));
+
+        try {
+            message.send(request);
+        } catch (JsonProcessingException e) {
+            this.logger.log(Level.SEVERE, "Socket error!", e);
+        }
+    }
+
     public void disconnect() {
         this.stopBeacon();
 
         if (this.context != null) {
             this.context.terminate();
             this.context = null;
-        }
-    }
-
-    private void startBeacon() {
-        this.simBridge = NaruACARS.getServiceFactory()
-                .getBean(SimTracker.class)
-                .getBridge();
-        var executor = Executors.newSingleThreadScheduledExecutor();
-        this.beaconTask = executor.scheduleWithFixedDelay(this::reportStatus, 10L, 10L, TimeUnit.SECONDS);
-    }
-
-    private void stopBeacon() {
-        if (this.beaconTask != null) {
-            this.beaconTask.cancel(true);
-            this.beaconTask = null;
         }
     }
 
@@ -158,6 +157,21 @@ public class ACARS_Service {
             message.send(request);
         } catch (JsonProcessingException e) {
             this.logger.log(Level.SEVERE, "Socket error!", e);
+        }
+    }
+
+    private void startBeacon() {
+        this.simBridge = NaruACARS.getServiceFactory()
+                .getBean(SimTracker.class)
+                .getBridge();
+        var executor = Executors.newSingleThreadScheduledExecutor();
+        this.beaconTask = executor.scheduleWithFixedDelay(this::reportStatus, 10L, 10L, TimeUnit.SECONDS);
+    }
+
+    private void stopBeacon() {
+        if (this.beaconTask != null) {
+            this.beaconTask.cancel(true);
+            this.beaconTask = null;
         }
     }
 

@@ -3,13 +3,13 @@ package com.flylazo.naru_acars.servlet.bridge;
 import com.flylazo.naru_acars.NaruACARS;
 import com.flylazo.naru_acars.domain.Airport;
 import com.flylazo.naru_acars.domain.FlightPlan;
+import com.flylazo.naru_acars.domain.Phase;
 import com.flylazo.naru_acars.domain.unit.Length;
 import com.flylazo.naru_acars.domain.unit.Speed;
 import com.flylazo.naru_acars.servlet.repository.AirportRepository;
 import com.flylazo.naru_acars.servlet.service.SimTracker;
 
 import java.time.LocalTime;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -20,6 +20,7 @@ public abstract class SimBridge {
     protected final int refreshRate;
     protected final AirportRepository airportRepo;
     private final String name;
+    private Phase phase = Phase.PREFLIGHT;
 
     public SimBridge(String name, SimTracker tracker, AirportRepository airportRepo) {
         this.name = name;
@@ -36,52 +37,68 @@ public abstract class SimBridge {
         return airportRepo.find(icao);
     }
 
-    public String getFlightPhase() {
+    public Phase getFlightPhase() {
+        return this.phase;
+    }
+
+    public void setFlightPhase(Phase phase) {
+        this.phase = phase;
+    }
+
+    public Phase computeFlightPhase() {
         var plan = FlightPlan.getDispatched();
 
         if (plan == null || !isConnected()) {
-            return null;
+            return Phase.PREFLIGHT;
         }
 
-        if (isOnGround()) {
-            var depCode = plan.getDepartureCode();
-            var arrCode = plan.getArrivalCode();
-            var dep = airportRepo.find(depCode);
-            var arr = airportRepo.find(arrCode);
-
-            if (dep.isEmpty() || arr.isEmpty() || Objects.equals(depCode, arrCode)) {
-                return "ON GROUND";
+        return switch (this.phase) {
+            case PREFLIGHT -> {
+                if (isDoorOpen()) {
+                    yield Phase.BOARDING;
+                } else if (isEngineRunning()) {
+                    yield Phase.DEPARTING;
+                } else {
+                    yield this.phase;
+                }
             }
-
-            if (getEngineFuelFlow(1) < 1.0 && getEngineFuelFlow(2) < 1.0
-                    && getEngineFuelFlow(3) < 1.0 && getEngineFuelFlow(4) < 1.0) {
-                return "AT GATE";
+            case BOARDING -> {
+                if (isEngineRunning()) {
+                    yield Phase.DEPARTING;
+                } else {
+                    yield this.phase;
+                }
             }
+            case DEPARTING -> {
+                if (isOnGround()) {
+                    yield this.phase;
+                } else {
+                    yield Phase.CRUISING;
+                }
+            }
+            case CRUISING -> {
+                if (isOnGround()) {
+                    yield Phase.LANDED;
+                } else {
+                    yield this.phase;
+                }
+            }
+            case LANDED -> {
+                if (isEngineRunning()) {
+                    yield this.phase;
+                } else {
+                    yield Phase.ARRIVED;
+                }
+            }
+            case ARRIVED -> this.phase;
+        };
+    }
 
-            var depLat = dep.get().getLatitude();
-            var depLon = dep.get().getLongitude();
-            var lat = getLatitude();
-            var lon = getLongitude();
-            var distance = Length.KILOMETER.getDistance(depLat, depLon, lat, lon);
-            return (distance < 30.0) ? "DEPARTING" : "ARRIVED";
-        }
-
-        // 0 = Flaps up, 1 = Flaps full
-        // float flaps = (flapsHandle.getValue() / 16383f);
-        // boolean gearDown = (gearHandle.getValue() == 16383);
-        int vs = getVerticalSpeed(Speed.FEET_PER_MIN);
-
-        if (getFlapRatio() > 0.2f && vs < 100) {
-            return isGearDown() ? "LANDING" : "APPROACHING";
-        }
-
-        if (vs > 300) {
-            return "CLIMBING";
-        } else if (vs < -300) {
-            return "DESCENDING";
-        } else {
-            return "EN ROUTE";
-        }
+    public boolean isEngineRunning() {
+        return getEngineFuelFlow(1) > 1.0
+                || getEngineFuelFlow(2) > 1.0
+                || getEngineFuelFlow(3) > 1.0
+                || getEngineFuelFlow(4) > 1.0;
     }
 
     public abstract void hook();

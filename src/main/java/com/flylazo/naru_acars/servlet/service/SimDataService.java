@@ -29,8 +29,6 @@ public class SimDataService {
     private final AirportRepository airportService;
     private final AirlineRepository airlineRepo;
     private final SimTracker simTracker;
-    private int phaseSkipCounter = 0;
-    private String lastPhase = null;
 
     public SimDataService(AirportRepository airportService, AirlineRepository airlineRepo, SimTracker simTracker) {
         this.airportService = airportService;
@@ -119,25 +117,11 @@ public class SimDataService {
         data.put(ENGINE2_FUEL_FLOW, simBridge.getEngineFuelFlow(2));
         data.put(ENGINE3_FUEL_FLOW, simBridge.getEngineFuelFlow(3));
         data.put(ENGINE4_FUEL_FLOW, simBridge.getEngineFuelFlow(4));
+        data.put(DOOR_OPEN, simBridge.isDoorOpen());
         data.put(CALLSIGN, (plan != null) ? plan.getCallsign() : null);
-        data.put(PHASE, isOnline ? getFlightPhase() : null);
+        data.put(PHASE, simBridge.getFlightPhase());
 
         notifyListeners();
-    }
-
-    private String getFlightPhase() {
-        String phase;
-
-        if (--phaseSkipCounter >= 0) {
-            phase = lastPhase;
-        } else {
-            double heavyRefreshRate = 5000;
-            int refreshRate = simTracker.getRefreshRate();
-            phaseSkipCounter = (int) Math.ceil(heavyRefreshRate / refreshRate);
-            phase = simTracker.getBridge().getFlightPhase();
-            lastPhase = phase;
-        }
-        return phase;
     }
 
     private void notifyListeners() {

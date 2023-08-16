@@ -204,13 +204,13 @@ public class Dispatcher extends PanelBase {
         this.actionBtn.setEnabled(false);
         this.sendActionMessage("Loading...", Color.black);
 
-        try {
-            this.acarsService.fetchBooking(this::getBookingResponse, this::handleBookingError);
-        } catch (IllegalStateException e) {
-            this.importBtn.setEnabled(true);
-            this.actionBtn.setEnabled(true);
-            this.window.showDialog(ERROR_MESSAGE, "ACARS is offline.");
+        if (!this.acarsService.isConnected()) {
+            this.window.showDialog(WARNING_MESSAGE, "ACARS is offline.");
+            return;
         }
+
+        var context = this.acarsService.getContext();
+        this.acarsService.fetchBooking(context, this::getBookingResponse, this::handleBookingError);
     }
 
     private void openImportPrompt() {

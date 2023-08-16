@@ -45,6 +45,7 @@ public class FSUIPC_Bridge extends SimBridge implements IFSUIPCListener {
     private final DoubleRequest pistonEng2FF;
     private final DoubleRequest pistonEng3FF;
     private final DoubleRequest pistonEng4FF;
+    private final IntRequest door;
 
     @SuppressWarnings("unchecked")
     public FSUIPC_Bridge(SimTracker tracker, AirportRepository airportRepository) {
@@ -70,6 +71,7 @@ public class FSUIPC_Bridge extends SimBridge implements IFSUIPCListener {
         onGround = fsuipc.addContinualRequest(aircraft.getOnGround());
         flapsHandle = fsuipc.addContinualRequest(new IntRequest(0x0BDC));
         gearHandle = fsuipc.addContinualRequest(new GearHelper().getControlLever());
+        door = (IntRequest) fsuipc.addContinualRequest(new IntRequest(0x3367));
         pistonEng1FF = (DoubleRequest) fsuipc.addContinualRequest(new DoubleRequest(0x0918));
         pistonEng2FF = (DoubleRequest) fsuipc.addContinualRequest(new DoubleRequest(0x09B0));
         pistonEng3FF = (DoubleRequest) fsuipc.addContinualRequest(new DoubleRequest(0x0A48));
@@ -126,7 +128,6 @@ public class FSUIPC_Bridge extends SimBridge implements IFSUIPCListener {
 
     @Override
     public boolean isDoorOpen() {
-        // todo needs to be verified
         return door.getValue() > 0;
     }
 
