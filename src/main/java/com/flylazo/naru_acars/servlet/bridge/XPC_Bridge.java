@@ -97,16 +97,14 @@ public class XPC_Bridge extends SimBridge {
 
     @Override
     public void release() {
-        if (discoverTask != null) {
-            stopDiscovering();
-        }
-        if (fetchTask != null) {
-            stopFetching();
-        }
+        stopDiscovering();
 
-        isConnected = false;
-        listener.onDisconnected();
-        logger.info("Disconnected from XPlaneConnect.");
+        if (isConnected) {
+            isConnected = false;
+            stopFetching();
+            listener.onDisconnected();
+            logger.info("Disconnected from XPlaneConnect.");
+        }
     }
 
     @Override
@@ -212,14 +210,14 @@ public class XPC_Bridge extends SimBridge {
     }
 
     private void stopDiscovering() {
+        if (discoverTask == null) return;
+
         discoverTask.cancel(true);
         discoverTask = null;
     }
 
     private void startFetching() {
-        if (fetchTask != null) {
-            stopFetching();
-        }
+        stopFetching();
 
         fetchTask = fetchService.scheduleAtFixedRate(() -> {
             try (XPlaneConnect connect = getConnection()) {
@@ -263,6 +261,8 @@ public class XPC_Bridge extends SimBridge {
     }
 
     private void stopFetching() {
+        if (fetchTask == null) return;
+
         fetchTask.cancel(true);
         fetchTask = null;
     }
