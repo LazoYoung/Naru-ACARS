@@ -125,6 +125,12 @@ public class FSUIPC_Bridge extends SimBridge implements IFSUIPCListener {
     }
 
     @Override
+    public boolean isDoorOpen() {
+        // todo needs to be verified
+        return door.getValue() > 0;
+    }
+
+    @Override
     public float getFlapRatio() {
         return flapsHandle.getValue() / 16383f;
     }

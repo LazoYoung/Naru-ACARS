@@ -94,6 +94,8 @@ public abstract class SimBridge {
 
     public abstract boolean isGearDown();
 
+    public abstract boolean isDoorOpen();
+
     public abstract float getFlapRatio();
 
     public abstract int getAltitude(Length unit);

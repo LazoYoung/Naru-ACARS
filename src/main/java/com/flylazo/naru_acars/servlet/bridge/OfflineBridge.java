@@ -38,6 +38,11 @@ public class OfflineBridge extends SimBridge {
     }
 
     @Override
+    public boolean isDoorOpen() {
+        return false;
+    }
+
+    @Override
     public float getFlapRatio() {
         return 0;
     }

@@ -33,6 +33,7 @@ public class XPC_Bridge extends SimBridge {
         FLAP_RATIO(11, "sim/cockpit2/controls/flap_handle_request_ratio", 12, "sim/cockpit2/controls/flap_ratio"),
         GEAR(12, "sim/cockpit/switches/gear_handle_status"),
         ON_GROUND(13, "sim/flightmodel2/gear/on_ground"),
+        DOOR_OPEN(14, "sim/cockpit2/annunciators/cabin_door_open"),
         ;
 
         private final int index;
@@ -121,6 +122,11 @@ public class XPC_Bridge extends SimBridge {
     @Override
     public boolean isGearDown() {
         return getBoolean(DataRef.GEAR);
+    }
+
+    @Override
+    public boolean isDoorOpen() {
+        return getBoolean(DataRef.DOOR_OPEN);
     }
 
     @Override

@@ -52,8 +52,9 @@ public class Simvar {
         ENGINE2_FUEL_FLOW,
         ENGINE3_FUEL_FLOW,
         ENGINE4_FUEL_FLOW,
+        DOOR_OPEN,
         CALLSIGN,
-        PHASE
+        PHASE,
     }
 
     private String prefix;
