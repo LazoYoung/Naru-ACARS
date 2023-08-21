@@ -12,7 +12,6 @@ import java.time.Instant;
 @JsonDeserialize(using = BookingResponseDeserializer.class)
 public class BookingResponse extends Response {
     private FlightPlan flightPlan;
-    private Instant departTime;
 
     public static BookingResponse deserialize(String json) throws JsonProcessingException {
         return new ObjectMapper().readValue(json, BookingResponse.class);
@@ -28,13 +27,5 @@ public class BookingResponse extends Response {
 
     public void setFlightPlan(FlightPlan flightPlan) {
         this.flightPlan = flightPlan;
-    }
-
-    public Instant getDepartTime() {
-        return departTime;
-    }
-
-    public void setDepartTime(Instant departTime) {
-        this.departTime = departTime;
     }
 }
