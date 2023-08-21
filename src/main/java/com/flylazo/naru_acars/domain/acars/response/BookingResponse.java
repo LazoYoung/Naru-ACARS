@@ -7,8 +7,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.flylazo.naru_acars.domain.FlightPlan;
 import com.flylazo.naru_acars.domain.acars.response.deserializer.BookingResponseDeserializer;
 
-import java.time.Instant;
-
 @JsonDeserialize(using = BookingResponseDeserializer.class)
 public class BookingResponse extends Response {
     private FlightPlan flightPlan;
