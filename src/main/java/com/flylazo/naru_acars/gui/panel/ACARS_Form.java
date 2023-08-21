@@ -18,6 +18,7 @@ import com.flylazo.naru_acars.servlet.socket.SocketError;
 
 import javax.swing.*;
 import java.awt.*;
+import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -185,8 +186,16 @@ public class ACARS_Form extends PanelBase {
     }
 
     private void handleStartError(ErrorResponse response) {
+        if (response.getStatus() == Status.BEFORE_FLIGHT) {
+            int epochStart = Integer.parseInt(response.getResponse());
+            long min = (epochStart - Instant.now().getEpochSecond()) / 60;
+            var message = String.format("The flight starts in %d minutes.", min);
+            this.window.showDialog(WARNING_MESSAGE, message);
+        } else {
+            this.logger.log(Level.SEVERE, response.getResponse());
+        }
+
         this.service.disconnect();
-        this.logger.log(Level.SEVERE, response.getResponse());
     }
 
     private void onClose() {
