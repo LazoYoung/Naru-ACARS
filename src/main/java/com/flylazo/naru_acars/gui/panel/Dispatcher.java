@@ -205,6 +205,8 @@ public class Dispatcher extends PanelBase {
         this.sendActionMessage("Loading...", Color.black);
 
         if (!this.acarsService.isConnected()) {
+            this.importBtn.setEnabled(true);
+            this.actionBtn.setEnabled(true);
             this.window.showDialog(WARNING_MESSAGE, "ACARS is offline.");
             return;
         }
