@@ -28,3 +28,10 @@ This application is proudly powered by these amazing works...!
 - [XPlaneConnect](https://github.com/nasa/XPlaneConnect) by NASA
 - Airline database from [openflights.org](https://github.com/jpatokal/openflights/blob/master/data/LICENSE)
 - Airport database by [David Megginson](https://github.com/davidmegginson/ourairports-data)
+
+## Packaging
+### For Windows
+WiX Toolset is required for this to work.
+```
+jpackage --input target --name Naru-ACARS --app-version 1.1 --icon Naru-ACARS.ico --main-jar Naru-ACARS.jar --type msi --win-dir-chooser --win-shortcut --win-per-user-install
+```
