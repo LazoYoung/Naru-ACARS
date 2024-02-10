@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flylazo.naru_acars.NaruACARS;
 import com.flylazo.naru_acars.domain.FlightPlan;
 import com.flylazo.naru_acars.domain.Properties;
+import com.flylazo.naru_acars.domain.acars.VirtualAirline;
 import com.flylazo.naru_acars.domain.acars.response.BookingResponse;
 import com.flylazo.naru_acars.domain.acars.response.ErrorResponse;
 import com.flylazo.naru_acars.gui.Window;
@@ -204,15 +205,28 @@ public class Dispatcher extends PanelBase {
         this.actionBtn.setEnabled(false);
         this.sendActionMessage("Loading...", Color.black);
 
-        if (!this.acarsService.isConnected()) {
-            this.importBtn.setEnabled(true);
-            this.actionBtn.setEnabled(true);
-            this.window.showDialog(WARNING_MESSAGE, "ACARS is offline.");
-            return;
+        if (this.acarsService.isConnected()) {
+            var context = this.acarsService.getContext();
+            this.acarsService.fetchBooking(context, this::getBookingResponse, r -> this.handleBookingError(r.getResponse()));
+        } else {
+            final var props = Properties.read();
+            final var server = VirtualAirline.getById(props.getVirtualAirline());
+            var key = props.getAcarsAPI();
+
+            if (key == null) {
+                key = JOptionPane.showInputDialog("Please specify your ACARS API.");
+            }
+
+            this.acarsService.getConnector(server)
+                    .withAPIKey(key)
+                    .whenError(error -> this.handleBookingError(error.message))
+                    .whenSuccess(context -> {
+                        this.importBooking();
+                        context.terminate();
+                    })
+                    .connect();
         }
 
-        var context = this.acarsService.getContext();
-        this.acarsService.fetchBooking(context, this::getBookingResponse, this::handleBookingError);
     }
 
     private void openImportPrompt() {
@@ -263,8 +277,8 @@ public class Dispatcher extends PanelBase {
         });
     }
 
-    private void handleBookingError(ErrorResponse response) {
-        this.window.showDialog(ERROR_MESSAGE, response.toString());
+    private void handleBookingError(String message) {
+        this.window.showDialog(ERROR_MESSAGE, message);
         this.importBtn.setEnabled(true);
         this.actionBtn.setEnabled(true);
         this.clearActionMessage();

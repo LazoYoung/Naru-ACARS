@@ -2,6 +2,7 @@ package com.flylazo.naru_acars.gui.panel;
 
 import com.flylazo.naru_acars.NaruACARS;
 import com.flylazo.naru_acars.domain.FlightPlan;
+import com.flylazo.naru_acars.domain.Properties;
 import com.flylazo.naru_acars.domain.acars.ServiceType;
 import com.flylazo.naru_acars.domain.acars.VirtualAirline;
 import com.flylazo.naru_acars.domain.acars.response.BookingResponse;
@@ -45,8 +46,10 @@ public class ACARS_Form extends PanelBase {
         var vaLabel = window.bakeLabel("Virtual airline", boldFont, Color.black);
         var apiLabel = window.bakeLabel("API key", boldFont, Color.black);
         var btnFont = new Font("Ubuntu Medium", Font.PLAIN, 15);
+        var apiKey = Properties.read().getAcarsAPI();
         this.logger = NaruACARS.logger;
         this.apiInput = new TextInput("Paste the key of your VA account", 20, false);
+        this.apiInput.setText(apiKey);
         this.serverCombo = new JComboBox<>(VirtualAirline.values());
         this.service = window.getServiceFactory().getBean(ACARS_Service.class);
         this.charterCheckbox = new JCheckBox("Charter flight", false);
@@ -148,6 +151,12 @@ public class ACARS_Form extends PanelBase {
         } else {
             this.service.fetchBooking(context, r -> this.getBookingResponse(context, r), this::handleBookingError);
         }
+
+        final var props = Properties.read();
+        final var server = (VirtualAirline) this.serverCombo.getSelectedItem();
+        props.setAcarsAPI(this.apiInput.getText());
+        props.setVirtualAirline(server != null ? server.getId() : 0);
+        props.save();
     }
 
     private void getBookingResponse(SocketContext context, BookingResponse response) {
@@ -160,7 +169,7 @@ public class ACARS_Form extends PanelBase {
             SwingUtilities.invokeLater(() -> {
                 String title = "Flightplan mismatch";
                 String message = "Would you like to import the flightplan?";
-                int option = JOptionPane.showConfirmDialog(this.window, message, title, YES_NO_OPTION);
+                int option = showConfirmDialog(this.window, message, title, YES_NO_OPTION);
 
                 if (option == YES_OPTION) {
                     FlightPlan.submit(plan);
@@ -204,13 +213,7 @@ public class ACARS_Form extends PanelBase {
     }
 
     private void alertError(SocketError error) {
-        String message = switch (error) {
-            case OFFLINE -> "Server is offline!";
-            case API_KEY_IN_USE -> "API key is in use!";
-            case API_KEY_INVALID -> "API key is invalid!";
-            case FATAL_ERROR -> "Fatal error!";
-        };
-        this.window.showDialog(ERROR_MESSAGE, message);
+        this.window.showDialog(ERROR_MESSAGE, error.message);
     }
 
 }

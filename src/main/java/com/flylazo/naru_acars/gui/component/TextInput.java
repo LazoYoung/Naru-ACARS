@@ -62,7 +62,14 @@ public class TextInput extends JTextField implements FocusListener {
             isHint = false;
             setForeground(Color.black);
         }
-        super.setText(t);
+
+        if (hint != null && (t == null || t.isBlank())) {
+            isHint = true;
+            setForeground(Color.gray);
+            super.setText(hint);
+        } else {
+            super.setText(t);
+        }
     }
 
     @Override

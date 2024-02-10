@@ -101,7 +101,7 @@ public class Window extends JFrame {
     }
 
     /**
-     * @param type Magic value: JOptionPane.XXX_MESSAGE
+     * @param type    Magic value: JOptionPane.XXX_MESSAGE
      * @param message Message to display
      */
     public void showDialog(int type, String message) {
@@ -198,7 +198,7 @@ public class Window extends JFrame {
     private void setDefaultFont(FontUIResource font) {
         var defaults = UIManager.getDefaults();
 
-        for (var keys = defaults.keys(); keys.hasMoreElements();) {
+        for (var keys = defaults.keys(); keys.hasMoreElements(); ) {
             Object key = keys.nextElement();
             Object value = defaults.get(key);
 

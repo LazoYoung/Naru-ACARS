@@ -1,8 +1,15 @@
 package com.flylazo.naru_acars.servlet.socket;
 
 public enum SocketError {
-    OFFLINE,
-    API_KEY_IN_USE,
-    API_KEY_INVALID,
-    FATAL_ERROR
+    OFFLINE("Server is offline!"),
+    API_KEY_IN_USE("API key is in use!"),
+    API_KEY_INVALID("API key is invalid!"),
+    FATAL_ERROR("Fatal error!"),
+    ;
+
+    public final String message;
+
+    SocketError(String message) {
+        this.message = message;
+    }
 }

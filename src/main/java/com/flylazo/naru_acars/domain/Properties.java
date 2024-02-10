@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flylazo.naru_acars.NaruACARS;
+import com.flylazo.naru_acars.domain.acars.VirtualAirline;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +20,7 @@ public class Properties {
     private String simbriefId = "";
     private String overlay = null;
     private String acarsAPI = null;
+    private int virtualAirline = VirtualAirline.LOCAL.getId();
 
     static {
         try {
@@ -73,6 +75,11 @@ public class Properties {
         return acarsAPI;
     }
 
+    @JsonGetter("virtual-airline")
+    public int getVirtualAirline() {
+        return virtualAirline;
+    }
+
     @JsonSetter("port")
     public void setPort(int port) {
         if (port < 0 || port > 65535) {
@@ -94,5 +101,10 @@ public class Properties {
     @JsonSetter("acars-api")
     public void setAcarsAPI(String key) {
         this.acarsAPI = key;
+    }
+
+    @JsonSetter("virtual-airline")
+    public void setVirtualAirline(int id) {
+        this.virtualAirline = id;
     }
 }

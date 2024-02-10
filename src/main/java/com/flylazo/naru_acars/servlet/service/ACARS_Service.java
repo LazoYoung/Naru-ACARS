@@ -79,8 +79,8 @@ public class ACARS_Service {
     /**
      * Fetch booking data from VA server
      *
-     * @param callback     takes {@link BookingResponse} as a successful result
-     * @param errorHandler takes {@link ErrorResponse} to handle any exceptions that may arise
+     * @param callback     takes {@link BookingResponse} as a callback upon successful response
+     * @param errorHandler takes {@link ErrorResponse} as a callback to handle any exception that may arise
      */
     public void fetchBooking(SocketContext context, Consumer<BookingResponse> callback, Consumer<ErrorResponse> errorHandler) {
         var message = new SocketMessage<BookingResponse>(context);
