@@ -55,7 +55,7 @@ public class ACARS_Service {
     }
 
     @Nullable
-    public ServiceType getServiceName() {
+    public ServiceType getServiceType() {
         return this.serviceType;
     }
 
@@ -104,19 +104,26 @@ public class ACARS_Service {
         var request = new Request()
                 .withIntent("start")
                 .withBulk(new StartBulk(flightPlan, scheduled));
+        this.serviceType = serviceType;
 
         try {
             message.whenSuccess(response -> {
-                        this.serviceType = serviceType;
-                        this.getListener().notifyEstablish();
-                        this.startBeacon();
+                        startTracking();
                         callback.accept(response);
                     })
-                    .whenError(errorHandler)
+                    .whenError(r -> {
+                        errorHandler.accept(r);
+                        this.serviceType = null;
+                    })
                     .send(request);
         } catch (JsonProcessingException e) {
             this.logger.log(Level.SEVERE, "Socket error!", e);
         }
+    }
+
+    public void startTracking() {
+        this.getListener().notifyEstablish();
+        this.startBeacon();
     }
 
     public void reportPhase(SocketContext context, Phase phase) {

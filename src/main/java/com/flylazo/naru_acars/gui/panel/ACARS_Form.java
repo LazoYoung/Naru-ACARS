@@ -5,7 +5,6 @@ import com.flylazo.naru_acars.domain.FlightPlan;
 import com.flylazo.naru_acars.domain.Properties;
 import com.flylazo.naru_acars.domain.acars.ServiceType;
 import com.flylazo.naru_acars.domain.acars.VirtualAirline;
-import com.flylazo.naru_acars.domain.acars.response.BookingResponse;
 import com.flylazo.naru_acars.domain.acars.response.ErrorResponse;
 import com.flylazo.naru_acars.domain.acars.response.Response;
 import com.flylazo.naru_acars.domain.acars.response.Status;
@@ -149,7 +148,7 @@ public class ACARS_Form extends PanelBase {
         if (this.charterCheckbox.isSelected()) {
             this.service.startFlight(context, ServiceType.CHARTER, this::getStartResponse, this::handleStartError);
         } else {
-            this.service.fetchBooking(context, r -> this.getBookingResponse(context, r), this::handleBookingError);
+            this.startScheduledFlight(context);
         }
 
         final var props = Properties.read();
@@ -159,26 +158,28 @@ public class ACARS_Form extends PanelBase {
         props.save();
     }
 
-    private void getBookingResponse(SocketContext context, BookingResponse response) {
-        FlightPlan plan = response.getFlightPlan();
-        plan.markAsBooked();
+    private void startScheduledFlight(SocketContext context) {
+        this.service.fetchBooking(context, response -> {
+            final var plan = response.getFlightPlan();
+            plan.markAsBooked();
 
-        if (FlightPlan.getDispatched().isBooked()) {
-            this.service.startFlight(context, ServiceType.SCHEDULE, this::getStartResponse, this::handleStartError);
-        } else {
-            SwingUtilities.invokeLater(() -> {
-                String title = "Flightplan mismatch";
-                String message = "Would you like to import the flightplan?";
-                int option = showConfirmDialog(this.window, message, title, YES_NO_OPTION);
+            if (FlightPlan.getDispatched().isBooked()) {
+                this.service.startFlight(context, ServiceType.SCHEDULE, this::getStartResponse, this::handleStartError);
+            } else {
+                SwingUtilities.invokeLater(() -> {
+                    String title = "Flightplan mismatch";
+                    String message = "Would you like to import the flightplan?";
+                    int option = showConfirmDialog(this.window, message, title, YES_NO_OPTION);
 
-                if (option == YES_OPTION) {
-                    FlightPlan.submit(plan);
-                    this.service.startFlight(context, ServiceType.SCHEDULE, this::getStartResponse, this::handleStartError);
-                } else {
-                    this.service.disconnect();
-                }
-            });
-        }
+                    if (option == YES_OPTION) {
+                        FlightPlan.submit(plan);
+                        this.service.startFlight(context, ServiceType.SCHEDULE, this::getStartResponse, this::handleStartError);
+                    } else {
+                        this.service.disconnect();
+                    }
+                });
+            }
+        }, this::handleBookingError);
     }
 
     private void handleBookingError(ErrorResponse response) {
@@ -195,16 +196,28 @@ public class ACARS_Form extends PanelBase {
     }
 
     private void handleStartError(ErrorResponse response) {
-        if (response.getStatus() == Status.BEFORE_FLIGHT) {
+        final var status = response.getStatus();
+
+        if (status == Status.BEFORE_FLIGHT) {
             int epochStart = Integer.parseInt(response.getResponse());
             long min = (epochStart - Instant.now().getEpochSecond()) / 60;
             var message = String.format("The flight starts in %d minutes.", min);
             this.window.showDialog(WARNING_MESSAGE, message);
+            this.service.disconnect();
+        } else if (status == Status.BAD_STATE) {
+            final var message = "Would you like to resume flight?";
+            final var title = "ACARS message";
+            final int choice = JOptionPane.showConfirmDialog(this.window, message, title, YES_NO_OPTION);
+
+            if (choice == NO_OPTION) {
+                this.service.disconnect();
+            } else {
+                this.service.startTracking();
+            }
         } else {
             this.logger.log(Level.SEVERE, response.getResponse());
+            this.service.disconnect();
         }
-
-        this.service.disconnect();
     }
 
     private void onClose() {

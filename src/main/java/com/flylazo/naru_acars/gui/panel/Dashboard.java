@@ -106,7 +106,7 @@ public class Dashboard extends PanelBase {
 
     private void onSocketEstablish() {
         final var server = this.acarsService.getServerName();
-        final var service = this.acarsService.getServiceName();
+        final var service = this.acarsService.getServiceType();
         final var phase = this.simTracker.getBridge().getFlightPhase();
 
         SwingUtilities.invokeLater(() -> {
