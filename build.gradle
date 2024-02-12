@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.flylazo.naru_acars'
-version = '1.1'
+version = '1.1.1'
 sourceCompatibility = '17'
 targetCompatibility = '17'
 var fsuipc = 'lib/FSUIPC-1.0.2.jar'
@@ -64,4 +64,12 @@ launch4j {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+processResources {
+	filesMatching(['**/*.properties']) {
+		filter {
+			it.replace('%VERSION%', version)
+		}
+	}
 }

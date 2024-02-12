@@ -33,5 +33,5 @@ This application is proudly powered by these amazing works...!
 ### For Windows
 WiX Toolset is required for this to work.
 ```
-jpackage --input target --name Naru-ACARS --app-version 1.1 --icon Naru-ACARS.ico --main-jar Naru-ACARS.jar --type msi --win-dir-chooser --win-shortcut --win-per-user-install
+jpackage --input target --name Naru-ACARS --app-version %VERSION% --icon Naru-ACARS.ico --main-jar Naru-ACARS.jar --type msi --win-dir-chooser --win-shortcut --win-per-user-install
 ```

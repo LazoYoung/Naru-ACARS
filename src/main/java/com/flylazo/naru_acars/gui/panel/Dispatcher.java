@@ -7,7 +7,6 @@ import com.flylazo.naru_acars.domain.FlightPlan;
 import com.flylazo.naru_acars.domain.Properties;
 import com.flylazo.naru_acars.domain.acars.VirtualAirline;
 import com.flylazo.naru_acars.domain.acars.response.BookingResponse;
-import com.flylazo.naru_acars.domain.acars.response.ErrorResponse;
 import com.flylazo.naru_acars.gui.Window;
 import com.flylazo.naru_acars.gui.component.FlightInput;
 import com.flylazo.naru_acars.gui.component.Header;
@@ -33,7 +32,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static javax.swing.JOptionPane.*;
-import static javax.swing.JOptionPane.ERROR_MESSAGE;
 import static javax.swing.LayoutStyle.ComponentPlacement.UNRELATED;
 
 public class Dispatcher extends PanelBase {

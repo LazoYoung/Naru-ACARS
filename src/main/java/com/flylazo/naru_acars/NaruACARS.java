@@ -33,9 +33,10 @@ import static javax.swing.JOptionPane.*;
 @SpringBootApplication
 public class NaruACARS {
 	public static final Logger logger = Logger.getLogger(NaruACARS.class.getName());
-	private static final String hostAddress = "localhost";
-	private static final String portKey = "server.port";
-	private static final String directory = "NaruACARS";
+	private static final String PORT_KEY = "server.port";
+	private static final String DIRECTORY = "NaruACARS";
+	private static final String PROPERTY_FILE = "app.properties";
+	private static String hostAddress = "localhost";
 	private static Window window;
 	private static ConfigurableApplicationContext context = null;
 
@@ -51,9 +52,9 @@ public class NaruACARS {
 			System.exit(1);
 		}
 
-		System.setProperty(portKey, String.valueOf(port));
+		System.setProperty(PORT_KEY, String.valueOf(port));
 		props.put("server.address", hostAddress);
-		props.put(portKey, port);
+		props.put(PORT_KEY, port);
 		context = builder.properties(props)
 				.headless(false)
 				.run(args);
@@ -99,13 +100,13 @@ public class NaruACARS {
 	}
 
 	public static int getSystemPort() {
-		return Optional.ofNullable(System.getProperty(portKey))
+		return Optional.ofNullable(System.getProperty(PORT_KEY))
 				.map(Integer::parseInt)
 				.orElse(8080);
 	}
 
 	public static Path getDirectory() {
-		var path = Path.of(System.getProperty("user.dir")).resolve(directory);
+		var path = Path.of(System.getProperty("user.dir")).resolve(DIRECTORY);
 		var file = path.toFile();
 
 		if (!file.isDirectory()) {
@@ -124,6 +125,13 @@ public class NaruACARS {
 		}
 
 		return context.getBeanFactory();
+	}
+
+	public static java.util.Properties getProperties() throws IOException {
+		var resource = new ClassPathResource(PROPERTY_FILE);
+		var properties = new java.util.Properties();
+		properties.load(resource.getInputStream());
+		return properties;
 	}
 
 	private static void loadLibraries() {

@@ -86,10 +86,21 @@ public class Window extends JFrame {
         setResizable(false);
         setPreferredSize(new Dimension(800, 500));
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        setTitle("Naru ACARS");
+        setTitle(getWindowTitle());
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+
+    private String getWindowTitle() {
+        final var title = "Naru-ACARS";
+
+        try {
+            String version = NaruACARS.getProperties().getProperty("version");
+            return title + "  v" + version;
+        } catch (IOException e) {
+            return title;
+        }
     }
 
     public void selectPage(Class<?> clazz) {
