@@ -142,53 +142,16 @@ public class ACARS_Form extends PanelBase {
     }
 
     private void onConnected(SocketContext context) {
-        this.connectBtn.setText("Disconnect");
-        super.setButtonListener(this.connectBtn, this::disconnectServer);
-
-        if (this.charterCheckbox.isSelected()) {
-            this.service.startFlight(context, ServiceType.CHARTER, this::getStartResponse, this::handleStartError);
-        } else {
-            this.startScheduledFlight(context);
-        }
-
+        final var service = this.charterCheckbox.isSelected() ? ServiceType.CHARTER : ServiceType.SCHEDULE;
         final var props = Properties.read();
         final var server = (VirtualAirline) this.serverCombo.getSelectedItem();
+
+        this.service.startFlight(service, this::getStartResponse, this::handleStartError);
+        this.connectBtn.setText("Disconnect");
+        super.setButtonListener(this.connectBtn, this::disconnectServer);
         props.setAcarsAPI(this.apiInput.getText());
         props.setVirtualAirline(server != null ? server.getId() : 0);
         props.save();
-    }
-
-    private void startScheduledFlight(SocketContext context) {
-        this.service.fetchBooking(context, response -> {
-            final var plan = response.getFlightPlan();
-            plan.markAsBooked();
-
-            if (FlightPlan.getDispatched().isBooked()) {
-                this.service.startFlight(context, ServiceType.SCHEDULE, this::getStartResponse, this::handleStartError);
-            } else {
-                SwingUtilities.invokeLater(() -> {
-                    String title = "Flightplan mismatch";
-                    String message = "Would you like to import the flightplan?";
-                    int option = showConfirmDialog(this.window, message, title, YES_NO_OPTION);
-
-                    if (option == YES_OPTION) {
-                        FlightPlan.submit(plan);
-                        this.service.startFlight(context, ServiceType.SCHEDULE, this::getStartResponse, this::handleStartError);
-                    } else {
-                        this.service.disconnect();
-                    }
-                });
-            }
-        }, this::handleBookingError);
-    }
-
-    private void handleBookingError(ErrorResponse response) {
-        if (response.getStatus() == Status.NOT_FOUND) {
-            this.service.disconnect();
-            this.window.showDialog(WARNING_MESSAGE, "Booking schedule not found!");
-        } else {
-            this.logger.log(Level.SEVERE, response.getResponse());
-        }
     }
 
     private void getStartResponse(Response response) {
@@ -205,12 +168,15 @@ public class ACARS_Form extends PanelBase {
             this.window.showDialog(WARNING_MESSAGE, message);
             this.service.disconnect();
         } else if (status == Status.BAD_STATE) {
-            final var message = "Would you like to resume flight?";
+            final boolean isCharter = this.service.getServiceType() == ServiceType.CHARTER;
+            final var message = isCharter ? "Would you like to restart flight?" : "Would you like to resume flight?";
             final var title = "ACARS message";
             final int choice = JOptionPane.showConfirmDialog(this.window, message, title, YES_NO_OPTION);
 
             if (choice == NO_OPTION) {
                 this.service.disconnect();
+            } else if (isCharter) {
+                this.restartFlight();
             } else {
                 this.service.startTracking();
             }
@@ -218,6 +184,16 @@ public class ACARS_Form extends PanelBase {
             this.logger.log(Level.SEVERE, response.getResponse());
             this.service.disconnect();
         }
+    }
+
+    private void restartFlight() {
+        final var service = this.service.getServiceType();
+
+        this.service.cancelFlight(response -> {
+            this.service.startFlight(service, this::getStartResponse, this::handleStartError);
+        }, error -> {
+            this.window.showDialog(ERROR_MESSAGE, error.getResponse());
+        });
     }
 
     private void onClose() {

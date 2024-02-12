@@ -206,8 +206,7 @@ public class Dispatcher extends PanelBase {
         this.sendActionMessage("Loading...", Color.black);
 
         if (this.acarsService.isConnected()) {
-            var context = this.acarsService.getContext();
-            this.acarsService.fetchBooking(context, this::getBookingResponse, r -> this.handleBookingError(r.getResponse()));
+            this.acarsService.fetchBooking(this::getBookingResponse, r -> this.handleBookingError(r.getResponse()));
         } else {
             final var props = Properties.read();
             final var server = VirtualAirline.getById(props.getVirtualAirline());

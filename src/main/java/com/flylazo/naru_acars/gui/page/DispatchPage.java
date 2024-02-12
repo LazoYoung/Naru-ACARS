@@ -12,8 +12,6 @@ public class DispatchPage extends JSplitPane {
 
         var simulatorBoard = new Dashboard(window, 20);
         var dispatcher = new Dispatcher(window, 20);
-        // todo place the panel elsewhere
-//        var simvarMonitor = new SimvarMonitor(window);
 
         setLeftComponent(simulatorBoard);
         setRightComponent(dispatcher);

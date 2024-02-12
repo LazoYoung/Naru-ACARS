@@ -24,7 +24,7 @@ public class ErrorResponse extends Response {
     }
 
     public String getResponse() {
-        return response;
+        return this.toString();
     }
 
     public void setResponse(String response) {

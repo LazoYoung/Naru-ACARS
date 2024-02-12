@@ -24,6 +24,7 @@ import com.flylazo.naru_acars.servlet.socket.SocketMessage;
 import jakarta.annotation.Nullable;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -69,7 +70,7 @@ public class ACARS_Service {
     }
 
     public SocketContext getContext() {
-        return context;
+        return this.context;
     }
 
     public SocketListener getListener() {
@@ -82,8 +83,8 @@ public class ACARS_Service {
      * @param callback     takes {@link BookingResponse} as a callback upon successful response
      * @param errorHandler takes {@link ErrorResponse} as a callback to handle any exception that may arise
      */
-    public void fetchBooking(SocketContext context, Consumer<BookingResponse> callback, Consumer<ErrorResponse> errorHandler) {
-        var message = new SocketMessage<BookingResponse>(context);
+    public void fetchBooking(Consumer<BookingResponse> callback, Consumer<ErrorResponse> errorHandler) {
+        var message = new SocketMessage<BookingResponse>(this.context);
         var request = new Request()
                 .withIntent("fetch")
                 .withBulk(new FetchBulk("booking"));
@@ -97,9 +98,9 @@ public class ACARS_Service {
         }
     }
 
-    public void startFlight(SocketContext context, ServiceType serviceType, Consumer<Response> callback, Consumer<ErrorResponse> errorHandler) {
-        boolean scheduled = serviceType.equals(ServiceType.SCHEDULE);
-        var message = new SocketMessage<>(context);
+    public void startFlight(ServiceType serviceType, Consumer<Response> callback, Consumer<ErrorResponse> errorHandler) {
+        boolean scheduled = Objects.equals(serviceType, ServiceType.SCHEDULE);
+        var message = new SocketMessage<>(this.context);
         var flightPlan = FlightPlan.getDispatched();
         var request = new Request()
                 .withIntent("start")
@@ -108,13 +109,29 @@ public class ACARS_Service {
 
         try {
             message.whenSuccess(response -> {
-                        startTracking();
+                        this.startTracking();
                         callback.accept(response);
                     })
                     .whenError(r -> {
                         errorHandler.accept(r);
                         this.serviceType = null;
                     })
+                    .send(request);
+        } catch (JsonProcessingException e) {
+            this.logger.log(Level.SEVERE, "Socket error!", e);
+        }
+    }
+
+    public void cancelFlight(Consumer<Response> callback, Consumer<ErrorResponse> errorHandler) {
+        var message = new SocketMessage<>(this.context);
+        var request = new Request().withIntent("cancel");
+
+        try {
+            message.whenSuccess(response -> {
+                        this.stopBeacon();
+                        callback.accept(response);
+                    })
+                    .whenError(errorHandler)
                     .send(request);
         } catch (JsonProcessingException e) {
             this.logger.log(Level.SEVERE, "Socket error!", e);
